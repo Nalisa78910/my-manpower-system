@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ลงทะเบียนพนักงานใหม่</title>
+    
+    <!-- เรียกใช้ Firebase (เพิ่ม Storage เข้ามาสำหรับเก็บรูป) -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-storage-compat.js"></script>
+
+    <!-- เรียกใช้ Library บีบอัดรูปภาพ (เบาและทำงานบนมือถือได้ดี) -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; font-size: 14px; }
+        input[type="text"], input[type="tel"], select { 
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; 
+            /* font-size 16px ป้องกันมือถือไอโฟนซูมหน้าจออัตโนมัติเวลาพิมพ์ */
+        }
+        
+        .photo-upload { text-align: center; margin-bottom: 20px; border: 2px dashed #3498db; padding: 20px; border-radius: 5px; }
+        #preview { max-width: 150px; border-radius: 10px; display: none; margin: 10px auto; }
+        input[type="file"] { display: none; }
+        .btn-upload { background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; cursor: pointer; }
+        
+        .btn-submit { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        
+        #loading { display: none; text-align: center; margin-top: 10px; color: #e67e22; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ลงทะเบียนพนักงาน</h2>
+    <form id="registerForm">
+        
+        <!-- ถ่ายรูป -->
+        <div class="photo-upload">
+            <label class="btn-upload" for="photoInput">📸 ถ่ายรูปหรือเลือกรูป</label>
+            <input type="file" id="photoInput" accept="image/*" required>
+            <img id="preview" alt="ภาพตัวอย่าง">
+            <p id="fileSizeInfo" style="font-size: 12px; color: #888; margin-top: 5px;"></p>
+        </div>
+
+        <div class="form-group">
+            <label>ชื่อ-นามสกุล *</label>
+            <input type="text" id="fullname" required placeholder="นาย สมชาย ใจดี">
+        </div>
+
+        <div class="form-group">
+            <label>เลขบัตรประชาชน 13 หลัก *</label>
+            <input type="tel" id="idCard" pattern="\d{13}" maxlength="13" required placeholder="1234567890123" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        </div>
+
+        <div class="form-group">
+            <label>เบอร์โทรศัพท์ 10 หลัก *</label>
+            <input type="tel" id="phone" pattern="\d{10}" maxlength="10" required placeholder="0812345678" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        </div>
+
+        <div class="form-group">
+            <label>ทะเบียนรถ (ถ้ามี)</label>
+            <input type="text" id="vehicle" placeholder="เช่น กข 1234 กทม">
+        </div>
+
+        <div class="form-group">
+            <label>บริษัทต้นสังกัด *</label>
+            <select id="company" required>
+                <option value="">-- กำลังโหลดรายชื่อบริษัท --</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">บันทึกข้อมูล</button>
+        <div id="loading">กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...</div>
+    </form>
+</div>
+
+<script>
+    // 1. ตั้งค่า Firebase (เอาของคุณมาใส่)
+    const firebaseConfig = {
+  apiKey: "AIzaSyC4ZlUqyupuI6lI8TxCj09RH9vaC0yjFHA",
+  authDomain: "maersk-mcl.firebaseapp.com",
+  projectId: "maersk-mcl",
+  storageBucket: "maersk-mcl.firebasestorage.app",
+  messagingSenderId: "750837126871",
+  appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
+  measurementId: "G-0N4K9BKM5F"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // 2. ดึง LINE ID จาก URL (ที่ส่งมาจากหน้า index.html)
+    const urlParams = new URLSearchParams(window.location.search);
+    const uid = urlParams.get('uid');
+
+    if(!uid) {
+        alert("ไม่พบข้อมูล LINE ID กรุณาเข้าสู่ระบบผ่าน LINE ใหม่");
+        // ในระบบจริงอาจจะให้ redirect กลับไป index.html
+    }
+
+    // ตัวแปรเก็บไฟล์รูปภาพที่โดนบีบอัดแล้ว
+    let compressedImageFile = null;
+
+    // 3. โหลดรายชื่อบริษัทจาก Firestore Collection: companies
+    async function loadCompanies() {
+        const companySelect = document.getElementById("company");
+        try {
+            const snapshot = await db.collection("companies").get();
+            companySelect.innerHTML = '<option value="">-- เลือกบริษัท --</option>'; // เคลียร์ค่าเริ่มต้น
+            
+            if (snapshot.empty) {
+                companySelect.innerHTML += '<option value="DummyCompany">บริษัททดสอบ (ยังไม่มีในฐานข้อมูล)</option>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                companySelect.innerHTML += `<option value="${doc.id}">${data.name}</option>`;
+            });
+        } catch (error) {
+            console.error("Error loading companies:", error);
+            companySelect.innerHTML = '<option value="">-- โหลดข้อมูลล้มเหลว --</option>';
+        }
+    }
+    loadCompanies(); // สั่งให้ทำงานทันทีเมื่อเปิดหน้าเว็บ
+
+    // 4. จัดการรูปภาพ (โชว์พรีวิว + บีบอัด)
+    document.getElementById("photoInput").addEventListener("change", async function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            // ตั้งค่าการบีบอัด: ให้ขนาดไม่เกิน 300KB และกว้างสุด 1024px
+            const options = {
+                maxSizeMB: 0.3,
+                maxWidthOrHeight: 1024,
+                useWebWorker: true
+            };
+            
+            document.getElementById("fileSizeInfo").innerText = "กำลังบีบอัดรูปภาพ...";
+            
+            // เริ่มการบีบอัด
+            compressedImageFile = await browserImageCompression(file, options);
+            
+            // แสดงรูปตัวอย่าง
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById("preview").src = e.target.result;
+                document.getElementById("preview").style.display = "block";
+            }
+            reader.readAsDataURL(compressedImageFile);
+
+            // แสดงขนาดไฟล์ที่ลดลงให้ผู้ใช้เห็น (เพื่อความอุ่นใจ)
+            const sizeKB = (compressedImageFile.size / 1024).toFixed(1);
+            document.getElementById("fileSizeInfo").innerText = `ขนาดไฟล์พร้อมส่ง: ${sizeKB} KB`;
+
+        } catch (error) {
+            console.error("Error compressing image:", error);
+            alert("เกิดข้อผิดพลาดในการจัดการรูปภาพ กรุณาลองใหม่");
+        }
+    });
+
+    // 5. เมื่อกดปุ่ม "บันทึกข้อมูล"
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
+        e.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+
+        if (!compressedImageFile) {
+            alert("กรุณาถ่ายรูปหรืออัปโหลดรูปภาพด้วยครับ");
+            return;
+        }
+
+        const btnSubmit = document.getElementById("submitBtn");
+        const loadingText = document.getElementById("loading");
+
+        // ปิดปุ่มกันกดเบิ้ล และแสดงข้อความโหลด
+        btnSubmit.disabled = true;
+        loadingText.style.display = "block";
+
+        try {
+            // สเต็ป 5.1: อัปโหลดรูปขึ้น Firebase Storage
+            // ตั้งชื่อรูปเป็น uid ของ LINE ผู้ใช้เลย จะได้เป็นระเบียบ
+            const imageRef = storage.ref(`profile_images/${uid}.jpg`);
+            await imageRef.put(compressedImageFile);
+            const imageUrl = await imageRef.getDownloadURL(); // ได้ลิงก์รูปมาแล้ว
+
+            // สเต็ป 5.2: เตรียมข้อมูลเพื่อบันทึกลง Firestore
+            const userData = {
+                uid: uid,
+                fullname: document.getElementById("fullname").value,
+                idCard: document.getElementById("idCard").value,
+                phone: document.getElementById("phone").value,
+                vehicle: document.getElementById("vehicle").value || "-",
+                companyId: document.getElementById("company").value,
+                photoUrl: imageUrl,
+                role: "visitor",
+                status: "pending", // สถานะรอ Admin อนุมัติ
+                registeredAt: firebase.firestore.FieldValue.serverTimestamp() // เก็บเวลาที่สมัคร
+            };
+
+            // สเต็ป 5.3: บันทึกลง Firestore Collection: users
+            await db.collection("users").doc(uid).set(userData);
+
+            alert("ลงทะเบียนสำเร็จ! กรุณารอการอนุมัติ");
+            
+            // ลงทะเบียนเสร็จแล้ว เคลียร์หน้า หรือพาไปหน้าเช็คสถานะตัวเอง
+            // ในที่นี้เราจะพากลับไป index เพื่อให้ระบบเช็ค Role ใหม่ (หรือคุณจะสร้างหน้า badge ก็ได้)
+            window.location.href = "index.html";
+
+        } catch (error) {
+            console.error("Error saving data:", error);
+            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
+            btnSubmit.disabled = false;
+            loadingText.style.display = "none";
+        }
+    });
+
+</script>
+
+</body>
+</html>
