@@ -28,7 +28,7 @@
 
         /* ส่วน User Management */
         .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; flex: 1; min-width: 200px; }
+        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; flex: 1; min-width: 200px; font-weight: bold; color: #2c3e50; }
         
         .user-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; border-left: 4px solid #3498db; }
         .user-info { flex: 1; min-width: 250px; }
@@ -89,7 +89,8 @@
             <div class="filter-bar">
                 <strong>กรองผู้ใช้งาน:</strong>
                 <select id="roleFilter" onchange="renderUsers()">
-                    <option value="all">แสดงทุกตำแหน่ง</option>
+                    <option value="pending" selected>🔥 รออนุมัติ (ผู้ใช้ใหม่)</option>
+                    <option value="all">แสดงทั้งหมด (150 ล่าสุด)</option>
                     <option value="visitor">พนักงานซับฯ (Visitor)</option>
                     <option value="admin">หัวหน้าซับฯ (Admin)</option>
                     <option value="inspector">รปภ. (Inspector)</option>
@@ -205,8 +206,8 @@
             listenToMasterData('positions', 'listPositions');
             listenToMasterData('checkpoints', 'listCheckpoints');
 
-            // โหลด Users แบบ Real-time
-            db.collection("users").orderBy("registeredAt", "desc").onSnapshot(snapshot => {
+            // ⚠️ การเพิ่มความเร็ว: ดึงข้อมูลพนักงานแค่ 150 คนล่าสุดแทนการดึงทั้งหมด
+            db.collection("users").orderBy("registeredAt", "desc").limit(150).onSnapshot(snapshot => {
                 allUsers = [];
                 snapshot.forEach(doc => {
                     allUsers.push({ id: doc.id, ...doc.data() });
@@ -226,14 +227,18 @@
             container.innerHTML = "";
             
             let filteredUsers = allUsers;
-            if (filterRole !== "all") {
+            
+            // ใช้เงื่อนไขกรองแสดงผล (เริ่มต้นจะกรองเฉพาะสถานะ Pending ให้เห็นผู้ใช้ใหม่ทันที)
+            if (filterRole === "pending") {
+                filteredUsers = allUsers.filter(u => u.status === 'pending');
+            } else if (filterRole !== "all") {
                 filteredUsers = allUsers.filter(u => u.role === filterRole);
             }
 
             document.getElementById("userCount").innerText = `${filteredUsers.length} คน`;
 
             if (filteredUsers.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding: 20px; color:#7f8c8d; background: white; border-radius: 10px;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้</p>";
+                container.innerHTML = "<div style='text-align:center; padding: 40px 20px; color:#7f8c8d; background: white; border-radius: 10px; border: 2px dashed #ecf0f1;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้ 🎉</div>";
                 return;
             }
 
