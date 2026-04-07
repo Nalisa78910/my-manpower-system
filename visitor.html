@@ -7,6 +7,7 @@
     
     <!-- เรียกใช้ Firebase (เพิ่ม Storage เข้ามาสำหรับเก็บรูป) -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-storage-compat.js"></script>
 
@@ -33,8 +34,8 @@
         .btn-submit { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; }
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
         
-        #loading { display: none; text-align: center; margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 5px;}
-        .loading-process { background-color: #e8f4f8; color: #2980b9; }
+        #loading { display: none; text-align: center; margin-top: 15px; font-weight: bold; padding: 15px; border-radius: 5px; line-height: 1.5;}
+        .loading-process { background-color: #e8f4f8; color: #2980b9; border: 1px solid #3498db; }
         .loading-error { background-color: #fdeaea; color: #c0392b; border: 1px solid #c0392b; }
     </style>
 </head>
@@ -79,7 +80,7 @@
         </div>
 
         <button type="submit" class="btn-submit" id="submitBtn">บันทึกข้อมูล</button>
-        <div id="loading" class="loading-process">กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...</div>
+        <div id="loading" class="loading-process">รอการประมวลผล...</div>
     </form>
 </div>
 
@@ -94,7 +95,12 @@
       appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
       measurementId: "G-0N4K9BKM5F"
     };
-    firebase.initializeApp(firebaseConfig);
+    
+    // ตรวจสอบว่าเคยเชื่อมต่อ Firebase ไว้หรือยัง (ป้องกัน Error)
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
     const db = firebase.firestore();
     const storage = firebase.storage();
 
@@ -103,7 +109,7 @@
     const uid = urlParams.get('uid');
 
     if(!uid) {
-        alert("⚠️ ไม่พบข้อมูล LINE ID!\nกรุณาเข้าสู่ระบบผ่านหน้าแรก (index.html) มิฉะนั้นจะไม่สามารถบันทึกข้อมูลได้");
+        alert("⚠️ ไม่พบข้อมูล LINE ID!\nกรุณาเข้าสู่ระบบผ่านหน้าแรก (index.html)");
         document.getElementById("submitBtn").disabled = true;
     }
 
@@ -186,16 +192,23 @@
 
         btnSubmit.disabled = true;
         loadingText.className = "loading-process";
-        loadingText.innerHTML = "กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...";
         loadingText.style.display = "block";
-
+        
         try {
-            // 5.1: อัปโหลดรูปขึ้น Firebase Storage
+            // ----- ขั้นตอนที่ 1: อัปโหลดรูปภาพ -----
+            loadingText.innerHTML = "⏳ ขั้นตอนที่ 1/2: กำลังส่งรูปภาพขึ้นเซิร์ฟเวอร์...";
+            console.log("กำลังอัปโหลดรูปภาพ...");
+            
             const imageRef = storage.ref(`profile_images/${uid}.jpg`);
             await imageRef.put(compressedImageFile);
             const imageUrl = await imageRef.getDownloadURL(); 
+            
+            console.log("อัปโหลดรูปสำเร็จ URL:", imageUrl);
 
-            // 5.2: เตรียมข้อมูล
+            // ----- ขั้นตอนที่ 2: บันทึกข้อมูลลงฐานข้อมูล -----
+            loadingText.innerHTML = "⏳ ขั้นตอนที่ 2/2: กำลังบันทึกประวัติพนักงาน...";
+            console.log("กำลังบันทึกข้อมูลลง Firestore...");
+            
             const userData = {
                 uid: uid,
                 fullname: document.getElementById("fullname").value,
@@ -209,27 +222,24 @@
                 registeredAt: firebase.firestore.FieldValue.serverTimestamp() 
             };
 
-            // 5.3: บันทึกลง Firestore
             await db.collection("users").doc(uid).set(userData);
+            
+            console.log("บันทึกข้อมูลสำเร็จ");
 
-            // บันทึกสำเร็จ!
+            // ----- ขั้นตอนที่ 3: เสร็จสมบูรณ์ -----
             loadingText.innerHTML = "✅ ลงทะเบียนสำเร็จ! กำลังพาท่านไปหน้าถัดไป...";
             loadingText.style.backgroundColor = "#d4edda";
             loadingText.style.color = "#155724";
+            loadingText.style.borderColor = "#c3e6cb";
             
-            // รอ 1.5 วินาทีแล้วเด้งกลับไปหน้าเช็คสิทธิ์เพื่อให้ระบบแสดงบัตร
             setTimeout(() => {
                 window.location.href = "index.html";
             }, 1500);
 
         } catch (error) {
             console.error("Error saving data:", error);
-            
-            // แสดง Error ตัวแดงๆ บนหน้าจอเลย หากมีปัญหา (โดยเฉพาะเรื่อง Permission)
             loadingText.className = "loading-error";
-            loadingText.innerHTML = `❌ บันทึกไม่สำเร็จ: ${error.message} <br><br><small>ข้อแนะนำ: หากขึ้นว่า 'Missing or insufficient permissions' แสดงว่ายังไม่ได้ตั้งค่า Rules ใน Firebase ครับ</small>`;
-            
-            // เปิดปุ่มให้กดใหม่ได้
+            loadingText.innerHTML = `❌ เกิดข้อผิดพลาด: ${error.message} <br><br><small>ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและ Rules ใน Firebase</small>`;
             btnSubmit.disabled = false;
         }
     });
