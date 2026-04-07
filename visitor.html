@@ -195,13 +195,33 @@
         loadingText.style.display = "block";
         
         try {
-            // ----- ขั้นตอนที่ 1: อัปโหลดรูปภาพ -----
-            loadingText.innerHTML = "⏳ ขั้นตอนที่ 1/2: กำลังส่งรูปภาพขึ้นเซิร์ฟเวอร์...";
+            // ----- ขั้นตอนที่ 1: อัปโหลดรูปภาพ (เพิ่มระบบเช็ค %) -----
+            loadingText.innerHTML = "⏳ ขั้นตอนที่ 1/2: กำลังเตรียมเซิร์ฟเวอร์... 0%";
             console.log("กำลังอัปโหลดรูปภาพ...");
             
             const imageRef = storage.ref(`profile_images/${uid}.jpg`);
-            await imageRef.put(compressedImageFile);
-            const imageUrl = await imageRef.getDownloadURL(); 
+            
+            // ใช้ Promise ดักจับ Task การอัปโหลดเพื่อให้เห็นเปอร์เซ็นต์
+            const imageUrl = await new Promise((resolve, reject) => {
+                const uploadTask = imageRef.put(compressedImageFile);
+                
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // คำนวณเปอร์เซ็นต์
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        loadingText.innerHTML = `⏳ ขั้นตอนที่ 1/2: กำลังส่งรูปภาพ... ${Math.round(progress)}%`;
+                    }, 
+                    (error) => {
+                        // ถ้าติด Error ตอนอัปโหลดรูป
+                        reject(error);
+                    }, 
+                    async () => {
+                        // ถ้าอัปโหลดรูปเสร็จ 100%
+                        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                        resolve(downloadURL);
+                    }
+                );
+            });
             
             console.log("อัปโหลดรูปสำเร็จ URL:", imageUrl);
 
@@ -239,7 +259,7 @@
         } catch (error) {
             console.error("Error saving data:", error);
             loadingText.className = "loading-error";
-            loadingText.innerHTML = `❌ เกิดข้อผิดพลาด: ${error.message} <br><br><small>ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและ Rules ใน Firebase</small>`;
+            loadingText.innerHTML = `❌ เกิดข้อผิดพลาด: ${error.message} <br><br><small>ข้อแนะนำ: ตรวจสอบเมนู Storage ใน Firebase ว่าเปิดใช้งานแล้วหรือยัง</small>`;
             btnSubmit.disabled = false;
         }
     });
