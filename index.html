@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบริหารจัดการพนักงาน - Loading...</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="status-area">
+        <div class="loader"></div>
+        <p>กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...</p>
+    </div>
+
+    <script>
+        // 1. วางค่า Config ที่คุณก๊อปมาจาก Firebase ตรงนี้
+        const firebaseConfig = {
+  apiKey: "AIzaSyC4ZlUqyupuI6lI8TxCj09RH9vaC0yjFHA",
+  authDomain: "maersk-mcl.firebaseapp.com",
+  projectId: "maersk-mcl",
+  storageBucket: "maersk-mcl.firebasestorage.app",
+  messagingSenderId: "750837126871",
+  appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
+  measurementId: "G-0N4K9BKM5F"
+};
+
+        // 2. เริ่มต้นระบบ Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 3. ตรวจสอบสถานะการล็อกอิน
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // ถ้าล็อกอินแล้ว -> ไปดึง "บทบาท (Role)" จากฐานข้อมูล
+                db.collection("users").doc(user.uid).get().then(doc => {
+                    if (doc.exists) {
+                        const role = doc.data().role;
+                        // ส่งผู้ใช้ไปยังหน้าที่ถูกต้องตามสิทธิ์
+                        window.location.href = role + ".html";
+                    } else {
+                        // ถ้าไม่มีข้อมูลในระบบ ให้ไปหน้าลงทะเบียนพนักงานใหม่
+                        window.location.href = "visitor.html";
+                    }
+                });
+            } else {
+                // ถ้ายังไม่ได้ล็อกอิน (สำหรับคนเริ่มใช้ครั้งแรก)
+                // ในอนาคตเราจะเชื่อม LIFF ตรงนี้ ตอนนี้ให้ไปหน้าสมัครก่อน
+                window.location.href = "visitor.html";
+            }
+        });
+    </script>
+</body>
+</html>
