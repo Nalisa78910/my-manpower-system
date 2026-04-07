@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superuser - จัดการระบบแบบครบวงจร</title>
+
+    <!-- เรียกใช้ Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        .header { background: #8e44ad; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+
+        /* ระบบ Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 12px 20px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #666; white-space: nowrap; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .tab-btn.active { background: #8e44ad; color: white; border-color: #8e44ad; box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ส่วน User Management */
+        .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; flex: 1; min-width: 200px; }
+        
+        .user-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; border-left: 4px solid #3498db; }
+        .user-info { flex: 1; min-width: 250px; }
+        .user-info strong { font-size: 16px; color: #2c3e50; display: block; margin-bottom: 4px; }
+        .user-info .meta { font-size: 13px; color: #7f8c8d; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
+        .badge { background: #ecf0f1; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #2c3e50; }
+        
+        .role-control { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .role-control select { padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 14px; background: #f8f9fa; }
+        .btn-save { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .success-msg { color: #27ae60; font-size: 12px; display: none; font-weight: bold; }
+
+        /* ปุ่มจัดการสถานะ (อนุมัติ/แบน) */
+        .status-control { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; width: 100%; border-top: 1px dashed #eee; padding-top: 10px; }
+        .btn-status { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-status:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-status.btn-approve { background: #27ae60; color: white; }
+        .btn-status.btn-ban { background: #c0392b; color: white; }
+
+        /* ส่วน Master Data Grid */
+        .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .master-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid #9b59b6; display: flex; flex-direction: column; }
+        .master-card h3 { margin: 0 0 15px 0; font-size: 16px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        
+        .input-group { display: flex; gap: 8px; margin-bottom: 15px; flex-direction: column; }
+        .input-group input, .input-group select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; width: 100%; }
+        .btn-add { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        .data-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; flex: 1; }
+        .data-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .data-list li:last-child { border-bottom: none; }
+        .data-list li span { flex: 1; }
+        .data-list li small { color: #7f8c8d; display: block; font-size: 11px; margin-top: 2px; }
+        .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; padding: 5px; border-radius: 3px; }
+        .btn-delete:hover { background: #fdeaea; }
+
+        #loadingGlobal { text-align: center; padding: 40px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>👑 System Admin</h1>
+    </div>
+
+    <div class="container">
+        
+        <!-- แท็บนำทาง -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('users', this)">👥 จัดการผู้ใช้งาน</button>
+            <button class="tab-btn" onclick="switchTab('master', this)">⚙️ ตั้งค่าฐานข้อมูล (Master Data)</button>
+        </div>
+
+        <div id="loadingGlobal">กำลังโหลดข้อมูลระบบ...</div>
+
+        <!-- แท็บที่ 1: จัดการผู้ใช้งาน -->
+        <div id="tab-users" class="tab-content active" style="display: none;">
+            <div class="filter-bar">
+                <strong>กรองผู้ใช้งาน:</strong>
+                <select id="roleFilter" onchange="renderUsers()">
+                    <option value="all">แสดงทุกตำแหน่ง</option>
+                    <option value="visitor">พนักงานซับฯ (Visitor)</option>
+                    <option value="admin">หัวหน้าซับฯ (Admin)</option>
+                    <option value="inspector">รปภ. (Inspector)</option>
+                    <option value="dept">หัวหน้าแผนก (Dept)</option>
+                    <option value="hr">ฝ่ายบุคคล (HR)</option>
+                    <option value="safety">จป. (Safety)</option>
+                    <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
+                </select>
+                <span id="userCount" class="badge" style="background:#8e44ad; color:white;">0 คน</span>
+            </div>
+            <div id="userListContainer"></div>
+        </div>
+
+        <!-- แท็บที่ 2: Master Data -->
+        <div id="tab-master" class="tab-content" style="display: none;">
+            <div class="master-grid">
+                
+                <!-- บริษัท -->
+                <div class="master-card">
+                    <h3>🏢 จัดการบริษัท</h3>
+                    <div class="input-group">
+                        <input type="text" id="inputCompany" placeholder="ชื่อบริษัท...">
+                        <button class="btn-add" onclick="addData('companies', 'inputCompany')">+ เพิ่มบริษัท</button>
+                    </div>
+                    <ul class="data-list" id="listCompanies"></ul>
+                </div>
+
+                <!-- คลัง/อาคาร -->
+                <div class="master-card" style="border-top-color: #e67e22;">
+                    <h3>🏭 จัดการคลัง / อาคาร</h3>
+                    <div class="input-group">
+                        <input type="text" id="inputWarehouse" placeholder="ชื่ออาคาร/คลังสินค้า...">
+                        <button class="btn-add" onclick="addData('warehouses', 'inputWarehouse')">+ เพิ่มคลัง</button>
+                    </div>
+                    <ul class="data-list" id="listWarehouses"></ul>
+                </div>
+
+                <!-- แผนก (ผูกคลัง) -->
+                <div class="master-card" style="border-top-color: #3498db;">
+                    <h3>📂 จัดการแผนก (ผูกกับคลัง)</h3>
+                    <div class="input-group">
+                        <select id="selectWarehouseForDept"><option value="">-- เลือกคลัง/อาคาร --</option></select>
+                        <input type="text" id="inputDept" placeholder="ชื่อแผนก...">
+                        <button class="btn-add" onclick="addDepartment()">+ เพิ่มแผนก</button>
+                    </div>
+                    <ul class="data-list" id="listDepartments"></ul>
+                </div>
+
+                <!-- ตำแหน่งงาน -->
+                <div class="master-card" style="border-top-color: #1abc9c;">
+                    <h3>👔 จัดการตำแหน่งงาน</h3>
+                    <div class="input-group">
+                        <input type="text" id="inputPosition" placeholder="ชื่อตำแหน่งงาน...">
+                        <button class="btn-add" onclick="addData('positions', 'inputPosition')">+ เพิ่มตำแหน่ง</button>
+                    </div>
+                    <ul class="data-list" id="listPositions"></ul>
+                </div>
+
+                <!-- จุดตรวจ -->
+                <div class="master-card" style="border-top-color: #e74c3c;">
+                    <h3>📍 จัดการจุดตรวจ (รปภ.)</h3>
+                    <div class="input-group">
+                        <input type="text" id="inputCheckpoint" placeholder="ชื่อจุดตรวจ / ประตู...">
+                        <button class="btn-add" onclick="addData('checkpoints', 'inputCheckpoint')">+ เพิ่มจุดตรวจ</button>
+                    </div>
+                    <ul class="data-list" id="listCheckpoints"></ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. ตั้งค่า Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
+            authDomain: "maersk-mcl-v2.firebaseapp.com",
+            projectId: "maersk-mcl-v2",
+            storageBucket: "maersk-mcl-v2.firebasestorage.app",
+            messagingSenderId: "447590679734",
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- 2. ตัวแปรเก็บข้อมูล (State) ---
+        let allUsers = [];
+        let masterData = {
+            companies: {},
+            warehouses: {},
+            departments: {},
+            positions: {},
+            checkpoints: {}
+        };
+
+        // ระบบสลับหน้าแท็บ
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            btnElement.classList.add('active');
+        }
+
+        // --- 3. โหลดข้อมูลระบบทั้งหมดพร้อมกัน ---
+        async function initializeSystem() {
+            // โหลด Master Data แบบ Real-time
+            listenToMasterData('companies', 'listCompanies');
+            listenToMasterData('warehouses', 'listWarehouses', updateWarehouseDropdowns);
+            listenToMasterData('departments', 'listDepartments', null, true); // true = มีผูกคลัง
+            listenToMasterData('positions', 'listPositions');
+            listenToMasterData('checkpoints', 'listCheckpoints');
+
+            // โหลด Users แบบ Real-time
+            db.collection("users").orderBy("registeredAt", "desc").onSnapshot(snapshot => {
+                allUsers = [];
+                snapshot.forEach(doc => {
+                    allUsers.push({ id: doc.id, ...doc.data() });
+                });
+                renderUsers();
+                
+                // ซ่อน Loading เริ่มต้น
+                document.getElementById('loadingGlobal').style.display = 'none';
+                document.getElementById('tab-users').style.display = 'block';
+            });
+        }
+
+        // --- 4. ฟังก์ชันจัดการ Users ---
+        function renderUsers() {
+            const container = document.getElementById("userListContainer");
+            const filterRole = document.getElementById("roleFilter").value;
+            container.innerHTML = "";
+            
+            let filteredUsers = allUsers;
+            if (filterRole !== "all") {
+                filteredUsers = allUsers.filter(u => u.role === filterRole);
+            }
+
+            document.getElementById("userCount").innerText = `${filteredUsers.length} คน`;
+
+            if (filteredUsers.length === 0) {
+                container.innerHTML = "<p style='text-align:center; padding: 20px; color:#7f8c8d; background: white; border-radius: 10px;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้</p>";
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const compName = masterData.companies[user.companyId]?.name || "ไม่ระบุบริษัท";
+                const deptName = masterData.departments[user.departmentId]?.name || "ไม่ระบุแผนก";
+                
+                const roles = [
+                    { value: 'visitor', label: 'พนักงานซับฯ' }, { value: 'admin', label: 'หัวหน้าซับฯ' },
+                    { value: 'inspector', label: 'รปภ.' }, { value: 'dept', label: 'หัวหน้าแผนก' },
+                    { value: 'hr', label: 'ฝ่ายบุคคล' }, { value: 'safety', label: 'จป.' },
+                    { value: 'superuser', label: 'Superuser' }
+                ];
+                let optionsHtml = roles.map(r => `<option value="${r.value}" ${user.role === r.value ? 'selected' : ''}>${r.label}</option>`).join('');
+
+                // กำหนดการแสดงผลสถานะ และสีแถบด้านซ้าย
+                let statusHtml = '';
+                let borderLeftColor = '#3498db';
+                
+                if (user.status === 'approved') {
+                    statusHtml = '<span style="color: #27ae60; font-weight: bold;">✅ อนุมัติแล้ว</span>';
+                    borderLeftColor = '#27ae60';
+                } else if (user.status === 'banned') {
+                    statusHtml = '<span style="color: #c0392b; font-weight: bold;">🚫 ระงับใช้งาน (Banned)</span>';
+                    borderLeftColor = '#c0392b';
+                } else {
+                    statusHtml = '<span style="color: #e67e22; font-weight: bold;">⏳ รออนุมัติ</span>';
+                    borderLeftColor = '#e67e22';
+                }
+
+                const div = document.createElement("div");
+                div.className = "user-card";
+                div.style.borderLeftColor = borderLeftColor;
+                if (user.status === 'banned') div.style.opacity = '0.7'; // ทำให้การ์ดสีจางลงถ้าโดนแบน
+
+                div.innerHTML = `
+                    <div class="user-info">
+                        <strong>${user.fullname}</strong>
+                        <div class="meta">
+                            <span class="badge">🏢 ${compName}</span>
+                            <span class="badge">📂 ${deptName}</span>
+                            <span>📞 ${user.phone}</span>
+                        </div>
+                        <div style="font-size: 13px; margin-top: 5px;">
+                            สถานะ: ${statusHtml}
+                        </div>
+                    </div>
+                    <div class="role-control">
+                        <select id="role-${user.id}">${optionsHtml}</select>
+                        <button class="btn-save" onclick="updateUserRole('${user.id}')">เปลี่ยนสิทธิ์</button>
+                        <span id="msg-${user.id}" class="success-msg">✅ บันทึกแล้ว</span>
+                    </div>
+                    <div class="status-control">
+                        <span style="font-size: 13px; color: #7f8c8d;">จัดการสถานะ:</span>
+                        <button class="btn-status btn-approve" onclick="updateUserStatus('${user.id}', 'approved')" ${user.status === 'approved' ? 'disabled' : ''}>✅ อนุมัติ</button>
+                        <button class="btn-status btn-ban" onclick="updateUserStatus('${user.id}', 'banned')" ${user.status === 'banned' ? 'disabled' : ''}>🚫 แบนผู้ใช้</button>
+                        <span id="status-msg-${user.id}" class="success-msg"></span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function updateUserRole(uid) {
+        async function updateUserRole(uid) {
+            const newRole = document.getElementById(`role-${uid}`).value;
+            const msgSpan = document.getElementById(`msg-${uid}`);
+            try {
+                await db.collection("users").doc(uid).update({ role: newRole });
+                msgSpan.style.display = "inline";
+                setTimeout(() => msgSpan.style.display = "none", 2000);
+            } catch (error) { alert("บันทึกไม่สำเร็จ: " + error.message); }
+        }
+
+        // ฟังก์ชันใหม่: อัปเดตสถานะ (อนุมัติ/แบน)
+        async function updateUserStatus(uid, newStatus) {
+            if (newStatus === 'banned') {
+                if (!confirm("⚠️ คุณแน่ใจหรือไม่ที่จะ แบน/ระงับการใช้งาน ผู้ใช้นี้?")) return;
+            }
+            
+            const msgSpan = document.getElementById(`status-msg-${uid}`);
+            try {
+                await db.collection("users").doc(uid).update({ status: newStatus });
+                msgSpan.innerText = "✅ อัปเดตสถานะแล้ว";
+                msgSpan.style.display = "inline";
+                setTimeout(() => msgSpan.style.display = "none", 2000);
+            } catch (error) { 
+                alert("อัปเดตสถานะไม่สำเร็จ: " + error.message); 
+            }
+        }
+
+        // --- 5. ฟังก์ชันจัดการ Master Data ---
+        function listenToMasterData(collectionName, listId, callback = null, isDept = false) {
+            db.collection(collectionName).orderBy("name").onSnapshot(snapshot => {
+                masterData[collectionName] = {};
+                const listEl = document.getElementById(listId);
+                listEl.innerHTML = "";
+
+                if (snapshot.empty) {
+                    listEl.innerHTML = "<li style='color:#ccc; justify-content:center;'>ไม่มีข้อมูล</li>";
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    masterData[collectionName][doc.id] = data; // อัปเดต Dictionary
+                    
+                    let extraInfo = "";
+                    if (isDept && data.warehouseId) {
+                        const whName = masterData.warehouses[data.warehouseId]?.name || "คลังถูกลบ";
+                        extraInfo = `<small>📍 คลัง: ${whName}</small>`;
+                    }
+
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <div><span>${data.name}</span>${extraInfo}</div>
+                        <button class="btn-delete" onclick="deleteData('${collectionName}', '${doc.id}')">🗑️</button>
+                    `;
+                    listEl.appendChild(li);
+                });
+
+                if (callback) callback();
+                renderUsers(); // รีเฟรชหน้า User เพื่ออัปเดตชื่อบริษัท/แผนกที่เปลี่ยนไป
+            });
+        }
+
+        async function addData(collectionName, inputId) {
+            const input = document.getElementById(inputId);
+            const name = input.value.trim();
+            if (!name) return alert("กรุณากรอกข้อมูล");
+            try {
+                input.disabled = true;
+                await db.collection(collectionName).add({ name: name });
+                input.value = "";
+            } catch (error) { alert("เพิ่มข้อมูลล้มเหลว: " + error.message); }
+            input.disabled = false;
+        }
+
+        // พิเศษสำหรับเพิ่มแผนก (ต้องผูกคลัง)
+        async function addDepartment() {
+            const input = document.getElementById("inputDept");
+            const selectWh = document.getElementById("selectWarehouseForDept");
+            const name = input.value.trim();
+            const whId = selectWh.value;
+
+            if (!whId) return alert("กรุณาเลือกคลัง/อาคารก่อนเพิ่มแผนก");
+            if (!name) return alert("กรุณากรอกชื่อแผนก");
+
+            try {
+                input.disabled = selectWh.disabled = true;
+                await db.collection("departments").add({ name: name, warehouseId: whId });
+                input.value = "";
+            } catch (error) { alert("เพิ่มข้อมูลล้มเหลว: " + error.message); }
+            input.disabled = selectWh.disabled = false;
+        }
+
+        // อัปเดต Dropdown คลังสินค้าในฟอร์มเพิ่มแผนก
+        function updateWarehouseDropdowns() {
+            const select = document.getElementById("selectWarehouseForDept");
+            select.innerHTML = '<option value="">-- เลือกคลัง/อาคาร --</option>';
+            Object.keys(masterData.warehouses).forEach(id => {
+                select.innerHTML += `<option value="${id}">${masterData.warehouses[id].name}</option>`;
+            });
+        }
+
+        async function deleteData(collectionName, docId) {
+            if (confirm("คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?\n(หากลบแล้วข้อมูลที่เชื่อมโยงอยู่จะกลายเป็นค่าว่าง)")) {
+                try {
+                    await db.collection(collectionName).doc(docId).delete();
+                } catch (error) { alert("ลบข้อมูลล้มเหลว: " + error.message); }
+            }
+        }
+
+        // เริ่มต้นการทำงาน
+        initializeSystem();
+
+    </script>
+</body>
+</html>
