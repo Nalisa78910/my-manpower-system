@@ -23,7 +23,6 @@
         label { display: block; margin-bottom: 5px; color: #555; font-weight: bold; font-size: 14px; }
         input[type="text"], input[type="tel"], select { 
             width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; 
-            /* font-size 16px ป้องกันมือถือไอโฟนซูมหน้าจออัตโนมัติเวลาพิมพ์ */
         }
         
         .photo-upload { text-align: center; margin-bottom: 20px; border: 2px dashed #3498db; padding: 20px; border-radius: 5px; }
@@ -43,7 +42,6 @@
     <h2>ลงทะเบียนพนักงาน</h2>
     <form id="registerForm">
         
-        <!-- ถ่ายรูป -->
         <div class="photo-upload">
             <label class="btn-upload" for="photoInput">📸 ถ่ายรูปหรือเลือกรูป</label>
             <input type="file" id="photoInput" accept="image/*" required>
@@ -84,38 +82,38 @@
 </div>
 
 <script>
-    // 1. ตั้งค่า Firebase (เอาของคุณมาใส่)
+    // 1. ตั้งค่า Firebase
     const firebaseConfig = {
-  apiKey: "AIzaSyC4ZlUqyupuI6lI8TxCj09RH9vaC0yjFHA",
-  authDomain: "maersk-mcl.firebaseapp.com",
-  projectId: "maersk-mcl",
-  storageBucket: "maersk-mcl.firebasestorage.app",
-  messagingSenderId: "750837126871",
-  appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
-  measurementId: "G-0N4K9BKM5F"
-};
+      apiKey: "AIzaSyC4ZlUqyupuI6lI8TxCj09RH9vaC0yjFHA",
+      authDomain: "maersk-mcl.firebaseapp.com",
+      projectId: "maersk-mcl",
+      storageBucket: "maersk-mcl.firebasestorage.app",
+      messagingSenderId: "750837126871",
+      appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
+      measurementId: "G-0N4K9BKM5F"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // 2. ดึง LINE ID จาก URL (ที่ส่งมาจากหน้า index.html)
+    // 2. ดึง LINE ID จาก URL
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
 
+    // แจ้งเตือนถ้ารหัสผู้ใช้หายไป (ป้องกันการเปิดหน้าเว็บนี้ตรงๆ โดยไม่ผ่านหน้าล็อกอิน)
     if(!uid) {
-        alert("ไม่พบข้อมูล LINE ID กรุณาเข้าสู่ระบบผ่าน LINE ใหม่");
-        // ในระบบจริงอาจจะให้ redirect กลับไป index.html
+        alert("⚠️ ไม่พบข้อมูล LINE ID!\nกรุณาเข้าสู่ระบบผ่านหน้าแรก (index.html) มิฉะนั้นจะไม่สามารถบันทึกข้อมูลได้");
+        document.getElementById("submitBtn").disabled = true; // ปิดปุ่มส่งไปเลยถ้ารหัสไม่มี
     }
 
-    // ตัวแปรเก็บไฟล์รูปภาพที่โดนบีบอัดแล้ว
     let compressedImageFile = null;
 
-    // 3. โหลดรายชื่อบริษัทจาก Firestore Collection: companies
+    // 3. โหลดรายชื่อบริษัท
     async function loadCompanies() {
         const companySelect = document.getElementById("company");
         try {
             const snapshot = await db.collection("companies").get();
-            companySelect.innerHTML = '<option value="">-- เลือกบริษัท --</option>'; // เคลียร์ค่าเริ่มต้น
+            companySelect.innerHTML = '<option value="">-- เลือกบริษัท --</option>'; 
             
             if (snapshot.empty) {
                 companySelect.innerHTML += '<option value="DummyCompany">บริษัททดสอบ (ยังไม่มีในฐานข้อมูล)</option>';
@@ -129,9 +127,11 @@
         } catch (error) {
             console.error("Error loading companies:", error);
             companySelect.innerHTML = '<option value="">-- โหลดข้อมูลล้มเหลว --</option>';
+            // ถ้า Error โหลดบริษัทไม่ขึ้น มักจะเกิดจากยังไม่ได้เปิด Firestore Rules
+            alert("โหลดรายชื่อบริษัทไม่สำเร็จ! โปรดตรวจสอบว่าได้ตั้งค่า Firestore Rules เป็น allow read, write: if true; แล้วหรือยัง");
         }
     }
-    loadCompanies(); // สั่งให้ทำงานทันทีเมื่อเปิดหน้าเว็บ
+    loadCompanies();
 
     // 4. จัดการรูปภาพ (โชว์พรีวิว + บีบอัด)
     document.getElementById("photoInput").addEventListener("change", async function(event) {
@@ -139,7 +139,6 @@
         if (!file) return;
 
         try {
-            // ตั้งค่าการบีบอัด: ให้ขนาดไม่เกิน 300KB และกว้างสุด 1024px
             const options = {
                 maxSizeMB: 0.3,
                 maxWidthOrHeight: 1024,
@@ -148,10 +147,8 @@
             
             document.getElementById("fileSizeInfo").innerText = "กำลังบีบอัดรูปภาพ...";
             
-            // เริ่มการบีบอัด (แก้ไขชื่อฟังก์ชันเป็น imageCompression)
             compressedImageFile = await imageCompression(file, options);
             
-            // แสดงรูปตัวอย่าง
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById("preview").src = e.target.result;
@@ -159,7 +156,6 @@
             }
             reader.readAsDataURL(compressedImageFile);
 
-            // แสดงขนาดไฟล์ที่ลดลงให้ผู้ใช้เห็น (เพื่อความอุ่นใจ)
             const sizeKB = (compressedImageFile.size / 1024).toFixed(1);
             document.getElementById("fileSizeInfo").innerText = `ขนาดไฟล์พร้อมส่ง: ${sizeKB} KB`;
 
@@ -171,28 +167,31 @@
 
     // 5. เมื่อกดปุ่ม "บันทึกข้อมูล"
     document.getElementById("registerForm").addEventListener("submit", async function(e) {
-        e.preventDefault(); // ป้องกันหน้าเว็บรีเฟรช
+        e.preventDefault(); 
 
         if (!compressedImageFile) {
             alert("กรุณาถ่ายรูปหรืออัปโหลดรูปภาพด้วยครับ");
             return;
         }
 
+        if (!uid) {
+            alert("ข้อผิดพลาด: ไม่พบรหัสผู้ใช้งาน (UID) กรุณากลับไปเข้าสู่ระบบใหม่");
+            return;
+        }
+
         const btnSubmit = document.getElementById("submitBtn");
         const loadingText = document.getElementById("loading");
 
-        // ปิดปุ่มกันกดเบิ้ล และแสดงข้อความโหลด
         btnSubmit.disabled = true;
         loadingText.style.display = "block";
 
         try {
-            // สเต็ป 5.1: อัปโหลดรูปขึ้น Firebase Storage
-            // ตั้งชื่อรูปเป็น uid ของ LINE ผู้ใช้เลย จะได้เป็นระเบียบ
+            // 5.1: อัปโหลดรูปขึ้น Firebase Storage
             const imageRef = storage.ref(`profile_images/${uid}.jpg`);
             await imageRef.put(compressedImageFile);
-            const imageUrl = await imageRef.getDownloadURL(); // ได้ลิงก์รูปมาแล้ว
+            const imageUrl = await imageRef.getDownloadURL(); 
 
-            // สเต็ป 5.2: เตรียมข้อมูลเพื่อบันทึกลง Firestore
+            // 5.2: เตรียมข้อมูล
             const userData = {
                 uid: uid,
                 fullname: document.getElementById("fullname").value,
@@ -202,22 +201,22 @@
                 companyId: document.getElementById("company").value,
                 photoUrl: imageUrl,
                 role: "visitor",
-                status: "pending", // สถานะรอ Admin อนุมัติ
-                registeredAt: firebase.firestore.FieldValue.serverTimestamp() // เก็บเวลาที่สมัคร
+                status: "pending", 
+                registeredAt: firebase.firestore.FieldValue.serverTimestamp() 
             };
 
-            // สเต็ป 5.3: บันทึกลง Firestore Collection: users
+            // 5.3: บันทึกลง Firestore
             await db.collection("users").doc(uid).set(userData);
 
             alert("ลงทะเบียนสำเร็จ! กรุณารอการอนุมัติ");
             
-            // ลงทะเบียนเสร็จแล้ว เคลียร์หน้า หรือพาไปหน้าเช็คสถานะตัวเอง
-            // ในที่นี้เราจะพากลับไป index เพื่อให้ระบบเช็ค Role ใหม่ (หรือคุณจะสร้างหน้า badge ก็ได้)
+            // กลับไปที่หน้าเช็คสิทธิ์เพื่อให้ระบบแสดงบัตร
             window.location.href = "index.html";
 
         } catch (error) {
             console.error("Error saving data:", error);
-            alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
+            alert("บันทึกข้อมูลไม่สำเร็จ สาเหตุ: " + error.message + "\n\n(หากเป็นข้อความ permission denied แปลว่าลืมเปิด Firestore Rules ครับ)");
+            
             btnSubmit.disabled = false;
             loadingText.style.display = "none";
         }
