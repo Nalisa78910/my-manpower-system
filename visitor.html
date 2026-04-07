@@ -33,7 +33,9 @@
         .btn-submit { width: 100%; padding: 15px; background: #00b900; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; }
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
         
-        #loading { display: none; text-align: center; margin-top: 10px; color: #e67e22; font-weight: bold; }
+        #loading { display: none; text-align: center; margin-top: 15px; font-weight: bold; padding: 10px; border-radius: 5px;}
+        .loading-process { background-color: #e8f4f8; color: #2980b9; }
+        .loading-error { background-color: #fdeaea; color: #c0392b; border: 1px solid #c0392b; }
     </style>
 </head>
 <body>
@@ -77,7 +79,7 @@
         </div>
 
         <button type="submit" class="btn-submit" id="submitBtn">บันทึกข้อมูล</button>
-        <div id="loading">กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...</div>
+        <div id="loading" class="loading-process">กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...</div>
     </form>
 </div>
 
@@ -100,10 +102,9 @@
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get('uid');
 
-    // แจ้งเตือนถ้ารหัสผู้ใช้หายไป (ป้องกันการเปิดหน้าเว็บนี้ตรงๆ โดยไม่ผ่านหน้าล็อกอิน)
     if(!uid) {
         alert("⚠️ ไม่พบข้อมูล LINE ID!\nกรุณาเข้าสู่ระบบผ่านหน้าแรก (index.html) มิฉะนั้นจะไม่สามารถบันทึกข้อมูลได้");
-        document.getElementById("submitBtn").disabled = true; // ปิดปุ่มส่งไปเลยถ้ารหัสไม่มี
+        document.getElementById("submitBtn").disabled = true;
     }
 
     let compressedImageFile = null;
@@ -127,8 +128,9 @@
         } catch (error) {
             console.error("Error loading companies:", error);
             companySelect.innerHTML = '<option value="">-- โหลดข้อมูลล้มเหลว --</option>';
-            // ถ้า Error โหลดบริษัทไม่ขึ้น มักจะเกิดจากยังไม่ได้เปิด Firestore Rules
-            alert("โหลดรายชื่อบริษัทไม่สำเร็จ! โปรดตรวจสอบว่าได้ตั้งค่า Firestore Rules เป็น allow read, write: if true; แล้วหรือยัง");
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("loading").className = "loading-error";
+            document.getElementById("loading").innerHTML = "❌ โหลดรายชื่อบริษัทไม่สำเร็จ! โปรดตรวจสอบ Firestore Rules";
         }
     }
     loadCompanies();
@@ -183,6 +185,8 @@
         const loadingText = document.getElementById("loading");
 
         btnSubmit.disabled = true;
+        loadingText.className = "loading-process";
+        loadingText.innerHTML = "กำลังประมวลผลและอัปโหลดข้อมูล กรุณารอสักครู่...";
         loadingText.style.display = "block";
 
         try {
@@ -208,17 +212,25 @@
             // 5.3: บันทึกลง Firestore
             await db.collection("users").doc(uid).set(userData);
 
-            alert("ลงทะเบียนสำเร็จ! กรุณารอการอนุมัติ");
+            // บันทึกสำเร็จ!
+            loadingText.innerHTML = "✅ ลงทะเบียนสำเร็จ! กำลังพาท่านไปหน้าถัดไป...";
+            loadingText.style.backgroundColor = "#d4edda";
+            loadingText.style.color = "#155724";
             
-            // กลับไปที่หน้าเช็คสิทธิ์เพื่อให้ระบบแสดงบัตร
-            window.location.href = "index.html";
+            // รอ 1.5 วินาทีแล้วเด้งกลับไปหน้าเช็คสิทธิ์เพื่อให้ระบบแสดงบัตร
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
 
         } catch (error) {
             console.error("Error saving data:", error);
-            alert("บันทึกข้อมูลไม่สำเร็จ สาเหตุ: " + error.message + "\n\n(หากเป็นข้อความ permission denied แปลว่าลืมเปิด Firestore Rules ครับ)");
             
+            // แสดง Error ตัวแดงๆ บนหน้าจอเลย หากมีปัญหา (โดยเฉพาะเรื่อง Permission)
+            loadingText.className = "loading-error";
+            loadingText.innerHTML = `❌ บันทึกไม่สำเร็จ: ${error.message} <br><br><small>ข้อแนะนำ: หากขึ้นว่า 'Missing or insufficient permissions' แสดงว่ายังไม่ได้ตั้งค่า Rules ใน Firebase ครับ</small>`;
+            
+            // เปิดปุ่มให้กดใหม่ได้
             btnSubmit.disabled = false;
-            loadingText.style.display = "none";
         }
     });
 
