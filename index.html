@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบริหารจัดการพนักงาน - Loading...</title>
+    <title>ระบบบริหารจัดการพนักงาน - Checking Login...</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
 
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; }
+        body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #ffffff; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #00b900; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        p { margin-top: 15px; color: #555; }
     </style>
 </head>
 <body>
 
-    <div id="status-area">
-        <div class="loader"></div>
-        <p>กำลังตรวจสอบสิทธิ์การเข้าใช้งาน...</p>
-    </div>
+    <div class="loader"></div>
+    <p id="status-text">กำลังยืนยันตัวตนผ่าน LINE...</p>
 
     <script>
-        // 1. วางค่า Config ที่คุณก๊อปมาจาก Firebase ตรงนี้
+        // --- ส่วนที่ 1: ตั้งค่า Firebase ---
         const firebaseConfig = {
   apiKey: "AIzaSyC4ZlUqyupuI6lI8TxCj09RH9vaC0yjFHA",
   authDomain: "maersk-mcl.firebaseapp.com",
@@ -32,32 +32,41 @@
   appId: "1:750837126871:web:969b2593ae6b39a1d1c292",
   measurementId: "G-0N4K9BKM5F"
 };
-
-        // 2. เริ่มต้นระบบ Firebase
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 3. ตรวจสอบสถานะการล็อกอิน
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // ถ้าล็อกอินแล้ว -> ไปดึง "บทบาท (Role)" จากฐานข้อมูล
-                db.collection("users").doc(user.uid).get().then(doc => {
-                    if (doc.exists) {
-                        const role = doc.data().role;
-                        // ส่งผู้ใช้ไปยังหน้าที่ถูกต้องตามสิทธิ์
-                        window.location.href = role + ".html";
+        // --- ส่วนที่ 2: ตั้งค่า LIFF และเช็คสิทธิ์ ---
+        async function main() {
+            try {
+                // เปลี่ยน YOUR_LIFF_ID เป็นไอดีที่คุณได้จาก LINE Developers
+                await liff.init({ liffId: "2009594130-lz5Ao6LM" });
+
+                if (!liff.isLoggedIn()) {
+                    liff.login(); // ถ้ายังไม่ล็อกอิน ให้พาไปหน้า Login ของ LINE
+                } else {
+                    const profile = await liff.getProfile();
+                    const userId = profile.userId; // นี่คือ Key หลักที่เราจะใช้ (LINE ID)
+
+                    // นำ userId ไปเช็คในฐานข้อมูล Firebase ของเรา
+                    const userDoc = await db.collection("users").doc(userId).get();
+
+                    if (userDoc.exists) {
+                        // ถ้ามีประวัติแล้ว ส่งไปตามหน้า Role ของเขา
+                        const userData = userDoc.data();
+                        window.location.href = userData.role + ".html";
                     } else {
-                        // ถ้าไม่มีข้อมูลในระบบ ให้ไปหน้าลงทะเบียนพนักงานใหม่
-                        window.location.href = "visitor.html";
+                        // ถ้าเป็นคนใหม่ (ยังไม่มีข้อมูลใน Firestore) ส่งไปหน้าสมัครงาน
+                        // ส่งไอดีติดไปด้วยเพื่อให้หน้าสมัครงานรู้ว่าใครเป็นคนสมัคร
+                        window.location.href = "visitor.html?uid=" + userId;
                     }
-                });
-            } else {
-                // ถ้ายังไม่ได้ล็อกอิน (สำหรับคนเริ่มใช้ครั้งแรก)
-                // ในอนาคตเราจะเชื่อม LIFF ตรงนี้ ตอนนี้ให้ไปหน้าสมัครก่อน
-                window.location.href = "visitor.html";
+                }
+            } catch (error) {
+                console.error("LIFF Error:", error);
+                document.getElementById("status-text").innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ LINE";
             }
-        });
+        }
+
+        main();
     </script>
 </body>
 </html>
