@@ -148,8 +148,8 @@
             
             document.getElementById("fileSizeInfo").innerText = "กำลังบีบอัดรูปภาพ...";
             
-            // เริ่มการบีบอัด
-            compressedImageFile = await browserImageCompression(file, options);
+            // เริ่มการบีบอัด (แก้ไขชื่อฟังก์ชันเป็น imageCompression)
+            compressedImageFile = await imageCompression(file, options);
             
             // แสดงรูปตัวอย่าง
             const reader = new FileReader();
