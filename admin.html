@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - จัดการพนักงานและโควต้า</title>
+
+    <!-- เรียกใช้ Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        .header { background: #2980b9; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+
+        .admin-info-bar { background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .admin-info-bar h2 { margin: 0; font-size: 16px; color: #2c3e50; }
+        .admin-info-bar p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px; }
+        .company-badge { background: #ecf0f1; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #2980b9; font-size: 14px; }
+
+        /* ระบบ Tabs หลัก */
+        .main-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
+        .main-tab-btn { flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #666; text-align: center; transition: 0.2s; white-space: nowrap; }
+        .main-tab-btn.active { background: #2980b9; color: white; border-color: #2980b9; box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3); }
+
+        /* ระบบ Tabs ย่อย (สถานะพนักงาน) */
+        .sub-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
+        .sub-tab-btn { padding: 10px 20px; background: transparent; border: none; cursor: pointer; font-weight: bold; color: #95a5a6; transition: 0.2s; position: relative; }
+        .sub-tab-btn.active { color: #2980b9; }
+        .sub-tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background: #2980b9; border-radius: 3px 3px 0 0; }
+        
+        .badge-count { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; vertical-align: top;}
+        .badge-count.zero { background: #bdc3c7; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* การ์ดพนักงาน */
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .user-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; border-top: 4px solid #3498db; }
+        .user-card-header { display: flex; gap: 15px; align-items: center; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ecf0f1; }
+        .user-details { flex: 1; }
+        .user-details h3 { margin: 0 0 5px 0; font-size: 16px; color: #2c3e50; }
+        .user-details p { margin: 2px 0; font-size: 13px; color: #7f8c8d; }
+        .action-buttons { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; flex-wrap: wrap;}
+        .btn { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; text-align: center; }
+        .btn-approve { background: #e8f8f5; color: #27ae60; border: 1px solid #27ae60; }
+        .btn-approve:hover { background: #27ae60; color: white; }
+        .btn-reject { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
+        .btn-reject:hover { background: #c0392b; color: white; }
+        .btn-info { background: #ebf5fb; color: #2980b9; border: 1px solid #2980b9; }
+        .btn-info:hover { background: #2980b9; color: white; }
+
+        /* ส่วนของโควต้า */
+        .quota-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
+        .progress-container { width: 100%; background: #ecf0f1; border-radius: 10px; height: 25px; margin: 20px 0; overflow: hidden; position: relative; }
+        .progress-bar { height: 100%; background: #27ae60; transition: width 0.5s ease-in-out; }
+        .progress-text { position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 25px; font-weight: bold; color: #333; font-size: 14px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+        .quota-stats { display: flex; justify-content: space-around; margin-top: 15px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; flex: 1; margin: 0 5px; }
+        .stat-box h4 { margin: 0 0 5px 0; color: #7f8c8d; font-size: 13px; }
+        .stat-box .num { font-size: 24px; font-weight: bold; color: #2c3e50; }
+
+        /* Modal อนุมัติ */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: #95a5a6; background: white; border-radius: 10px; grid-column: 1 / -1; }
+        #loadingMsg { text-align: center; padding: 40px; color: #7f8c8d; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🏢 Admin Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <div id="loadingMsg">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</div>
+
+        <div id="mainContent" style="display: none;">
+            
+            <div class="admin-info-bar">
+                <div>
+                    <h2 id="adminName">ยินดีต้อนรับ, แอดมิน</h2>
+                    <p>จัดการพนักงานในสังกัดของคุณ</p>
+                </div>
+                <div class="company-badge" id="adminCompany">สังกัด: กำลังโหลด...</div>
+            </div>
+
+            <!-- แท็บหลัก (ฟีเจอร์) -->
+            <div class="main-tabs">
+                <button class="main-tab-btn active" onclick="switchMainTab('staff', this)">👥 จัดการพนักงาน</button>
+                <button class="main-tab-btn" onclick="switchMainTab('quota', this)">📊 โควต้ากำลังคน</button>
+                <button class="main-tab-btn" onclick="switchMainTab('export', this)">📥 ส่งออกรายงาน Excel</button>
+            </div>
+
+            <!-- หมวด: จัดการพนักงาน -->
+            <div id="main-tab-staff" class="tab-content active">
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn active" onclick="switchSubTab('pending', this)">
+                        ⏳ รออนุมัติ <span id="countPending" class="badge-count">0</span>
+                    </button>
+                    <button class="sub-tab-btn" onclick="switchSubTab('approved', this)">
+                        ✅ พนักงาน Active <span id="countApproved" class="badge-count zero">0</span>
+                    </button>
+                </div>
+                <div id="tab-pending" class="tab-content active"><div class="user-grid" id="listPending"></div></div>
+                <div id="tab-approved" class="tab-content"><div class="user-grid" id="listApproved"></div></div>
+            </div>
+
+            <!-- หมวด: โควต้ากำลังคน -->
+            <div id="main-tab-quota" class="tab-content">
+                <div class="quota-card">
+                    <h3 style="margin-top: 0; color: #2c3e50;">อัตรากำลังคนปัจจุบัน</h3>
+                    <p style="color: #7f8c8d; font-size: 14px;">โควต้าที่ได้รับจัดสรรจาก HR ส่วนกลาง</p>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="quotaProgressBar" style="width: 0%;"></div>
+                        <div class="progress-text" id="quotaProgressText">คำนวณข้อมูล...</div>
+                    </div>
+                    
+                    <div class="quota-stats">
+                        <div class="stat-box">
+                            <h4>โควต้าทั้งหมด (คน)</h4>
+                            <div class="num" id="quotaTotal">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <h4>บรรจุแล้ว (Active)</h4>
+                            <div class="num" id="quotaActive" style="color: #27ae60;">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <h4>ขาดอีก (คน)</h4>
+                            <div class="num" id="quotaMissing" style="color: #e74c3c;">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- หมวด: ส่งออกข้อมูล -->
+            <div id="main-tab-export" class="tab-content">
+                <div class="quota-card">
+                    <h3 style="margin-top: 0; color: #2c3e50;">ดาวน์โหลดข้อมูลพนักงาน</h3>
+                    <p style="color: #7f8c8d; font-size: 14px;">ดึงรายชื่อพนักงานทั้งหมดที่เคยทำงานและลงทะเบียนกับสังกัดของท่าน ออกมาเป็นไฟล์ Excel (CSV)</p>
+                    <button class="btn btn-approve" style="padding: 15px 30px; font-size: 16px; margin-top: 20px;" onclick="exportToExcel()">
+                        📥 ดาวน์โหลดไฟล์ Excel (CSV)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal อนุมัติพนักงาน -->
+    <div id="approveModal" class="modal">
+        <div class="modal-content">
+            <h3>ตั้งค่าข้อมูลพนักงาน</h3>
+            <p style="font-size: 13px; color: #7f8c8d;" id="modalEmpName">ชื่อพนักงาน</p>
+            
+            <div class="form-group">
+                <label>จัดสรรเข้าแผนก:</label>
+                <select id="modalDept"><option value="">-- เลือกแผนก --</option></select>
+            </div>
+            <div class="form-group">
+                <label>ตำแหน่งงาน:</label>
+                <select id="modalPos"><option value="">-- เลือกตำแหน่ง --</option></select>
+            </div>
+            <div class="form-group">
+                <label>วันที่เริ่มงาน:</label>
+                <input type="date" id="modalStart">
+            </div>
+            <div class="form-group">
+                <label>วันหมดอายุบัตร:</label>
+                <input type="date" id="modalExpire">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-reject" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-approve" onclick="confirmApprove()">✅ ยืนยันการอนุมัติ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. ตั้งค่า Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
+            authDomain: "maersk-mcl-v2.firebaseapp.com",
+            projectId: "maersk-mcl-v2",
+            storageBucket: "maersk-mcl-v2.firebasestorage.app",
+            messagingSenderId: "447590679734",
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- ตัวแปรระบบ ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const adminUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
+        
+        let adminData = null;
+        let masterData = { depts: {}, positions: {} };
+        let currentTargetUid = null;
+        let companyEmployees = []; // เก็บรายชื่อพนักงานในบริษัททั้งหมด
+        let totalCompanyQuota = 0; // เก็บโควต้าที่ได้จาก HR
+
+        if (!adminUid) {
+            alert("ไม่พบข้อมูลการเข้าสู่ระบบ");
+            window.location.replace("index.html");
+        }
+
+        // --- 2. เริ่มต้นการโหลดข้อมูล ---
+        async function initAdminPanel() {
+            try {
+                const adminDoc = await db.collection("users").doc(adminUid).get();
+                if (!adminDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
+                
+                adminData = adminDoc.data();
+                if (adminData.role !== "admin" && adminData.role !== "superuser") {
+                    alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้!");
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                document.getElementById("adminName").innerText = `ยินดีต้อนรับ, คุณ ${adminData.fullname}`;
+                
+                if (adminData.companyId) {
+                    const compDoc = await db.collection("companies").doc(adminData.companyId).get();
+                    if (compDoc.exists) document.getElementById("adminCompany").innerText = `สังกัด: ${compDoc.data().name}`;
+                } else {
+                    document.getElementById("adminCompany").innerText = "สังกัด: Superuser (เห็นทั้งหมด)";
+                }
+
+                // โหลด Master Data มาเตรียมไว้ใส่ Dropdown
+                await loadMasterData();
+                
+                document.getElementById("loadingMsg").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+
+                // ดึงพนักงานและโควต้า
+                listenToCompanyEmployees();
+                listenToCompanyQuota();
+
+            } catch (error) {
+                document.getElementById("loadingMsg").innerHTML = `<span style="color:red;">ข้อผิดพลาด: ${error.message}</span>`;
+            }
+        }
+
+        async function loadMasterData() {
+            const deptSnap = await db.collection("departments").get();
+            const deptSelect = document.getElementById("modalDept");
+            deptSnap.forEach(doc => {
+                masterData.depts[doc.id] = doc.data().name;
+                deptSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+
+            const posSnap = await db.collection("positions").get();
+            const posSelect = document.getElementById("modalPos");
+            posSnap.forEach(doc => {
+                masterData.positions[doc.id] = doc.data().name;
+                posSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+        }
+
+        // --- 3. ดึงรายชื่อพนักงาน ---
+        function listenToCompanyEmployees() {
+            db.collection("users").onSnapshot(snapshot => {
+                const pendingUsers = [];
+                const approvedUsers = [];
+                companyEmployees = []; 
+
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    user.id = doc.id;
+                    
+                    const isSameCompany = (adminData.role === 'superuser') || (user.companyId === adminData.companyId);
+                    
+                    // เก็บทุกคนในบริษัทสำหรับหน้า Export Excel
+                    if (isSameCompany) {
+                        companyEmployees.push(user);
+                        
+                        // กรองเฉพาะ visitor เพื่อนำมาจัดการอนุมัติ
+                        if (user.role === 'visitor') {
+                            if (user.status === 'pending') pendingUsers.push(user);
+                            else if (user.status === 'approved') approvedUsers.push(user);
+                        }
+                    }
+                });
+
+                pendingUsers.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
+                approvedUsers.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
+
+                updateBadgeCount("countPending", pendingUsers.length);
+                updateBadgeCount("countApproved", approvedUsers.length);
+
+                renderUserCards("listPending", pendingUsers, true);
+                renderUserCards("listApproved", approvedUsers, false);
+                
+                // อัปเดตหลอดโควต้าทุกครั้งที่คน Active เปลี่ยนแปลง
+                calculateQuotaProgress(approvedUsers.length);
+            });
+        }
+
+        function updateBadgeCount(elementId, count) {
+            const el = document.getElementById(elementId);
+            el.innerText = count;
+            el.classList.toggle("zero", count === 0);
+        }
+
+        // --- 4. ดึงข้อมูลโควต้าจาก HR ---
+        function listenToCompanyQuota() {
+            if (!adminData.companyId || adminData.role === 'superuser') return; // Superuser ไม่จำกัดโควต้า
+
+            // จำลองดึงข้อมูลจาก collection allocations (ที่จะสร้างจากหน้า HR)
+            db.collection("allocations").where("companyId", "==", adminData.companyId).onSnapshot(snapshot => {
+                totalCompanyQuota = 0;
+                snapshot.forEach(doc => {
+                    totalCompanyQuota += (doc.data().amount || 0); // รวมโควต้าที่ได้รับ
+                });
+                
+                // ถ้ายังไม่มีข้อมูลโควต้า สมมติให้เป็น 0
+                const activeCount = parseInt(document.getElementById("countApproved").innerText) || 0;
+                calculateQuotaProgress(activeCount);
+            });
+        }
+
+        function calculateQuotaProgress(activeCount) {
+            document.getElementById("quotaTotal").innerText = totalCompanyQuota;
+            document.getElementById("quotaActive").innerText = activeCount;
+            
+            let missing = totalCompanyQuota - activeCount;
+            document.getElementById("quotaMissing").innerText = missing > 0 ? missing : 0;
+
+            const progressBar = document.getElementById("quotaProgressBar");
+            const progressText = document.getElementById("quotaProgressText");
+
+            if (totalCompanyQuota === 0) {
+                progressBar.style.width = "0%";
+                progressText.innerText = "ยังไม่ได้รับโควต้าจาก HR";
+                progressBar.style.background = "#bdc3c7";
+            } else {
+                let percent = (activeCount / totalCompanyQuota) * 100;
+                if (percent > 100) percent = 100;
+                
+                progressBar.style.width = `${percent}%`;
+                progressText.innerText = `${activeCount} / ${totalCompanyQuota} คน (${percent.toFixed(0)}%)`;
+
+                if (activeCount > totalCompanyQuota) {
+                    progressBar.style.background = "#e74c3c"; // แดง (เกินโควต้า)
+                    document.getElementById("quotaMissing").innerText = "เกินโควต้า!";
+                } else if (percent === 100) {
+                    progressBar.style.background = "#27ae60"; // เขียว (ครบพอดี)
+                } else {
+                    progressBar.style.background = "#f39c12"; // ส้ม (ยังขาด)
+                }
+            }
+        }
+
+        // --- 5. วาดการ์ด (แยกมุมมอง รออนุมัติ / อนุมัติแล้ว) ---
+        function renderUserCards(containerId, usersArray, isPending) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+
+            if (usersArray.length === 0) {
+                container.innerHTML = `<div class="empty-state">ไม่มีพนักงานในหมวดหมู่นี้ 🎉</div>`;
+                return;
+            }
+
+            usersArray.forEach(user => {
+                const imgSrc = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/60');
+                const card = document.createElement("div");
+                card.className = "user-card";
+                card.style.borderTopColor = isPending ? "#f39c12" : "#27ae60";
+
+                let detailsHtml = '';
+                let actionsHtml = '';
+
+                if (isPending) {
+                    // รออนุมัติ: โชว์แค่ชื่อ เบอร์โทร
+                    detailsHtml = `
+                        <h3>${user.fullname}</h3>
+                        <p>📞 ${user.phone}</p>
+                    `;
+                    actionsHtml = `
+                        <button class="btn btn-approve" onclick="openApproveModal('${user.id}', '${user.fullname}')">✅ อนุมัติ</button>
+                        <button class="btn btn-reject" onclick="updateStatus('${user.id}', 'rejected')">❌ ไม่อนุมัติ</button>
+                    `;
+                } else {
+                    // อนุมัติแล้ว: โชว์ข้อมูลจัดเต็ม
+                    const deptStr = masterData.depts[user.departmentId] || 'ไม่ระบุ';
+                    const posStr = masterData.positions[user.positionId] || 'ไม่ระบุ';
+                    const startStr = user.startDate ? new Date(user.startDate).toLocaleDateString('th-TH') : '-';
+                    const expStr = user.expireDate ? new Date(user.expireDate).toLocaleDateString('th-TH') : '-';
+                    
+                    detailsHtml = `
+                        <h3>${user.fullname}</h3>
+                        <p>📂 แผนก: <b>${deptStr}</b></p>
+                        <p>👔 ตำแหน่ง: <b>${posStr}</b></p>
+                        <p style="font-size:12px; margin-top:5px; color:#555;">เริ่มงาน: ${startStr} | บัตรหมดอายุ: <span style="color:#e74c3c; font-weight:bold;">${expStr}</span></p>
+                    `;
+                    actionsHtml = `
+                        <button class="btn btn-info" onclick="viewHistory('${user.id}')">📝 ดูประวัติการทำงาน</button>
+                        <button class="btn btn-reject" style="flex: 0.3;" onclick="updateStatus('${user.id}', 'pending')">ถอนสิทธิ์</button>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    <div class="user-card-header">
+                        <img src="${imgSrc}" class="user-avatar" alt="Profile">
+                        <div class="user-details">${detailsHtml}</div>
+                    </div>
+                    <div class="action-buttons">${actionsHtml}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- 6. ระบบ อนุมัติผ่าน Modal ---
+        function openApproveModal(uid, name) {
+            currentTargetUid = uid;
+            document.getElementById("modalEmpName").innerText = `พนักงาน: ${name}`;
+            
+            // ตั้งค่า วันเริ่มงาน = วันนี้, วันหมดอายุ = อีก 30 วันข้างหน้า
+            const today = new Date();
+            document.getElementById("modalStart").value = today.toISOString().split('T')[0];
+            
+            today.setDate(today.getDate() + 30);
+            document.getElementById("modalExpire").value = today.toISOString().split('T')[0];
+            
+            document.getElementById("approveModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("approveModal").style.display = "none";
+            currentTargetUid = null;
+        }
+
+        async function confirmApprove() {
+            if (!currentTargetUid) return;
+            const deptId = document.getElementById("modalDept").value;
+            const posId = document.getElementById("modalPos").value;
+            const startDate = document.getElementById("modalStart").value;
+            const expireDate = document.getElementById("modalExpire").value;
+
+            if (!startDate || !expireDate) return alert("กรุณาระบุวันที่ให้ครบถ้วน");
+
+            try {
+                await db.collection("users").doc(currentTargetUid).update({
+                    status: 'approved',
+                    departmentId: deptId,
+                    positionId: posId,
+                    startDate: startDate,
+                    expireDate: expireDate
+                });
+                closeModal();
+            } catch (error) {
+                alert("เกิดข้อผิดพลาด: " + error.message);
+            }
+        }
+
+        async function updateStatus(uid, newStatus) {
+            if(newStatus === 'rejected' && !confirm("คุณแน่ใจหรือไม่ที่จะไม่อนุมัติพนักงานคนนี้?")) return;
+            try { await db.collection("users").doc(uid).update({ status: newStatus }); } 
+            catch (error) { alert("ข้อผิดพลาด: " + error.message); }
+        }
+
+        function viewHistory(uid) {
+            alert("ระบบประวัติการทำงานกำลังอยู่ในช่วงพัฒนาครับ (จะดึงข้อมูลจากหน้า Inspector มาโชว์)");
+        }
+
+        // --- 7. Export Excel (CSV) ---
+        function exportToExcel() {
+            if (companyEmployees.length === 0) return alert("ไม่มีข้อมูลพนักงานเพื่อดาวน์โหลด");
+
+            let csvContent = "\uFEFF"; // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้
+            csvContent += "รหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ทะเบียนรถ,แผนก,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
+
+            companyEmployees.forEach(user => {
+                const deptStr = masterData.depts[user.departmentId] || '-';
+                const posStr = masterData.positions[user.positionId] || '-';
+                const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'pending' ? 'รออนุมัติ' : 'ระงับ/ถอนสิทธิ์');
+                
+                const row = [
+                    user.id,
+                    `"${user.fullname}"`, // ใส่ "" เผื่อมีลูกน้ำในชื่อ
+                    `'${user.phone}`,     // ใส่ ' ป้องกัน Excel ตัดเลข 0 ข้างหน้า
+                    `'${user.idCard}`,
+                    user.vehicle || '-',
+                    `"${deptStr}"`,
+                    `"${posStr}"`,
+                    statusStr,
+                    user.startDate || '-',
+                    user.expireDate || '-'
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // สร้างลิงก์สำหรับดาวน์โหลด
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `รายงานพนักงาน_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 8. สลับหน้าแท็บ ---
+        function switchMainTab(tabId, btnElement) {
+            document.querySelectorAll('#mainContent > .tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('main-tab-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function switchSubTab(tabId, btnElement) {
+            document.getElementById('tab-pending').classList.remove('active');
+            document.getElementById('tab-approved').classList.remove('active');
+            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        initAdminPanel();
+
+    </script>
+</body>
+</html>
