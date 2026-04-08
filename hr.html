@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard - ระบบจัดการฝ่ายบุคคลส่วนกลาง</title>
+
+    <!-- เรียกใช้ Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        .header { background: #d35400; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.3s; }
+        .logout-btn:hover { background: white; color: #d35400; }
+
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+
+        .hr-info-bar { background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #e67e22; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .hr-info-bar h2 { margin: 0; font-size: 16px; color: #2c3e50; }
+        .hr-info-bar p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px; }
+        .role-badge { background: #fdf2e9; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #d35400; font-size: 14px; }
+
+        /* ระบบ Tabs หลัก */
+        .main-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .main-tab-btn { flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #666; text-align: center; transition: 0.2s; white-space: nowrap; }
+        .main-tab-btn.active { background: #d35400; color: white; border-color: #d35400; box-shadow: 0 4px 8px rgba(211, 84, 0, 0.3); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ตัวกรองพนักงาน */
+        .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; flex: 1; min-width: 150px; }
+        .badge-count { background: #34495e; color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
+
+        /* การ์ดพนักงาน */
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .user-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; border-top: 4px solid #3498db; }
+        .user-card-header { display: flex; gap: 15px; align-items: center; }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ecf0f1; }
+        .user-details { flex: 1; }
+        .user-details h3 { margin: 0 0 5px 0; font-size: 16px; color: #2c3e50; }
+        .user-details p { margin: 2px 0; font-size: 13px; color: #7f8c8d; }
+        
+        .action-buttons { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; flex-wrap: wrap;}
+        .btn { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; text-align: center; }
+        .btn-ban { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
+        .btn-ban:hover { background: #c0392b; color: white; }
+        .btn-approve { background: #e8f8f5; color: #27ae60; border: 1px solid #27ae60; }
+        .btn-approve:hover { background: #27ae60; color: white; }
+        .btn-info { background: #ebf5fb; color: #2980b9; border: 1px solid #2980b9; }
+        .btn-info:hover { background: #2980b9; color: white; }
+
+        /* โควต้าบริษัท */
+        .quota-list { display: flex; flex-direction: column; gap: 15px; }
+        .quota-item { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; border-left: 5px solid #8e44ad; }
+        .quota-info h3 { margin: 0 0 5px 0; font-size: 16px; color: #2c3e50; }
+        .quota-info p { margin: 0; font-size: 13px; color: #7f8c8d; }
+        .quota-controls { display: flex; gap: 10px; align-items: center; }
+        .quota-controls input { width: 100px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-size: 16px; font-weight: bold; }
+        .btn-save-quota { background: #8e44ad; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* ส่งออกรายงาน (อัปเดตใหม่) */
+        .export-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-top: 5px solid #27ae60; }
+        .export-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; text-align: left; margin: 20px 0; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .export-form-grid .form-group { margin-bottom: 0; }
+        .export-form-grid label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        .export-form-grid input, .export-form-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #95a5a6; background: white; border-radius: 10px; grid-column: 1 / -1; }
+        #loadingMsg { text-align: center; padding: 40px; color: #7f8c8d; font-size: 16px; }
+
+        /* Modal อนุมัติ และ ดูรายละเอียด */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-content h3 { margin-top: 0; color: #d35400; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+        .detail-row { display: flex; margin-bottom: 10px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
+        .detail-row .label { width: 120px; font-weight: bold; color: #7f8c8d; }
+        .detail-row .value { flex: 1; color: #2c3e50; font-weight: 500; }
+        .history-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 5px; padding: 10px; margin-top: 15px; font-size: 13px; color: #555; height: 150px; overflow-y: auto; }
+        .close-btn { background: #ecf0f1; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; flex: 1; color: #333; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>👔 HR Dashboard</h1>
+        <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
+    </div>
+
+    <div class="container">
+        <div id="loadingMsg">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</div>
+
+        <div id="mainContent" style="display: none;">
+            
+            <div class="hr-info-bar">
+                <div>
+                    <h2 id="hrName">ยินดีต้อนรับ, ฝ่ายบุคคล</h2>
+                    <p>จัดการภาพรวมพนักงานและโควต้าของทุกบริษัท</p>
+                </div>
+                <div class="role-badge">ส่วนกลาง (Central HR)</div>
+            </div>
+
+            <!-- แท็บหลัก -->
+            <div class="main-tabs">
+                <button class="main-tab-btn active" onclick="switchMainTab('staff', this)">👥 ข้อมูลพนักงานทั้งหมด</button>
+                <button class="main-tab-btn" onclick="switchMainTab('quota', this)">📊 อนุมัติโควต้าบริษัท</button>
+                <button class="main-tab-btn" onclick="switchMainTab('export', this)">📥 ส่งออกรายงาน (Excel)</button>
+            </div>
+
+            <!-- หมวด: ข้อมูลพนักงานทั้งหมด -->
+            <div id="main-tab-staff" class="tab-content active">
+                <div class="filter-bar">
+                    <strong>ตัวกรอง:</strong>
+                    <select id="filterCompany" onchange="renderUsers()">
+                        <option value="all">-- ทุกบริษัท --</option>
+                    </select>
+                    <select id="filterStatus" onchange="renderUsers()">
+                        <option value="all">-- ทุกสถานะ --</option>
+                        <option value="pending">⏳ รออนุมัติ</option>
+                        <option value="approved" selected>✅ Active (ทำงานอยู่)</option>
+                        <option value="banned">🚫 ถูกระงับ/แบน</option>
+                    </select>
+                    <span id="userCount" class="badge-count">0 คน</span>
+                </div>
+                <div class="user-grid" id="userListContainer"></div>
+            </div>
+
+            <!-- หมวด: โควต้ากำลังคน -->
+            <div id="main-tab-quota" class="tab-content">
+                <div style="margin-bottom: 15px;">
+                    <h3 style="color: #2c3e50; margin: 0;">ตั้งค่าโควต้าพนักงาน</h3>
+                    <p style="color: #7f8c8d; font-size: 14px;">กำหนดจำนวนพนักงานสูงสุดที่แต่ละบริษัทสามารถอนุมัติให้เข้าทำงานได้</p>
+                </div>
+                <div class="quota-list" id="quotaListContainer"></div>
+            </div>
+
+            <!-- หมวด: ส่งออกข้อมูล -->
+            <div id="main-tab-export" class="tab-content">
+                <div class="export-card">
+                    <h2 style="margin-top: 0; color: #27ae60;">ดาวน์โหลดฐานข้อมูลพนักงานแบบละเอียด</h2>
+                    <p style="color: #7f8c8d; font-size: 14px;">กำหนดเงื่อนไขที่ต้องการก่อนกดดาวน์โหลด</p>
+                    
+                    <div class="export-form-grid">
+                        <div class="form-group">
+                            <label>ตั้งแต่วันที่ (ที่ลงทะเบียน):</label>
+                            <input type="date" id="exportStartDate">
+                        </div>
+                        <div class="form-group">
+                            <label>ถึงวันที่ (ที่ลงทะเบียน):</label>
+                            <input type="date" id="exportEndDate">
+                        </div>
+                        <div class="form-group">
+                            <label>บริษัทซับคอนแทรค:</label>
+                            <select id="exportCompanySelect">
+                                <option value="all">-- ทุกบริษัท --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>อาคาร/คลังสินค้า:</label>
+                            <select id="exportWarehouseSelect">
+                                <option value="all">-- ทุกอาคาร/คลัง --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>แผนก:</label>
+                            <select id="exportDeptSelect">
+                                <option value="all">-- ทุกแผนก --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-approve" style="padding: 15px 30px; font-size: 16px; width: 100%;" onclick="exportToExcel()">
+                        📥 ดาวน์โหลดไฟล์ Excel (CSV)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 1. Modal อนุมัติพนักงาน -->
+    <div id="approveModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: #27ae60;">ตั้งค่าข้อมูลเพื่ออนุมัติพนักงาน</h3>
+            <p style="font-size: 13px; color: #7f8c8d;" id="modalEmpName">ชื่อพนักงาน</p>
+            
+            <div class="form-group">
+                <label>จัดสรรเข้าแผนก:</label>
+                <select id="modalDept"><option value="">-- เลือกแผนก --</option></select>
+            </div>
+            <div class="form-group">
+                <label>ตำแหน่งงาน:</label>
+                <select id="modalPos"><option value="">-- เลือกตำแหน่ง --</option></select>
+            </div>
+            <div class="form-group">
+                <label>วันที่เริ่มงาน:</label>
+                <input type="date" id="modalStart">
+            </div>
+            <div class="form-group">
+                <label>วันหมดอายุบัตร:</label>
+                <input type="date" id="modalExpire">
+            </div>
+            
+            <div class="modal-actions">
+                <button class="close-btn" onclick="closeApproveModal()">ยกเลิก</button>
+                <button class="btn btn-approve" style="flex: 2;" onclick="confirmApprove()">✅ ยืนยันการอนุมัติ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal ดูประวัติ / ข้อมูลแบบละเอียด -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <h3>ข้อมูลพนักงานและประวัติ</h3>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img id="detailImg" src="" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ecf0f1;">
+            </div>
+            
+            <div class="detail-row"><div class="label">ชื่อ-นามสกุล:</div><div class="value" id="detailName">-</div></div>
+            <div class="detail-row"><div class="label">เลข ปชช.:</div><div class="value" id="detailIdCard">-</div></div>
+            <div class="detail-row"><div class="label">เบอร์โทร:</div><div class="value" id="detailPhone">-</div></div>
+            <div class="detail-row"><div class="label">ทะเบียนรถ:</div><div class="value" id="detailVehicle">-</div></div>
+            <div class="detail-row"><div class="label">บริษัท:</div><div class="value" id="detailCompany">-</div></div>
+            <div class="detail-row"><div class="label">แผนก / ตำแหน่ง:</div><div class="value" id="detailDeptPos">-</div></div>
+            <div class="detail-row"><div class="label">ระยะเวลาบัตร:</div><div class="value" id="detailDates">-</div></div>
+            
+            <h4 style="margin: 15px 0 5px 0; color: #2c3e50;">📝 ประวัติการเข้าทำงาน (ล่าสุด)</h4>
+            <div class="history-box" id="detailHistory">
+                <div style="text-align: center; color: #aaa; margin-top: 40px;">กำลังเตรียมระบบบันทึกเวลาเข้า-ออก<br>ข้อมูลการสแกนบัตรจะแสดงที่นี่</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="close-btn" onclick="closeDetailsModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. ตั้งค่า Firebase ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
+            authDomain: "maersk-mcl-v2.firebaseapp.com",
+            projectId: "maersk-mcl-v2",
+            storageBucket: "maersk-mcl-v2.firebasestorage.app",
+            messagingSenderId: "447590679734",
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- ตัวแปรระบบ ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const hrUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
+        
+        let hrData = null;
+        let masterData = { companies: {}, depts: {}, positions: {}, warehouses: {} };
+        let deptToWhMap = {}; // ตัวแปรแมพความสัมพันธ์ระหว่าง แผนก -> คลัง
+        
+        let allUsers = []; 
+        let activeCountPerCompany = {};
+        let currentTargetUid = null;
+
+        if (!hrUid) {
+            alert("ไม่พบข้อมูลการเข้าสู่ระบบ");
+            window.location.replace("index.html");
+        }
+
+        // --- 2. เริ่มต้นการโหลดข้อมูล ---
+        async function initHRPanel() {
+            try {
+                const hrDoc = await db.collection("users").doc(hrUid).get();
+                if (!hrDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
+                
+                hrData = hrDoc.data();
+                if (hrData.role !== "hr" && hrData.role !== "superuser") {
+                    alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะฝ่ายบุคคล)");
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                document.getElementById("hrName").innerText = `ยินดีต้อนรับ, คุณ ${hrData.fullname}`;
+                
+                await loadMasterData();
+                
+                document.getElementById("loadingMsg").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+
+                listenToAllUsers();
+                listenToQuotas();
+
+            } catch (error) {
+                document.getElementById("loadingMsg").innerHTML = `<span style="color:red;">ข้อผิดพลาด: ${error.message}</span>`;
+            }
+        }
+
+        async function loadMasterData() {
+            // 1. โหลดบริษัท
+            const compSnap = await db.collection("companies").orderBy("name").get();
+            const filterComp = document.getElementById("filterCompany");
+            const exportComp = document.getElementById("exportCompanySelect");
+            
+            compSnap.forEach(doc => {
+                masterData.companies[doc.id] = doc.data().name;
+                const optionHtml = `<option value="${doc.id}">${doc.data().name}</option>`;
+                filterComp.innerHTML += optionHtml;
+                exportComp.innerHTML += optionHtml;
+            });
+
+            // 2. โหลดอาคาร/คลังสินค้า (สำหรับหน้า Export)
+            const exportWhSelect = document.getElementById("exportWarehouseSelect");
+            const whSnap = await db.collection("warehouses").get();
+            whSnap.forEach(doc => {
+                masterData.warehouses[doc.id] = doc.data().name;
+                exportWhSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+
+            // 3. โหลดแผนก
+            const deptSelect = document.getElementById("modalDept");
+            const exportDeptSelect = document.getElementById("exportDeptSelect");
+            const deptSnap = await db.collection("departments").get();
+            deptSnap.forEach(doc => {
+                masterData.depts[doc.id] = doc.data().name;
+                deptToWhMap[doc.id] = doc.data().warehouseId; // จำว่าแผนกนี้อยู่คลังไหน
+                const optionHtml = `<option value="${doc.id}">${doc.data().name}</option>`;
+                deptSelect.innerHTML += optionHtml;
+                exportDeptSelect.innerHTML += optionHtml;
+            });
+
+            // 4. โหลดตำแหน่ง
+            const posSelect = document.getElementById("modalPos");
+            const posSnap = await db.collection("positions").get();
+            posSnap.forEach(doc => {
+                masterData.positions[doc.id] = doc.data().name;
+                posSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+        }
+
+        // --- 3. ดึงพนักงานทั้งหมด ---
+        function listenToAllUsers() {
+            db.collection("users").where("role", "==", "visitor").onSnapshot(snapshot => {
+                allUsers = [];
+                activeCountPerCompany = {};
+
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    user.id = doc.id;
+                    allUsers.push(user);
+
+                    if (user.status === 'approved') {
+                        activeCountPerCompany[user.companyId] = (activeCountPerCompany[user.companyId] || 0) + 1;
+                    }
+                });
+
+                allUsers.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
+                renderUsers();
+                renderQuotas();
+            });
+        }
+
+        function renderUsers() {
+            const container = document.getElementById("userListContainer");
+            const filterComp = document.getElementById("filterCompany").value;
+            const filterStatus = document.getElementById("filterStatus").value;
+            
+            container.innerHTML = "";
+
+            let filteredUsers = allUsers.filter(u => {
+                const matchComp = (filterComp === "all") || (u.companyId === filterComp);
+                const matchStatus = (filterStatus === "all") || (u.status === filterStatus);
+                return matchComp && matchStatus;
+            });
+
+            document.getElementById("userCount").innerText = `${filteredUsers.length} คน`;
+
+            if (filteredUsers.length === 0) {
+                container.innerHTML = `<div class="empty-state">ไม่พบพนักงานในหมวดหมู่นี้</div>`;
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                const imgSrc = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/60');
+                const compStr = masterData.companies[user.companyId] || 'ไม่ระบุบริษัท';
+                
+                let statusHtml = '';
+                let borderColor = '#3498db';
+                let detailsHtml = '';
+                let actionBtns = '';
+                
+                if (user.status === 'approved') {
+                    statusHtml = '<span style="color:#27ae60; font-weight:bold;">✅ Active</span>';
+                    borderColor = '#27ae60';
+                    const deptStr = masterData.depts[user.departmentId] || '-';
+                    detailsHtml = `<p>🏢 ${compStr} | 📂 ${deptStr}</p><p>🆔 ${user.idCard} | 📞 ${user.phone}</p>`;
+                    actionBtns = `
+                        <button class="btn btn-info" onclick="openDetailsModal('${user.id}')">📝 ดูข้อมูล/ประวัติ</button>
+                        <button class="btn btn-ban" style="flex: 0.3;" onclick="overrideStatus('${user.id}', 'banned')">🚫 แบน</button>
+                    `;
+                } else if (user.status === 'banned') {
+                    statusHtml = '<span style="color:#c0392b; font-weight:bold;">🚫 Banned</span>';
+                    borderColor = '#c0392b';
+                    detailsHtml = `<p>🏢 ${compStr}</p><p>📞 ${user.phone}</p>`;
+                    actionBtns = `<button class="btn btn-approve" onclick="overrideStatus('${user.id}', 'pending')">🔄 ปลดแบน (กลับไปรออนุมัติ)</button>`;
+                } else {
+                    statusHtml = '<span style="color:#f39c12; font-weight:bold;">⏳ รออนุมัติ</span>';
+                    borderColor = '#f39c12';
+                    detailsHtml = `<p>🏢 ${compStr}</p><p>📞 ${user.phone}</p>`;
+                    actionBtns = `
+                        <button class="btn btn-approve" onclick="openApproveModal('${user.id}', '${user.fullname}')">✅ อนุมัติพนักงาน</button>
+                        <button class="btn btn-ban" onclick="overrideStatus('${user.id}', 'banned')">🚫 แบน</button>
+                    `;
+                }
+
+                const card = document.createElement("div");
+                card.className = "user-card";
+                card.style.borderTopColor = borderColor;
+                if (user.status === 'banned') card.style.opacity = "0.7";
+
+                card.innerHTML = `
+                    <div class="user-card-header">
+                        <img src="${imgSrc}" class="user-avatar" alt="Profile">
+                        <div class="user-details">
+                            <h3>${user.fullname}</h3>
+                            ${detailsHtml}
+                            <p style="margin-top:5px;">สถานะ: ${statusHtml}</p>
+                        </div>
+                    </div>
+                    <div class="action-buttons">${actionBtns}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- ระบบ Modal ---
+        function openApproveModal(uid, name) {
+            currentTargetUid = uid;
+            document.getElementById("modalEmpName").innerText = `พนักงาน: ${name}`;
+            const today = new Date();
+            document.getElementById("modalStart").value = today.toISOString().split('T')[0];
+            today.setDate(today.getDate() + 30);
+            document.getElementById("modalExpire").value = today.toISOString().split('T')[0];
+            document.getElementById("approveModal").style.display = "flex";
+        }
+
+        function closeApproveModal() { document.getElementById("approveModal").style.display = "none"; currentTargetUid = null; }
+
+        async function confirmApprove() {
+            if (!currentTargetUid) return;
+            const deptId = document.getElementById("modalDept").value;
+            const posId = document.getElementById("modalPos").value;
+            const startDate = document.getElementById("modalStart").value;
+            const expireDate = document.getElementById("modalExpire").value;
+
+            if (!startDate || !expireDate) return alert("กรุณาระบุวันที่ให้ครบถ้วน");
+
+            try {
+                await db.collection("users").doc(currentTargetUid).update({
+                    status: 'approved', departmentId: deptId, positionId: posId, startDate: startDate, expireDate: expireDate
+                });
+                closeApproveModal();
+            } catch (error) { alert("เกิดข้อผิดพลาด: " + error.message); }
+        }
+
+        function openDetailsModal(uid) {
+            const user = allUsers.find(u => u.id === uid);
+            if (!user) return;
+            document.getElementById("detailImg").src = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/100');
+            document.getElementById("detailName").innerText = user.fullname;
+            document.getElementById("detailIdCard").innerText = user.idCard || "-";
+            document.getElementById("detailPhone").innerText = user.phone || "-";
+            document.getElementById("detailVehicle").innerText = user.vehicle || "-";
+            document.getElementById("detailCompany").innerText = masterData.companies[user.companyId] || "-";
+            const dept = masterData.depts[user.departmentId] || "-";
+            const pos = masterData.positions[user.positionId] || "-";
+            document.getElementById("detailDeptPos").innerText = `${dept} / ${pos}`;
+            const sDate = user.startDate ? new Date(user.startDate).toLocaleDateString('th-TH') : '-';
+            const eDate = user.expireDate ? new Date(user.expireDate).toLocaleDateString('th-TH') : '-';
+            document.getElementById("detailDates").innerHTML = `${sDate} ถึง <span style='color:#c0392b; font-weight:bold;'>${eDate}</span>`;
+            document.getElementById("detailsModal").style.display = "flex";
+        }
+
+        function closeDetailsModal() { document.getElementById("detailsModal").style.display = "none"; }
+
+        async function overrideStatus(uid, newStatus) {
+            if (newStatus === 'banned' && !confirm("ยืนยันการแบน/ระงับสิทธิ์พนักงานคนนี้?")) return;
+            try { await db.collection("users").doc(uid).update({ status: newStatus }); } catch (error) { alert("เกิดข้อผิดพลาด: " + error.message); }
+        }
+
+        // --- 4. ดึงและตั้งค่าโควต้าบริษัท ---
+        let quotaData = {};
+        function listenToQuotas() {
+            db.collection("allocations").onSnapshot(snapshot => {
+                quotaData = {};
+                snapshot.forEach(doc => { quotaData[doc.id] = doc.data().amount || 0; });
+                renderQuotas();
+            });
+        }
+
+        function renderQuotas() {
+            const container = document.getElementById("quotaListContainer");
+            if (!container) return;
+            container.innerHTML = "";
+            const companies = Object.keys(masterData.companies);
+            if (companies.length === 0) {
+                container.innerHTML = `<div class="empty-state">ยังไม่มีข้อมูลบริษัทในระบบ</div>`;
+                return;
+            }
+
+            companies.forEach(compId => {
+                const compName = masterData.companies[compId];
+                const currentQuota = quotaData[compId] || 0;
+                const activeCount = activeCountPerCompany[compId] || 0;
+                let statusText = `กำลังทำงาน: <strong style="color:#2980b9;">${activeCount}</strong> คน`;
+                if (currentQuota > 0 && activeCount >= currentQuota) statusText += ` <span style="color:#e74c3c; font-weight:bold;">(โควต้าเต็ม!)</span>`;
+
+                const item = document.createElement("div");
+                item.className = "quota-item";
+                item.innerHTML = `
+                    <div class="quota-info"><h3>🏢 ${compName}</h3><p>${statusText}</p></div>
+                    <div class="quota-controls">
+                        <label style="font-size: 13px; color: #555;">จำนวนโควต้า:</label>
+                        <input type="number" id="quota-input-${compId}" value="${currentQuota}" min="0">
+                        <button class="btn-save-quota" onclick="saveQuota('${compId}')">💾 บันทึก</button>
+                        <span id="quota-msg-${compId}" style="color: #27ae60; font-size: 12px; display: none; font-weight: bold;">✔</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function saveQuota(compId) {
+            const amount = parseInt(document.getElementById(`quota-input-${compId}`).value) || 0;
+            const msgSpan = document.getElementById(`quota-msg-${compId}`);
+            try {
+                await db.collection("allocations").doc(compId).set({ companyId: compId, amount: amount, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: hrUid }, { merge: true });
+                msgSpan.style.display = "inline";
+                setTimeout(() => msgSpan.style.display = "none", 2000);
+            } catch (error) { alert("เกิดข้อผิดพลาดในการบันทึกโควต้า: " + error.message); }
+        }
+
+        // --- 5. Export Excel (CSV) ขั้นสูง ---
+        function exportToExcel() {
+            if (allUsers.length === 0) return alert("ไม่มีข้อมูลพนักงานเพื่อดาวน์โหลด");
+
+            // ดึงค่าตัวกรองทั้งหมด
+            const startDateInput = document.getElementById("exportStartDate").value;
+            const endDateInput = document.getElementById("exportEndDate").value;
+            const selectedComp = document.getElementById("exportCompanySelect").value;
+            const selectedWh = document.getElementById("exportWarehouseSelect").value;
+            const selectedDept = document.getElementById("exportDeptSelect").value;
+
+            // แปลงค่าวันที่
+            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
+            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
+
+            // คัดกรองข้อมูลตามเงื่อนไข
+            let exportUsers = allUsers.filter(u => {
+                // กรองบริษัท
+                if (selectedComp !== "all" && u.companyId !== selectedComp) return false;
+                
+                // กรองแผนก
+                if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
+
+                // กรองอาคาร/คลังสินค้า (เช็คความสัมพันธ์ว่าแผนกที่ผู้ใช้อยู่ ตรงกับคลังที่เลือกไหม)
+                if (selectedWh !== "all") {
+                    const userWh = deptToWhMap[u.departmentId];
+                    if (userWh !== selectedWh) return false;
+                }
+
+                // กรองช่วงวันที่ลงทะเบียน
+                if (startDate || endDate) {
+                    if (!u.registeredAt) return false; // ถ้าไม่มีข้อมูลวันที่ ให้ข้าม
+                    const regDate = u.registeredAt.toDate();
+                    if (startDate && regDate < startDate) return false;
+                    if (endDate && regDate > endDate) return false;
+                }
+
+                return true;
+            });
+
+            if (exportUsers.length === 0) return alert("ไม่พบพนักงานที่ตรงกับเงื่อนไขที่คุณเลือก");
+
+            // สร้างเนื้อหาไฟล์ CSV
+            let csvContent = "\uFEFF"; // ใส่ BOM ให้อ่านไทยใน Excel ได้
+            csvContent += "วันที่ลงทะเบียน,บริษัท,อาคาร/คลัง,แผนก,รหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
+
+            exportUsers.forEach(user => {
+                const regDateStr = user.registeredAt ? user.registeredAt.toDate().toLocaleDateString('th-TH') : '-';
+                const compStr = masterData.companies[user.companyId] || '-';
+                const deptStr = masterData.depts[user.departmentId] || '-';
+                const whId = deptToWhMap[user.departmentId];
+                const whStr = whId ? (masterData.warehouses[whId] || '-') : '-';
+                const posStr = masterData.positions[user.positionId] || '-';
+                const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'banned' ? 'Banned' : 'รออนุมัติ');
+                
+                const row = [
+                    `"${regDateStr}"`,
+                    `"${compStr}"`,
+                    `"${whStr}"`,
+                    `"${deptStr}"`,
+                    user.id,
+                    `"${user.fullname}"`, 
+                    `'${user.phone}`,     
+                    `'${user.idCard}`,
+                    `"${posStr}"`,
+                    statusStr,
+                    user.startDate || '-',
+                    user.expireDate || '-'
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // สร้างคำสั่งดาวน์โหลดไฟล์
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `รายงานพนักงานซับคอนแทรค_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 6. สลับหน้าแท็บ ---
+        function switchMainTab(tabId, btnElement) {
+            document.querySelectorAll('#mainContent > .tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('main-tab-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function logout() {
+            localStorage.removeItem("myAppUserId");
+            localStorage.removeItem("myAppRole");
+            window.location.replace("index.html");
+        }
+
+        initHRPanel();
+
+    </script>
+</body>
+</html>
