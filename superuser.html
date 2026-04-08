@@ -28,25 +28,25 @@
 
         /* ส่วน User Management */
         .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 15px; flex: 1; min-width: 200px; font-weight: bold; color: #2c3e50; }
+        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; flex: 1; min-width: 150px; font-weight: bold; color: #2c3e50; }
+        .badge-count { background: #8e44ad; color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
         
-        .user-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; border-left: 4px solid #3498db; }
-        .user-info { flex: 1; min-width: 250px; }
-        .user-info strong { font-size: 16px; color: #2c3e50; display: block; margin-bottom: 4px; }
-        .user-info .meta { font-size: 13px; color: #7f8c8d; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
-        .badge { background: #ecf0f1; padding: 2px 8px; border-radius: 10px; font-size: 12px; color: #2c3e50; }
+        /* การ์ดผู้ใช้แบบกะทัดรัด (Compact View) */
+        .user-card-compact { background: white; border-radius: 8px; padding: 10px 15px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; border-left: 4px solid #3498db; transition: 0.2s; }
+        .user-card-compact:hover { background: #fdfdfd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .user-info-c { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px; }
+        .user-info-c .top-row { display: flex; align-items: center; gap: 8px; }
+        .user-info-c .name { font-size: 14px; font-weight: bold; color: #2c3e50; }
+        .user-info-c .phone { font-size: 12px; color: #7f8c8d; }
+        .user-info-c .bottom-row { display: flex; align-items: center; gap: 8px; font-size: 12px; flex-wrap: wrap; }
+        .badge-sm { padding: 2px 6px; border-radius: 5px; font-size: 11px; background: #ecf0f1; color: #34495e; border: 1px solid #bdc3c7; }
         
-        .role-control { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .role-control select { padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 14px; background: #f8f9fa; }
-        .btn-save { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .success-msg { color: #27ae60; font-size: 12px; display: none; font-weight: bold; }
-
-        /* ปุ่มจัดการสถานะ (อนุมัติ/แบน) */
-        .status-control { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; width: 100%; border-top: 1px dashed #eee; padding-top: 10px; }
-        .btn-status { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
-        .btn-status:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-status.btn-approve { background: #27ae60; color: white; }
-        .btn-status.btn-ban { background: #c0392b; color: white; }
+        .c-actions { display: flex; gap: 5px; align-items: center; }
+        .btn-sm { padding: 6px 10px; border: none; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-setting { background: #3498db; color: white; }
+        .btn-setting:hover { background: #2980b9; }
+        .btn-ban-sm { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
+        .btn-ban-sm:hover { background: #c0392b; color: white; }
 
         /* ส่วน Master Data Grid */
         .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -65,6 +65,30 @@
         .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; padding: 5px; border-radius: 3px; }
         .btn-delete:hover { background: #fdeaea; }
 
+        /* ส่วน Export */
+        .export-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid #27ae60; margin-top: 20px; }
+        .export-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: left; margin: 20px 0; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .export-form-grid .form-group { margin-bottom: 0; }
+        .export-form-grid label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        .export-form-grid input, .export-form-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+
+        /* Modal ตั้งค่าสิทธิ์ */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #8e44ad; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
+        .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; padding: 10px; background: #ecf0f1; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: #333; }
+        .btn-confirm { flex: 2; padding: 10px; background: #27ae60; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; }
+
+        /* CSS สำหรับ Modal ดูประวัติ */
+        .detail-row { display: flex; margin-bottom: 10px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 5px; text-align: left;}
+        .detail-row .label { width: 120px; font-weight: bold; color: #7f8c8d; }
+        .detail-row .value { flex: 1; color: #2c3e50; font-weight: 500; }
+        .history-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 5px; padding: 10px; margin-top: 15px; font-size: 13px; color: #555; height: 200px; overflow-y: auto; text-align: left;}
+
         #loadingGlobal { text-align: center; padding: 40px; color: #7f8c8d; }
     </style>
 </head>
@@ -79,7 +103,8 @@
         <!-- แท็บนำทาง -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('users', this)">👥 จัดการผู้ใช้งาน</button>
-            <button class="tab-btn" onclick="switchTab('master', this)">⚙️ ตั้งค่าฐานข้อมูล (Master Data)</button>
+            <button class="tab-btn" onclick="switchTab('master', this)">⚙️ ตั้งค่าฐานข้อมูล</button>
+            <button class="tab-btn" onclick="switchTab('export', this)">📥 ดาวน์โหลด Excel</button>
         </div>
 
         <div id="loadingGlobal">กำลังโหลดข้อมูลระบบ...</div>
@@ -87,7 +112,7 @@
         <!-- แท็บที่ 1: จัดการผู้ใช้งาน -->
         <div id="tab-users" class="tab-content active" style="display: none;">
             <div class="filter-bar">
-                <strong>กรองผู้ใช้งาน:</strong>
+                <strong>กรอง:</strong>
                 <select id="roleFilter" onchange="renderUsers()">
                     <option value="pending" selected>🔥 รออนุมัติ (ผู้ใช้ใหม่)</option>
                     <option value="all">แสดงทั้งหมด (150 ล่าสุด)</option>
@@ -95,19 +120,20 @@
                     <option value="admin">หัวหน้าซับฯ (Admin)</option>
                     <option value="inspector">รปภ. (Inspector)</option>
                     <option value="dept">หัวหน้าแผนก (Dept)</option>
+                    <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
                     <option value="hr">ฝ่ายบุคคล (HR)</option>
                     <option value="safety">จป. (Safety)</option>
                     <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
                 </select>
-                <span id="userCount" class="badge" style="background:#8e44ad; color:white;">0 คน</span>
+                <span id="userCount" class="badge-count">0 คน</span>
             </div>
+            <!-- พื้นที่แสดงการ์ดพนักงานแบบ Compact -->
             <div id="userListContainer"></div>
         </div>
 
         <!-- แท็บที่ 2: Master Data -->
         <div id="tab-master" class="tab-content" style="display: none;">
             <div class="master-grid">
-                
                 <!-- บริษัท -->
                 <div class="master-card">
                     <h3>🏢 จัดการบริษัท</h3>
@@ -117,7 +143,6 @@
                     </div>
                     <ul class="data-list" id="listCompanies"></ul>
                 </div>
-
                 <!-- คลัง/อาคาร -->
                 <div class="master-card" style="border-top-color: #e67e22;">
                     <h3>🏭 จัดการคลัง / อาคาร</h3>
@@ -127,7 +152,6 @@
                     </div>
                     <ul class="data-list" id="listWarehouses"></ul>
                 </div>
-
                 <!-- แผนก (ผูกคลัง) -->
                 <div class="master-card" style="border-top-color: #3498db;">
                     <h3>📂 จัดการแผนก (ผูกกับคลัง)</h3>
@@ -138,7 +162,6 @@
                     </div>
                     <ul class="data-list" id="listDepartments"></ul>
                 </div>
-
                 <!-- ตำแหน่งงาน -->
                 <div class="master-card" style="border-top-color: #1abc9c;">
                     <h3>👔 จัดการตำแหน่งงาน</h3>
@@ -148,7 +171,6 @@
                     </div>
                     <ul class="data-list" id="listPositions"></ul>
                 </div>
-
                 <!-- จุดตรวจ -->
                 <div class="master-card" style="border-top-color: #e74c3c;">
                     <h3>📍 จัดการจุดตรวจ (รปภ.)</h3>
@@ -158,10 +180,133 @@
                     </div>
                     <ul class="data-list" id="listCheckpoints"></ul>
                 </div>
-
             </div>
         </div>
 
+        <!-- แท็บที่ 3: ดาวน์โหลด Excel -->
+        <div id="tab-export" class="tab-content" style="display: none;">
+            <div class="export-card">
+                <h2 style="margin-top: 0; color: #27ae60;">ดาวน์โหลดข้อมูลผู้ใช้งานแบบละเอียด</h2>
+                <p style="color: #7f8c8d; font-size: 14px;">กำหนดเงื่อนไขที่ต้องการก่อนกดดาวน์โหลด</p>
+                
+                <div class="export-form-grid">
+                    <div class="form-group">
+                        <label>ตั้งแต่วันที่ (ลงทะเบียน):</label>
+                        <input type="date" id="exportStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>ถึงวันที่ (ลงทะเบียน):</label>
+                        <input type="date" id="exportEndDate">
+                    </div>
+                    <div class="form-group">
+                        <label>ตำแหน่ง (Role):</label>
+                        <select id="exportRoleSelect">
+                            <option value="all">-- ทุกตำแหน่ง --</option>
+                            <option value="visitor">พนักงานซับฯ (Visitor)</option>
+                            <option value="admin">หัวหน้าซับฯ (Admin)</option>
+                            <option value="inspector">รปภ. (Inspector)</option>
+                            <option value="dept">หัวหน้าแผนก (Dept)</option>
+                            <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
+                            <option value="hr">ฝ่ายบุคคล (HR)</option>
+                            <option value="safety">จป. (Safety)</option>
+                            <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>สถานะ:</label>
+                        <select id="exportStatusSelect">
+                            <option value="all">-- ทุกสถานะ --</option>
+                            <option value="pending">รออนุมัติ</option>
+                            <option value="approved">อนุมัติแล้ว (Active)</option>
+                            <option value="banned">ระงับการใช้งาน</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>บริษัทซับคอนแทรค:</label>
+                        <select id="exportCompanySelect">
+                            <option value="all">-- ทุกบริษัท --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>แผนก:</label>
+                        <select id="exportDeptSelect">
+                            <option value="all">-- ทุกแผนก --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-add" style="padding: 15px 30px; font-size: 16px; width: 100%;" onclick="exportAllUsers()">
+                    📥 ดาวน์โหลดไฟล์ Excel (CSV)
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal เปลี่ยนสิทธิ์อัจฉริยะ -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ กำหนดสิทธิ์การใช้งาน</h3>
+            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 15px;" id="modalEmpName">ชื่อพนักงาน</p>
+            
+            <div class="form-group">
+                <label>เลือกตำแหน่ง (Role):</label>
+                <select id="modalRole" onchange="toggleRoleOptions()">
+                    <option value="visitor">พนักงานซับฯ (Visitor)</option>
+                    <option value="admin">หัวหน้าซับฯ (Admin)</option>
+                    <option value="inspector">รปภ. (Inspector)</option>
+                    <option value="dept">หัวหน้าแผนก (Dept)</option>
+                    <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
+                    <option value="hr">ฝ่ายบุคคล (HR)</option>
+                    <option value="safety">จป. (Safety)</option>
+                    <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
+                </select>
+            </div>
+
+            <!-- ส่วนขยายสำหรับแต่ละ Role -->
+            <div class="form-group" id="extraCompany" style="display:none;">
+                <label>สังกัดบริษัท (สำหรับ Admin):</label>
+                <select id="modalCompany"></select>
+            </div>
+            <div class="form-group" id="extraDept" style="display:none;">
+                <label>ดูแลแผนก (สำหรับ หัวหน้า/ผู้ช่วย):</label>
+                <select id="modalDept"></select>
+            </div>
+            <div class="form-group" id="extraCheckpoint" style="display:none;">
+                <label>ประจำจุดตรวจ (สำหรับ รปภ.):</label>
+                <select id="modalCheckpoint"></select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeRoleModal()">ยกเลิก</button>
+                <button class="btn-confirm" onclick="saveRoleSetting()">บันทึก (และอนุมัติ)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ดูประวัติ / ข้อมูลแบบละเอียด -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+            <h3 style="color: #3498db; text-align: center;">ข้อมูลพนักงานและประวัติ</h3>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img id="detailImg" src="" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ecf0f1;">
+            </div>
+            
+            <div class="detail-row"><div class="label">ชื่อ-นามสกุล:</div><div class="value" id="detailName">-</div></div>
+            <div class="detail-row"><div class="label">เบอร์โทร:</div><div class="value" id="detailPhone">-</div></div>
+            <div class="detail-row"><div class="label">เลข ปชช.:</div><div class="value" id="detailIdCard">-</div></div>
+            <div class="detail-row"><div class="label">สถานะ:</div><div class="value" id="detailStatus">-</div></div>
+            <div class="detail-row"><div class="label">บริษัท / แผนก:</div><div class="value" id="detailCompDept">-</div></div>
+            
+            <h4 style="margin: 15px 0 5px 0; color: #2c3e50; text-align: left;">📝 ประวัติการเข้าทำงาน</h4>
+            <div class="history-box" id="detailHistory">
+                <div style="text-align: center; color: #aaa; margin-top: 40px;">กำลังโหลด...</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel" style="width: 100%;" onclick="closeDetailsModal()">ปิดหน้าต่าง</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -182,14 +327,17 @@
         // --- 2. ตัวแปรเก็บข้อมูล (State) ---
         let allUsers = [];
         let masterData = {
-            companies: {},
-            warehouses: {},
-            departments: {},
-            positions: {},
-            checkpoints: {}
+            companies: {}, warehouses: {}, departments: {}, positions: {}, checkpoints: {}
+        };
+        let currentEditingUid = null;
+
+        const roleNames = {
+            'visitor': 'พนักงานซับฯ', 'admin': 'Admin ซับฯ', 'inspector': 'รปภ.',
+            'dept': 'หัวหน้าแผนก', 'asst_dept': 'ผู้ช่วยหัวหน้าแผนก', 'hr': 'ฝ่ายบุคคล',
+            'safety': 'จป.', 'superuser': 'Superuser'
         };
 
-        // ระบบสลับหน้าแท็บ
+        // สลับหน้าแท็บ
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -199,62 +347,43 @@
 
         // --- 3. โหลดข้อมูลระบบทั้งหมดพร้อมกัน ---
         async function initializeSystem() {
-            // โหลด Master Data แบบ Real-time
-            listenToMasterData('companies', 'listCompanies');
+            listenToMasterData('companies', 'listCompanies', updateModalDropdowns);
             listenToMasterData('warehouses', 'listWarehouses', updateWarehouseDropdowns);
-            listenToMasterData('departments', 'listDepartments', null, true); // true = มีผูกคลัง
+            listenToMasterData('departments', 'listDepartments', updateModalDropdowns, true);
             listenToMasterData('positions', 'listPositions');
-            listenToMasterData('checkpoints', 'listCheckpoints');
+            listenToMasterData('checkpoints', 'listCheckpoints', updateModalDropdowns);
 
-            // ⚠️ การเพิ่มความเร็ว: ดึงข้อมูลพนักงานแค่ 150 คนล่าสุดแทนการดึงทั้งหมด
-            db.collection("users").orderBy("registeredAt", "desc").limit(150).onSnapshot(snapshot => {
+            db.collection("users").orderBy("registeredAt", "desc").limit(300).onSnapshot(snapshot => {
                 allUsers = [];
-                snapshot.forEach(doc => {
-                    allUsers.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach(doc => { allUsers.push({ id: doc.id, ...doc.data() }); });
                 renderUsers();
-                
-                // ซ่อน Loading เริ่มต้น
                 document.getElementById('loadingGlobal').style.display = 'none';
                 document.getElementById('tab-users').style.display = 'block';
             });
         }
 
-        // --- 4. ฟังก์ชันจัดการ Users ---
+        // --- 4. ฟังก์ชันจัดการ Users (Compact View) ---
         function renderUsers() {
             const container = document.getElementById("userListContainer");
             const filterRole = document.getElementById("roleFilter").value;
             container.innerHTML = "";
             
             let filteredUsers = allUsers;
-            
-            // ใช้เงื่อนไขกรองแสดงผล (เริ่มต้นจะกรองเฉพาะสถานะ Pending ให้เห็นผู้ใช้ใหม่ทันที)
-            if (filterRole === "pending") {
-                filteredUsers = allUsers.filter(u => u.status === 'pending');
-            } else if (filterRole !== "all") {
-                filteredUsers = allUsers.filter(u => u.role === filterRole);
-            }
+            if (filterRole === "pending") filteredUsers = allUsers.filter(u => u.status === 'pending');
+            else if (filterRole !== "all") filteredUsers = allUsers.filter(u => u.role === filterRole);
 
             document.getElementById("userCount").innerText = `${filteredUsers.length} คน`;
 
             if (filteredUsers.length === 0) {
-                container.innerHTML = "<div style='text-align:center; padding: 40px 20px; color:#7f8c8d; background: white; border-radius: 10px; border: 2px dashed #ecf0f1;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้ 🎉</div>";
+                container.innerHTML = "<div style='text-align:center; padding: 40px; color:#7f8c8d; background:white; border-radius:10px;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้ 🎉</div>";
                 return;
             }
 
             filteredUsers.forEach(user => {
-                const compName = masterData.companies[user.companyId]?.name || "ไม่ระบุบริษัท";
-                const deptName = masterData.departments[user.departmentId]?.name || "ไม่ระบุแผนก";
+                const compName = masterData.companies[user.companyId]?.name || "-";
+                const deptName = masterData.departments[user.departmentId]?.name || "-";
+                const roleName = roleNames[user.role] || user.role;
                 
-                const roles = [
-                    { value: 'visitor', label: 'พนักงานซับฯ' }, { value: 'admin', label: 'หัวหน้าซับฯ' },
-                    { value: 'inspector', label: 'รปภ.' }, { value: 'dept', label: 'หัวหน้าแผนก' },
-                    { value: 'hr', label: 'ฝ่ายบุคคล' }, { value: 'safety', label: 'จป.' },
-                    { value: 'superuser', label: 'Superuser' }
-                ];
-                let optionsHtml = roles.map(r => `<option value="${r.value}" ${user.role === r.value ? 'selected' : ''}>${r.label}</option>`).join('');
-
-                // กำหนดการแสดงผลสถานะ และสีแถบด้านซ้าย
                 let statusHtml = '';
                 let borderLeftColor = '#3498db';
                 
@@ -262,104 +391,326 @@
                     statusHtml = '<span style="color: #27ae60; font-weight: bold;">✅ อนุมัติแล้ว</span>';
                     borderLeftColor = '#27ae60';
                 } else if (user.status === 'banned') {
-                    statusHtml = '<span style="color: #c0392b; font-weight: bold;">🚫 ระงับใช้งาน (Banned)</span>';
+                    statusHtml = '<span style="color: #c0392b; font-weight: bold;">🚫 ระงับใช้งาน</span>';
                     borderLeftColor = '#c0392b';
                 } else {
-                    statusHtml = '<span style="color: #e67e22; font-weight: bold;">⏳ รออนุมัติ</span>';
-                    borderLeftColor = '#e67e22';
+                    statusHtml = '<span style="color: #f39c12; font-weight: bold;">⏳ รออนุมัติ</span>';
+                    borderLeftColor = '#f39c12';
                 }
 
+                // สรุปข้อมูลเสริมตาม Role (เพื่อให้เห็นชัดเจน)
+                let extraBadge = '';
+                if(user.role === 'admin' && user.companyId) extraBadge = `<span class="badge-sm">🏢 ดูแล: ${masterData.companies[user.companyId]?.name || 'ไม่ทราบ'}</span>`;
+                if((user.role === 'dept' || user.role === 'asst_dept') && user.managedDeptId) extraBadge = `<span class="badge-sm">📂 ดูแล: ${masterData.departments[user.managedDeptId]?.name || 'ไม่ทราบ'}</span>`;
+                if(user.role === 'inspector' && user.checkpointId) extraBadge = `<span class="badge-sm">📍 จุดตรวจ: ${masterData.checkpoints[user.checkpointId]?.name || 'ไม่ทราบ'}</span>`;
+
                 const div = document.createElement("div");
-                div.className = "user-card";
+                div.className = "user-card-compact";
                 div.style.borderLeftColor = borderLeftColor;
-                if (user.status === 'banned') div.style.opacity = '0.7'; // ทำให้การ์ดสีจางลงถ้าโดนแบน
+                if (user.status === 'banned') div.style.opacity = '0.7';
 
                 div.innerHTML = `
-                    <div class="user-info">
-                        <strong>${user.fullname}</strong>
-                        <div class="meta">
-                            <span class="badge">🏢 ${compName}</span>
-                            <span class="badge">📂 ${deptName}</span>
-                            <span>📞 ${user.phone}</span>
+                    <div class="user-info-c">
+                        <div class="top-row">
+                            <span class="name">${user.fullname}</span>
+                            <span class="phone">📞 ${user.phone}</span>
                         </div>
-                        <div style="font-size: 13px; margin-top: 5px;">
-                            สถานะ: ${statusHtml}
+                        <div class="bottom-row">
+                            <span class="badge-sm" style="background:#e8f4f8; color:#2980b9;">${roleName}</span>
+                            <span>${statusHtml}</span>
+                            ${user.role === 'visitor' ? `<span class="badge-sm">🏢 ${compName}</span> <span class="badge-sm">📂 ${deptName}</span>` : extraBadge}
                         </div>
                     </div>
-                    <div class="role-control">
-                        <select id="role-${user.id}">${optionsHtml}</select>
-                        <button class="btn-save" onclick="updateUserRole('${user.id}')">เปลี่ยนสิทธิ์</button>
-                        <span id="msg-${user.id}" class="success-msg">✅ บันทึกแล้ว</span>
-                    </div>
-                    <div class="status-control">
-                        <span style="font-size: 13px; color: #7f8c8d;">จัดการสถานะ:</span>
-                        <button class="btn-status btn-approve" onclick="updateUserStatus('${user.id}', 'approved')" ${user.status === 'approved' ? 'disabled' : ''}>✅ อนุมัติ</button>
-                        <button class="btn-status btn-ban" onclick="updateUserStatus('${user.id}', 'banned')" ${user.status === 'banned' ? 'disabled' : ''}>🚫 แบนผู้ใช้</button>
-                        <span id="status-msg-${user.id}" class="success-msg"></span>
+                    <div class="c-actions">
+                        <button class="btn-sm btn-info" style="background:#e8f4f8; color:#2980b9; border:1px solid #2980b9;" onclick="openDetailsModal('${user.id}')">📝 ประวัติ</button>
+                        <button class="btn-sm btn-setting" onclick="openRoleModal('${user.id}')">⚙️ สิทธิ์</button>
+                        ${user.status !== 'banned' ? `<button class="btn-sm btn-ban-sm" onclick="banUser('${user.id}')">🚫 แบน</button>` : ''}
                     </div>
                 `;
                 container.appendChild(div);
             });
         }
 
-        async function updateUserRole(uid) {
-            const newRole = document.getElementById(`role-${uid}`).value;
-            const msgSpan = document.getElementById(`msg-${uid}`);
-            try {
-                await db.collection("users").doc(uid).update({ role: newRole });
-                msgSpan.style.display = "inline";
-                setTimeout(() => msgSpan.style.display = "none", 2000);
-            } catch (error) { alert("บันทึกไม่สำเร็จ: " + error.message); }
+        async function banUser(uid) {
+            if (!confirm("⚠️ คุณแน่ใจหรือไม่ที่จะ แบน/ระงับการใช้งาน ผู้ใช้นี้?")) return;
+            try { await db.collection("users").doc(uid).update({ status: 'banned' }); } 
+            catch (error) { alert("อัปเดตสถานะไม่สำเร็จ: " + error.message); }
         }
 
-        // ฟังก์ชันใหม่: อัปเดตสถานะ (อนุมัติ/แบน)
-        async function updateUserStatus(uid, newStatus) {
-            if (newStatus === 'banned') {
-                if (!confirm("⚠️ คุณแน่ใจหรือไม่ที่จะ แบน/ระงับการใช้งาน ผู้ใช้นี้?")) return;
-            }
+        // --- 5. ระบบ Modal ตั้งค่าสิทธิ์อัจฉริยะ ---
+        function updateModalDropdowns() {
+            // เติมข้อมูลใส่ Dropdown ใน Modal
+            const cSelect = document.getElementById("modalCompany"); cSelect.innerHTML = '<option value="">-- เลือกบริษัท --</option>';
+            const dSelect = document.getElementById("modalDept"); dSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+            const cpSelect = document.getElementById("modalCheckpoint"); cpSelect.innerHTML = '<option value="">-- เลือกจุดตรวจ --</option>';
             
-            const msgSpan = document.getElementById(`status-msg-${uid}`);
+            // เติมข้อมูลใส่ Dropdown ฝั่งหน้า Export Excel ด้วย
+            const expCSelect = document.getElementById("exportCompanySelect"); expCSelect.innerHTML = '<option value="all">-- ทุกบริษัท --</option>';
+            const expDSelect = document.getElementById("exportDeptSelect"); expDSelect.innerHTML = '<option value="all">-- ทุกแผนก --</option>';
+
+            Object.keys(masterData.companies).forEach(id => {
+                cSelect.innerHTML += `<option value="${id}">${masterData.companies[id].name}</option>`;
+                expCSelect.innerHTML += `<option value="${id}">${masterData.companies[id].name}</option>`;
+            });
+            Object.keys(masterData.departments).forEach(id => {
+                dSelect.innerHTML += `<option value="${id}">${masterData.departments[id].name}</option>`;
+                expDSelect.innerHTML += `<option value="${id}">${masterData.departments[id].name}</option>`;
+            });
+            Object.keys(masterData.checkpoints).forEach(id => {
+                cpSelect.innerHTML += `<option value="${id}">${masterData.checkpoints[id].name}</option>`;
+            });
+        }
+
+        function openRoleModal(uid) {
+            const user = allUsers.find(u => u.id === uid);
+            if(!user) return;
+            currentEditingUid = uid;
+            document.getElementById("modalEmpName").innerText = `พนักงาน: ${user.fullname} | 📞 ${user.phone}`;
+            document.getElementById("modalRole").value = user.role;
+            
+            // ใส่ค่าเดิมถ้ามี
+            if(user.companyId) document.getElementById("modalCompany").value = user.companyId;
+            if(user.managedDeptId) document.getElementById("modalDept").value = user.managedDeptId;
+            if(user.checkpointId) document.getElementById("modalCheckpoint").value = user.checkpointId;
+
+            toggleRoleOptions();
+            document.getElementById("roleModal").style.display = "flex";
+        }
+
+        function closeRoleModal() { document.getElementById("roleModal").style.display = "none"; currentEditingUid = null; }
+
+        function toggleRoleOptions() {
+            const role = document.getElementById("modalRole").value;
+            document.getElementById("extraCompany").style.display = (role === 'admin') ? 'block' : 'none';
+            document.getElementById("extraDept").style.display = (role === 'dept' || role === 'asst_dept') ? 'block' : 'none';
+            document.getElementById("extraCheckpoint").style.display = (role === 'inspector') ? 'block' : 'none';
+        }
+
+        async function saveRoleSetting() {
+            if(!currentEditingUid) return;
+            const newRole = document.getElementById("modalRole").value;
+            
+            // เปลี่ยน Role และอนุมัติสถานะพร้อมกัน
+            let updatePayload = { 
+                role: newRole, 
+                status: 'approved' // <--- อนุมัติให้อัตโนมัติทันที
+            };
+
+            // ตรวจสอบข้อมูลบังคับตาม Role
+            if(newRole === 'admin') {
+                const compId = document.getElementById("modalCompany").value;
+                if(!compId) return alert("กรุณาระบุ 'บริษัท' สำหรับ Admin");
+                updatePayload.companyId = compId;
+            } 
+            else if(newRole === 'dept' || newRole === 'asst_dept') {
+                const deptId = document.getElementById("modalDept").value;
+                if(!deptId) return alert("กรุณาระบุ 'แผนก' สำหรับหัวหน้า/ผู้ช่วย");
+                updatePayload.managedDeptId = deptId;
+                // หาคลังที่แผนกนี้สังกัดอยู่แล้วผูกให้ด้วย
+                updatePayload.managedWarehouseId = masterData.departments[deptId]?.warehouseId || '';
+            } 
+            else if(newRole === 'inspector') {
+                const cpId = document.getElementById("modalCheckpoint").value;
+                if(!cpId) return alert("กรุณาระบุ 'จุดตรวจ' สำหรับ รปภ.");
+                updatePayload.checkpointId = cpId;
+            }
+
             try {
-                await db.collection("users").doc(uid).update({ status: newStatus });
-                msgSpan.innerText = "✅ อัปเดตสถานะแล้ว";
-                msgSpan.style.display = "inline";
-                setTimeout(() => msgSpan.style.display = "none", 2000);
-            } catch (error) { 
-                alert("อัปเดตสถานะไม่สำเร็จ: " + error.message); 
+                await db.collection("users").doc(currentEditingUid).update(updatePayload);
+                closeRoleModal();
+            } catch (error) {
+                alert("บันทึกไม่สำเร็จ: " + error.message);
             }
         }
 
-        // --- 5. ฟังก์ชันจัดการ Master Data ---
+        // --- ระบบ Modal ข้อมูล/ประวัติพนักงาน ---
+        async function openDetailsModal(uid) {
+            const user = allUsers.find(u => u.id === uid);
+            if(!user) return;
+
+            document.getElementById("detailImg").src = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/100');
+            document.getElementById("detailName").innerText = user.fullname;
+            document.getElementById("detailPhone").innerText = user.phone || "-";
+            document.getElementById("detailIdCard").innerText = user.idCard || "-";
+            
+            let statusStr = user.status === 'approved' ? '✅ อนุมัติแล้ว' : (user.status === 'banned' ? '🚫 ระงับการใช้งาน' : '⏳ รออนุมัติ');
+            document.getElementById("detailStatus").innerHTML = statusStr;
+
+            let cStr = masterData.companies[user.companyId]?.name || '-';
+            let dStr = masterData.departments[user.departmentId]?.name || '-';
+            if(user.role === 'dept' || user.role === 'asst_dept') dStr = masterData.departments[user.managedDeptId]?.name || '-';
+            if(user.role === 'admin') dStr = '-'; // Admin might not be assigned to a dept
+            
+            document.getElementById("detailCompDept").innerText = `${cStr} / ${dStr}`;
+            document.getElementById("detailsModal").style.display = "flex";
+
+            // โหลดประวัติการสแกน (ดึงจาก daily_records)
+            const historyContainer = document.getElementById("detailHistory");
+            historyContainer.innerHTML = "<div style='text-align: center; color: #aaa; margin-top: 40px;'>กำลังโหลดข้อมูล...</div>";
+
+            try {
+                // แก้ปัญหา The query requires an index: ดึงข้อมูลมาก่อน แล้วค่อย Sort ด้วย JavaScript
+                const snap = await db.collection("daily_records").where("uid", "==", uid).get();
+                
+                if(snap.empty) {
+                    historyContainer.innerHTML = "<div style='text-align: center; color: #27ae60; font-weight: bold; margin-top: 40px;'>✨ พนักงานใหม่ (ยังไม่มีประวัติการทำงาน)</div>";
+                    return;
+                }
+                
+                // นำข้อมูลมาเก็บใน Array เพื่อเรียงลำดับ
+                let records = [];
+                snap.forEach(doc => records.push(doc.data()));
+                
+                // เรียงลำดับวันที่ (ล่าสุดขึ้นก่อน)
+                records.sort((a, b) => {
+                    const dateA = a.date || "";
+                    const dateB = b.date || "";
+                    if (dateA !== dateB) return dateB.localeCompare(dateA); // เรียงวันที่
+                    const timeA = a.scanInTime || "";
+                    const timeB = b.scanInTime || "";
+                    return timeB.localeCompare(timeA); // เรียงเวลาเข้า (ถ้าวันเดียวกัน)
+                });
+                
+                // จำกัดให้แสดงแค่ 30 รายการล่าสุด
+                records = records.slice(0, 30);
+                
+                historyContainer.innerHTML = "";
+                records.forEach(d => {
+                    const dName = masterData.depts[d.deptId]?.name || '-';
+                    const stars = d.rating ? "★".repeat(d.rating) + "☆".repeat(5-d.rating) : "-";
+                    
+                    let sText = '';
+                    if(d.status === 'evaluated') sText = `<span style="color:#27ae60;">ประเมินแล้ว (${stars})</span>`;
+                    else if(d.status === 'not_show') sText = `<span style="color:#e74c3c;">ละทิ้งงาน</span>`;
+                    else if(d.status === 'in') sText = `<span style="color:#3498db;">กำลังทำงาน (เข้าแล้ว)</span>`;
+                    else sText = `<span style="color:#f39c12;">รอประเมิน</span>`;
+
+                    const inTime = d.scanInTime || '-';
+                    const outTime = d.scanOutTime || '-';
+
+                    historyContainer.innerHTML += `
+                        <div style="background: white; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 5px; margin-bottom: 5px;">
+                                <strong>📅 ${d.date}</strong> <span>${sText}</span>
+                            </div>
+                            <div style="font-size: 13px; color: #555;">
+                                🏢 แผนก: <b>${dName}</b><br>
+                                ⏱️ เวลาเข้า: <b style="color:#27ae60;">${inTime}</b> | เวลาออก: <b style="color:#e67e22;">${outTime}</b><br>
+                                💬 คอมเมนต์: <i>${d.comment || '-'}</i>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                historyContainer.innerHTML = "<div style='color: red; text-align: center; margin-top: 20px;'>โหลดประวัติไม่สำเร็จ: " + e.message + "</div>";
+            }
+        }
+
+        function closeDetailsModal() { document.getElementById("detailsModal").style.display = "none"; }
+
+        // --- 6. Export Excel แบบละเอียด ---
+        function exportAllUsers() {
+            if (allUsers.length === 0) return alert("ไม่มีข้อมูลผู้ใช้งาน");
+
+            // ดึงค่าตัวกรอง
+            const startDateInput = document.getElementById("exportStartDate").value;
+            const endDateInput = document.getElementById("exportEndDate").value;
+            const selectedRole = document.getElementById("exportRoleSelect").value;
+            const selectedStatus = document.getElementById("exportStatusSelect").value;
+            const selectedComp = document.getElementById("exportCompanySelect").value;
+            const selectedDept = document.getElementById("exportDeptSelect").value;
+
+            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
+            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
+
+            // คัดกรองข้อมูล
+            let exportUsers = allUsers.filter(u => {
+                if (selectedRole !== "all" && u.role !== selectedRole) return false;
+                if (selectedStatus !== "all" && u.status !== selectedStatus) return false;
+                
+                // ตรวจสอบบริษัทและแผนกที่ผู้ใช้ดูแล (ตาม Role)
+                let uComp = u.companyId;
+                let uDept = u.departmentId;
+                if(u.role === 'dept' || u.role === 'asst_dept') uDept = u.managedDeptId;
+
+                if (selectedComp !== "all" && uComp !== selectedComp) return false;
+                if (selectedDept !== "all" && uDept !== selectedDept) return false;
+
+                // กรองช่วงวันที่ลงทะเบียน
+                if (startDate || endDate) {
+                    if (!u.registeredAt) return false;
+                    const regDate = u.registeredAt.toDate();
+                    if (startDate && regDate < startDate) return false;
+                    if (endDate && regDate > endDate) return false;
+                }
+
+                return true;
+            });
+
+            if (exportUsers.length === 0) return alert("ไม่พบข้อมูลที่ตรงกับเงื่อนไขที่กำหนด");
+
+            let csvContent = "\uFEFF"; // BOM สำหรับภาษาไทยให้ Excel อ่านออก
+            csvContent += "วันที่ลงทะเบียน,ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ตำแหน่งระบบ (Role),สถานะ,บริษัท,แผนก,จุดตรวจ (รปภ.)\n";
+
+            exportUsers.forEach(user => {
+                const regDateStr = user.registeredAt ? user.registeredAt.toDate().toLocaleDateString('th-TH') : '-';
+                const rName = roleNames[user.role] || user.role;
+                const statusStr = user.status === 'approved' ? 'อนุมัติแล้ว' : (user.status === 'banned' ? 'ระงับการใช้งาน' : 'รออนุมัติ');
+                
+                let cStr = masterData.companies[user.companyId]?.name || '-';
+                let dStr = masterData.departments[user.departmentId]?.name || '-';
+                if(user.role === 'dept' || user.role === 'asst_dept') dStr = masterData.departments[user.managedDeptId]?.name || '-';
+                let cpStr = masterData.checkpoints[user.checkpointId]?.name || '-';
+
+                const row = [
+                    `"${regDateStr}"`,
+                    `"${user.fullname}"`, 
+                    `'${user.phone}`, 
+                    `'${user.idCard || '-'}`,
+                    `"${rName}"`,
+                    `"${statusStr}"`,
+                    `"${cStr}"`,
+                    `"${dStr}"`,
+                    `"${cpStr}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ข้อมูลระบบทั้งหมด_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- 7. ฟังก์ชันจัดการ Master Data ---
         function listenToMasterData(collectionName, listId, callback = null, isDept = false) {
             db.collection(collectionName).orderBy("name").onSnapshot(snapshot => {
                 masterData[collectionName] = {};
                 const listEl = document.getElementById(listId);
-                listEl.innerHTML = "";
+                if(listEl) listEl.innerHTML = "";
 
-                if (snapshot.empty) {
-                    listEl.innerHTML = "<li style='color:#ccc; justify-content:center;'>ไม่มีข้อมูล</li>";
-                }
+                if (snapshot.empty && listEl) listEl.innerHTML = "<li style='color:#ccc; justify-content:center;'>ไม่มีข้อมูล</li>";
 
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    masterData[collectionName][doc.id] = data; // อัปเดต Dictionary
+                    masterData[collectionName][doc.id] = data;
                     
-                    let extraInfo = "";
-                    if (isDept && data.warehouseId) {
-                        const whName = masterData.warehouses[data.warehouseId]?.name || "คลังถูกลบ";
-                        extraInfo = `<small>📍 คลัง: ${whName}</small>`;
+                    if(listEl) {
+                        let extraInfo = "";
+                        if (isDept && data.warehouseId) extraInfo = `<small>📍 คลัง: ${masterData.warehouses[data.warehouseId]?.name || "ไม่ทราบ"}</small>`;
+                        const li = document.createElement("li");
+                        li.innerHTML = `<div><span>${data.name}</span>${extraInfo}</div><button class="btn-delete" onclick="deleteData('${collectionName}', '${doc.id}')">🗑️</button>`;
+                        listEl.appendChild(li);
                     }
-
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <div><span>${data.name}</span>${extraInfo}</div>
-                        <button class="btn-delete" onclick="deleteData('${collectionName}', '${doc.id}')">🗑️</button>
-                    `;
-                    listEl.appendChild(li);
                 });
 
                 if (callback) callback();
-                renderUsers(); // รีเฟรชหน้า User เพื่ออัปเดตชื่อบริษัท/แผนกที่เปลี่ยนไป
+                renderUsers(); 
             });
         }
 
@@ -371,46 +722,37 @@
                 input.disabled = true;
                 await db.collection(collectionName).add({ name: name });
                 input.value = "";
-            } catch (error) { alert("เพิ่มข้อมูลล้มเหลว: " + error.message); }
+            } catch (error) { alert("ล้มเหลว: " + error.message); }
             input.disabled = false;
         }
 
-        // พิเศษสำหรับเพิ่มแผนก (ต้องผูกคลัง)
         async function addDepartment() {
             const input = document.getElementById("inputDept");
             const selectWh = document.getElementById("selectWarehouseForDept");
             const name = input.value.trim();
             const whId = selectWh.value;
-
-            if (!whId) return alert("กรุณาเลือกคลัง/อาคารก่อนเพิ่มแผนก");
-            if (!name) return alert("กรุณากรอกชื่อแผนก");
-
+            if (!whId || !name) return alert("กรุณาเลือกคลังและกรอกชื่อแผนก");
             try {
                 input.disabled = selectWh.disabled = true;
                 await db.collection("departments").add({ name: name, warehouseId: whId });
                 input.value = "";
-            } catch (error) { alert("เพิ่มข้อมูลล้มเหลว: " + error.message); }
+            } catch (error) { alert("ล้มเหลว: " + error.message); }
             input.disabled = selectWh.disabled = false;
         }
 
-        // อัปเดต Dropdown คลังสินค้าในฟอร์มเพิ่มแผนก
         function updateWarehouseDropdowns() {
             const select = document.getElementById("selectWarehouseForDept");
             select.innerHTML = '<option value="">-- เลือกคลัง/อาคาร --</option>';
-            Object.keys(masterData.warehouses).forEach(id => {
-                select.innerHTML += `<option value="${id}">${masterData.warehouses[id].name}</option>`;
-            });
+            Object.keys(masterData.warehouses).forEach(id => select.innerHTML += `<option value="${id}">${masterData.warehouses[id].name}</option>`);
         }
 
         async function deleteData(collectionName, docId) {
-            if (confirm("คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?\n(หากลบแล้วข้อมูลที่เชื่อมโยงอยู่จะกลายเป็นค่าว่าง)")) {
-                try {
-                    await db.collection(collectionName).doc(docId).delete();
-                } catch (error) { alert("ลบข้อมูลล้มเหลว: " + error.message); }
+            if (confirm("ลบข้อมูลนี้หรือไม่?\n(ข้อมูลที่เชื่อมโยงอยู่จะกลายเป็นค่าว่าง)")) {
+                try { await db.collection(collectionName).doc(docId).delete(); } 
+                catch (error) { alert("ลบข้อมูลล้มเหลว: " + error.message); }
             }
         }
 
-        // เริ่มต้นการทำงาน
         initializeSystem();
 
     </script>
