@@ -153,49 +153,68 @@
                     </div>
                 </div>
 
-                <!-- ฟอร์มขอโควต้า -->
+                <!-- ฟอร์มขอโควต้า (ปรับปรุงใหม่ให้กระชับ) -->
                 <div class="form-card">
-                    <h3 style="margin-top:0; color:#e67e22;">📝 สร้างคำขอโควต้าใหม่</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
+                    <h3 style="margin-top:0; color:#e67e22; border-bottom: 2px solid #fdebd0; padding-bottom: 10px;">📝 สร้างคำขอโควต้าใหม่</h3>
+                    
+                    <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                        <div class="form-group" style="grid-column: 1 / -1;">
                             <label>ชื่อแคมเปญ / งาน:</label>
-                            <input type="text" id="qCampaign" placeholder="เช่น โปรเจคแพ็คสินค้าปีใหม่">
+                            <input type="text" id="qCampaign" placeholder="เช่น โปรเจคแพ็คสินค้าปีใหม่" style="padding: 8px;">
                         </div>
+                        
+                        <div class="form-group">
+                            <label>ตำแหน่งงาน (เลือกหรือพิมพ์):</label>
+                            <input list="posDatalist" id="qPosition" placeholder="ระบุตำแหน่ง..." style="padding: 8px;">
+                            <datalist id="posDatalist"></datalist>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>จำนวนที่ต้องการ (คน):</label>
+                            <input type="number" id="qAmount" min="1" value="1" style="padding: 8px;">
+                        </div>
+
                         <div class="form-group">
                             <label>วันที่เริ่ม - สิ้นสุด:</label>
                             <div style="display:flex; gap:5px;">
-                                <input type="date" id="qStartDate">
-                                <input type="date" id="qEndDate">
+                                <input type="date" id="qStartDate" style="padding: 8px;">
+                                <input type="date" id="qEndDate" style="padding: 8px;">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>ตำแหน่งงาน:</label>
-                            <input list="posDatalist" id="qPosition" placeholder="เลือกหรือพิมพ์...">
-                            <datalist id="posDatalist"></datalist>
-                        </div>
-                        <div class="form-group">
-                            <label>จำนวนที่ต้องการ (คน):</label>
-                            <input type="number" id="qAmount" min="1" value="1">
-                        </div>
+
                         <div class="form-group">
                             <label>เวลาเข้า - ออกกะ:</label>
                             <div style="display:flex; gap:5px;">
-                                <input type="time" id="qStartTime">
-                                <input type="time" id="qEndTime">
+                                <input type="time" id="qStartTime" style="padding: 8px;">
+                                <input type="time" id="qEndTime" style="padding: 8px;">
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label>ส่งเรื่องให้ HR ท่านใด:</label>
-                            <select id="qHrSelect"><option value="">-- เลือก HR ส่วนกลาง --</option></select>
                         </div>
                     </div>
                     
-                    <h4 style="margin: 10px 0; color:#555; border-bottom:1px solid #eee; padding-bottom:5px;">💰 ข้อมูลค่าตอบแทน (บาท/วัน)</h4>
-                    <div class="form-grid">
-                        <div class="form-group"><label>ค่าแรงพื้นฐาน:</label><input type="number" id="wBase" value="0"></div>
-                        <div class="form-group"><label>ค่ากะ:</label><input type="number" id="wShift" value="0"></div>
-                        <div class="form-group"><label>ค่าทักษะ (Skill):</label><input type="number" id="wSkill" value="0"></div>
-                        <div class="form-group"><label>เงินพิเศษอื่นๆ:</label><input type="number" id="wSpecial" value="0"></div>
+                    <h4 style="margin: 10px 0 5px 0; color:#555; border-bottom:1px dashed #eee; padding-bottom:5px; font-size: 13px;">💰 ข้อมูลค่าตอบแทน (บาท/วัน)</h4>
+                    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่าแรงฐาน:</label>
+                            <input type="number" id="wBase" value="0" style="padding: 6px; font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่ากะ:</label>
+                            <input type="number" id="wShift" value="0" style="padding: 6px; font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่าทักษะ:</label>
+                            <input type="number" id="wSkill" value="0" style="padding: 6px; font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">เงินพิเศษ:</label>
+                            <input type="number" id="wSpecial" value="0" style="padding: 6px; font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <!-- ย้าย HR มาไว้ด้านล่างสุดก่อนส่งคำขอ -->
+                    <div class="form-group" style="margin-top: 15px; margin-bottom: 15px; background: #fdf2e9; padding: 10px; border-radius: 8px; border: 1px solid #fad7a1;">
+                        <label style="color: #d35400;">ส่งเรื่องให้ HR ส่วนกลางท่านใดรับผิดชอบ:</label>
+                        <select id="qHrSelect" style="padding: 10px; font-weight: bold; border-color: #e67e22;"><option value="">-- เลือกเจ้าหน้าที่ HR --</option></select>
                     </div>
 
                     <button class="btn-submit" onclick="submitQuotaRequest()">ส่งคำขอโควต้า</button>
