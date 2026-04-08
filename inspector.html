@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspector Dashboard - จุดตรวจรักษาความปลอดภัย</title>
+
+    <!-- เรียกใช้ Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+    
+    <!-- เรียกใช้ Library สแกน QR Code -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        
+        .header { background: #34495e; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+
+        .inspector-info { background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #2c3e50; }
+        .inspector-info h2 { margin: 0; font-size: 16px; color: #2c3e50; }
+        .inspector-info p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px; }
+
+        /* ส่วนกล้องสแกน */
+        .scanner-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid #3498db; text-align: center; }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; border: 2px solid #ecf0f1; margin-bottom: 10px; }
+        .btn-scan { background: #3498db; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
+
+        /* ผลลัพธ์การสแกน */
+        .result-card { display: none; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 20px; text-align: center; border: 2px solid #27ae60; animation: popIn 0.3s; }
+        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        .result-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #ecf0f1; margin-bottom: 10px; }
+        .result-name { font-size: 20px; font-weight: bold; color: #2c3e50; margin: 0 0 5px 0; }
+        .result-meta { font-size: 14px; color: #7f8c8d; margin-bottom: 15px; line-height: 1.5; }
+        .result-meta span { display: inline-block; background: #f0f2f5; padding: 2px 8px; border-radius: 10px; margin: 2px; }
+
+        .action-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-action { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-in { background: #27ae60; box-shadow: 0 4px 0 #1e8449; }
+        .btn-in:active { transform: translateY(4px); box-shadow: 0 0 0 #1e8449; }
+        .btn-out { background: #e67e22; box-shadow: 0 4px 0 #d35400; }
+        .btn-out:active { transform: translateY(4px); box-shadow: 0 0 0 #d35400; }
+        .btn-cancel { width: 100%; padding: 10px; margin-top: 10px; background: #ecf0f1; color: #7f8c8d; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        /* ประวัติการสแกนล่าสุด */
+        .history-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .history-card h3 { margin: 0 0 15px 0; font-size: 16px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .history-list { display: flex; flex-direction: column; gap: 10px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #bdc3c7; }
+        .history-item.status-in { border-left-color: #27ae60; }
+        .history-item.status-out { border-left-color: #e67e22; }
+        
+        /* Modal แจ้งเตือนข้อผิดพลาด (บัตรหมดอายุ/แบน) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px 20px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-top: 8px solid #c0392b; animation: popIn 0.3s; }
+        .modal-icon { font-size: 50px; margin-bottom: 10px; }
+        .modal-content h2 { color: #c0392b; margin: 0 0 10px 0; }
+        .modal-content p { color: #555; margin-bottom: 20px; }
+        .btn-close-modal { background: #c0392b; color: white; border: none; padding: 12px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        #loadingMsg { text-align: center; padding: 40px; color: #7f8c8d; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ Inspector Checkpoint</h1>
+    </div>
+
+    <div class="container">
+        <div id="loadingMsg">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</div>
+
+        <div id="mainContent" style="display: none;">
+            
+            <div class="inspector-info">
+                <h2 id="inspectorName">เจ้าหน้าที่ รปภ.</h2>
+                <p>จุดตรวจสแกนบัตรพนักงานซับคอนแทรค</p>
+            </div>
+
+            <!-- กล้องสแกน QR Code -->
+            <div class="scanner-card" id="scannerSection">
+                <div id="reader"></div>
+                <p style="font-size: 13px; color: #7f8c8d; margin-top: 10px;">นำ QR Code จากมือถือพนักงานมาส่องในกรอบด้านบน</p>
+                <button class="btn-scan" id="startScanBtn" onclick="startScanner()" style="display: none;">เปิดกล้องสแกนอีกครั้ง</button>
+            </div>
+
+            <!-- ผลการสแกน (ซ่อนไว้จนกว่าจะสแกนติด) -->
+            <div class="result-card" id="resultSection">
+                <img id="resImg" src="" class="result-avatar">
+                <h3 id="resName" class="result-name">-</h3>
+                <div class="result-meta">
+                    <span id="resComp">🏢 -</span> 
+                    <span id="resDept">📂 -</span><br>
+                    <span id="resPos">👔 -</span> 
+                    <span id="resExp">⏳ หมดอายุ: -</span>
+                </div>
+                
+                <div class="action-btns">
+                    <button class="btn-action btn-in" onclick="recordScan('in')">🟢 เข้า (IN)</button>
+                    <button class="btn-action btn-out" onclick="recordScan('out')">🟠 ออก (OUT)</button>
+                </div>
+                <button class="btn-cancel" onclick="resetScanner()">ยกเลิกการสแกน</button>
+            </div>
+
+            <!-- ประวัติล่าสุด -->
+            <div class="history-card">
+                <h3>รายการสแกนล่าสุด (วันนี้)</h3>
+                <div class="history-list" id="historyContainer">
+                    <div style="text-align:center; color:#999; padding:20px;">ยังไม่มีข้อมูลการสแกนในวันนี้</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal แจ้งเตือนไม่อนุญาตให้เข้า -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">⛔</div>
+            <h2>ไม่อนุญาตให้เข้าพื้นที่</h2>
+            <p id="errorModalMsg">ระบุเหตุผลที่นี่</p>
+            <button class="btn-close-modal" onclick="closeErrorModal()">ตกลง / สแกนคิวอาร์ใหม่</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
+            authDomain: "maersk-mcl-v2.firebaseapp.com",
+            projectId: "maersk-mcl-v2",
+            storageBucket: "maersk-mcl-v2.firebasestorage.app",
+            messagingSenderId: "447590679734",
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const inspectorUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
+        
+        let inspectorData = null;
+        let masterData = { companies: {}, depts: {}, positions: {} };
+        let html5QrcodeScanner = null;
+        let isProcessing = false;
+        let scannedUserData = null; // เก็บข้อมูลคนที่เพิ่งสแกนติด
+
+        if (!inspectorUid) {
+            alert("ไม่พบข้อมูลการเข้าสู่ระบบ");
+            window.location.replace("index.html");
+        }
+
+        async function initInspectorPanel() {
+            try {
+                const userDoc = await db.collection("users").doc(inspectorUid).get();
+                if (!userDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
+                inspectorData = userDoc.data();
+                
+                if (inspectorData.role !== "inspector" && inspectorData.role !== "superuser") {
+                    alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะเจ้าหน้าที่ รปภ.)");
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                document.getElementById("inspectorName").innerText = `เจ้าหน้าที่: ${inspectorData.fullname}`;
+                
+                await loadMasterData();
+                
+                document.getElementById("loadingMsg").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+
+                // เริ่มเปิดกล้องทันที
+                startScanner();
+                // ดึงประวัติสแกนวันนี้
+                listenToTodayHistory();
+
+            } catch (error) {
+                document.getElementById("loadingMsg").innerHTML = `<span style="color:red;">ข้อผิดพลาด: ${error.message}</span>`;
+            }
+        }
+
+        async function loadMasterData() {
+            const [compSnap, deptSnap, posSnap] = await Promise.all([
+                db.collection("companies").get(),
+                db.collection("departments").get(),
+                db.collection("positions").get()
+            ]);
+            compSnap.forEach(doc => masterData.companies[doc.id] = doc.data().name);
+            deptSnap.forEach(doc => masterData.depts[doc.id] = doc.data().name);
+            posSnap.forEach(doc => masterData.positions[doc.id] = doc.data().name);
+        }
+
+        // --- ระบบสแกน QR Code ---
+        function startScanner() {
+            document.getElementById("resultSection").style.display = "none";
+            document.getElementById("startScanBtn").style.display = "none";
+            
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            }
+            isProcessing = false;
+        }
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            if (isProcessing) return; // ป้องกันการสแกนรัวๆ
+            isProcessing = true;
+            
+            // หยุดกล้องชั่วคราว
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+
+            // นำ UID ที่ได้จาก QR ไปดึงข้อมูล
+            const scannedUid = decodedText;
+            try {
+                const userDoc = await db.collection("users").doc(scannedUid).get();
+                if (!userDoc.exists) {
+                    showError("QR Code ไม่ถูกต้อง หรือไม่พบข้อมูลพนักงานในระบบ");
+                    return;
+                }
+
+                const user = userDoc.data();
+                user.id = userDoc.id;
+
+                // ตรวจสอบสิทธิ์ (Validation)
+                if (user.role !== 'visitor') {
+                    showError("QR Code นี้ไม่ใช่บัตรพนักงานซับคอนแทรค");
+                    return;
+                }
+                if (user.status === 'banned') {
+                    showError("❌ พนักงานคนนี้ถูก 'ระงับสิทธิ์/แบน' โดยฝ่ายบุคคล ห้ามเข้าพื้นที่เด็ดขาด");
+                    return;
+                }
+                if (user.status === 'pending') {
+                    showError("⏳ พนักงานคนนี้ 'ยังไม่ได้รับการอนุมัติบัตร' ให้เข้าพื้นที่");
+                    return;
+                }
+
+                // เช็ควันหมดอายุ
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const expDate = new Date(user.expireDate);
+                if (expDate < today) {
+                    showError(`บัตรหมดอายุแล้วตั้งแต่: ${new Date(user.expireDate).toLocaleDateString('th-TH')}`);
+                    return;
+                }
+
+                // สแกนผ่าน! แสดงข้อมูลเตรียมกด IN/OUT
+                showUserResult(user);
+
+            } catch (error) {
+                console.error(error);
+                showError("เกิดข้อผิดพลาดในการดึงข้อมูล: " + error.message);
+            }
+        }
+
+        function onScanFailure(error) {
+            // ปล่อยผ่าน (กล้องกำลังพยายามโฟกัส)
+        }
+
+        function showUserResult(user) {
+            scannedUserData = user;
+            
+            document.getElementById("resImg").src = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/100');
+            document.getElementById("resName").innerText = user.fullname;
+            document.getElementById("resComp").innerText = `🏢 ${masterData.companies[user.companyId] || '-'}`;
+            document.getElementById("resDept").innerText = `📂 ${masterData.depts[user.departmentId] || '-'}`;
+            document.getElementById("resPos").innerText = `👔 ${masterData.positions[user.positionId] || '-'}`;
+            document.getElementById("resExp").innerText = `⏳ หมดอายุ: ${new Date(user.expireDate).toLocaleDateString('th-TH')}`;
+
+            document.getElementById("resultSection").style.display = "block";
+            document.getElementById("startScanBtn").style.display = "block";
+        }
+
+        function resetScanner() {
+            scannedUserData = null;
+            startScanner();
+        }
+
+        function showError(msg) {
+            document.getElementById("errorModalMsg").innerText = msg;
+            document.getElementById("errorModal").style.display = "flex";
+        }
+
+        function closeErrorModal() {
+            document.getElementById("errorModal").style.display = "none";
+            resetScanner(); // เปิดกล้องใหม่
+        }
+
+        // --- ระบบบันทึกเข้า-ออก (IN/OUT) ---
+        async function recordScan(actionType) {
+            if (!scannedUserData) return;
+
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+            const timeStr = now.toLocaleTimeString('th-TH'); // HH:MM:SS
+            const uid = scannedUserData.id;
+
+            try {
+                if (actionType === 'in') {
+                    // สร้าง Record ใหม่สำหรับวันนี้
+                    await db.collection("daily_records").add({
+                        uid: uid,
+                        deptId: scannedUserData.departmentId,
+                        companyId: scannedUserData.companyId,
+                        date: dateStr,
+                        scanInTime: timeStr,
+                        status: 'in', // รอให้หัวหน้าแผนกประเมิน
+                        inspectorId: inspectorUid
+                    });
+                    alert(`✅ บันทึกเข้างานสำเร็จ!\n${scannedUserData.fullname}\nเวลา: ${timeStr}`);
+                } 
+                else if (actionType === 'out') {
+                    // หากดดูประวัติ IN ของวันนี้แล้วใส่เวลา OUT ลงไป
+                    const snap = await db.collection("daily_records")
+                        .where("uid", "==", uid)
+                        .where("date", "==", dateStr)
+                        .orderBy("scanInTime", "desc").limit(1).get();
+
+                    if (!snap.empty) {
+                        const recordId = snap.docs[0].id;
+                        await db.collection("daily_records").doc(recordId).update({
+                            scanOutTime: timeStr
+                        });
+                    } else {
+                        // กรณีสแกนออกแต่ไม่มีประวัติสแกนเข้า
+                        await db.collection("daily_records").add({
+                            uid: uid,
+                            deptId: scannedUserData.departmentId,
+                            companyId: scannedUserData.companyId,
+                            date: dateStr,
+                            scanOutTime: timeStr,
+                            status: 'out_only',
+                            inspectorId: inspectorUid
+                        });
+                    }
+                    alert(`🟠 บันทึกออกงานสำเร็จ!\n${scannedUserData.fullname}\nเวลา: ${timeStr}`);
+                }
+
+                resetScanner(); // เคลียร์หน้าจอกลับไปหน้ากล้อง
+
+            } catch (error) {
+                alert("บันทึกไม่สำเร็จ: " + error.message);
+            }
+        }
+
+        // --- ประวัติล่าสุดวันนี้ ---
+        function listenToTodayHistory() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            db.collection("daily_records")
+              .where("date", "==", todayStr)
+              .orderBy("scanInTime", "desc")
+              .limit(10) // โชว์แค่ 10 คนล่าสุด
+              .onSnapshot(async snap => {
+                  const container = document.getElementById("historyContainer");
+                  container.innerHTML = "";
+
+                  if (snap.empty) {
+                      container.innerHTML = `<div style="text-align:center; color:#999; padding:20px;">ยังไม่มีข้อมูลการสแกนในวันนี้</div>`;
+                      return;
+                  }
+
+                  // ต้องดึงชื่อคนมาประกอบ
+                  const userPromises = [];
+                  snap.forEach(doc => {
+                      const data = doc.data();
+                      userPromises.push(db.collection("users").doc(data.uid).get().then(uDoc => {
+                          return { record: data, user: uDoc.exists ? uDoc.data() : { fullname: 'ไม่ทราบชื่อ' } };
+                      }));
+                  });
+
+                  const historyItems = await Promise.all(userPromises);
+                  
+                  historyItems.forEach(item => {
+                      const isOut = item.record.scanOutTime;
+                      const timeStr = isOut ? `ออก: ${item.record.scanOutTime}` : `เข้า: ${item.record.scanInTime}`;
+                      const cName = isOut ? 'status-out' : 'status-in';
+                      const iIcon = isOut ? '🟠' : '🟢';
+
+                      container.innerHTML += `
+                          <div class="history-item ${cName}">
+                              <div>
+                                  <strong>${item.user.fullname}</strong><br>
+                                  <span style="font-size:12px; color:#777;">${iIcon} ${timeStr}</span>
+                              </div>
+                          </div>
+                      `;
+                  });
+              });
+        }
+
+        initInspectorPanel();
+    </script>
+</body>
+</html>
