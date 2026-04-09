@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Department Dashboard - จัดการพนักงานประจำแผนก</title>
 
-    <!-- เรียกใช้ Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
 
@@ -58,10 +57,10 @@
 
         /* ฟอร์มและอินพุต */
         .form-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 5px solid #ff9800;}
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         .btn-submit { background: #ff9800; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 16px; }
 
         /* รายการโควต้า */
@@ -102,10 +101,9 @@
     <div class="container">
         <div id="loadingMsg">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</div>
         
-        <!-- แจ้งเตือนกรณี Superuser ยังไม่ได้ตั้งค่า -->
         <div id="noAccessMsg" style="display:none; text-align:center; padding: 50px; background: white; border-radius: 10px; color: #e74c3c;">
             <h2>⛔ คุณยังไม่ได้รับมอบหมายแผนก</h2>
-            <p>กรุณาติดต่อ System Admin (Superuser) เพื่อระบุอาคารและแผนกที่คุณดูแล</p>
+            <p>กรุณาติดต่อ System Admin (Superuser) เพื่อระบุแผนกที่คุณดูแล</p>
             <button style="background:#333; color:white; margin-top:15px; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;" onclick="window.location.replace('index.html')">กลับหน้าแรก</button>
         </div>
 
@@ -119,7 +117,6 @@
                 <div class="role-badge">หัวหน้า / ผู้ช่วย</div>
             </div>
 
-            <!-- แท็บหลัก -->
             <div class="main-tabs">
                 <button class="main-tab-btn active" onclick="switchMainTab('attendance', this)">📅 เช็คชื่อ & ประเมิน</button>
                 <button class="main-tab-btn" onclick="switchMainTab('quota', this)">📝 ขอโควต้ากำลังคน</button>
@@ -127,7 +124,6 @@
                 <button class="main-tab-btn" onclick="switchMainTab('export', this)">📥 รายงาน</button>
             </div>
 
-            <!-- หมวด: เช็คชื่อ & ประเมิน (Fast Track) -->
             <div id="main-tab-attendance" class="tab-content active">
                 <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; border: 1px solid #ffeeba;">
                     <strong>ℹ️ รายชื่อด้านล่างคือพนักงานที่ "รปภ. สแกนเข้าพื้นที่แล้ว (IN)" ในวันนี้</strong><br>
@@ -136,10 +132,8 @@
                 <div class="user-grid" id="evalListContainer"></div>
             </div>
 
-            <!-- หมวด: ขอโควต้า -->
             <div id="main-tab-quota" class="tab-content">
                 
-                <!-- Dashboard สรุปโควต้า -->
                 <div class="quota-dashboard">
                     <h3>📊 ภาพรวมโควต้าแผนก (Real-time)</h3>
                     <div class="progress-container">
@@ -153,43 +147,477 @@
                     </div>
                 </div>
 
-                <!-- ฟอร์มขอโควต้า (ปรับปรุงใหม่ให้กระชับ) -->
                 <div class="form-card">
                     <h3 style="margin-top:0; color:#e67e22; border-bottom: 2px solid #fdebd0; padding-bottom: 10px;">📝 สร้างคำขอโควต้าใหม่</h3>
                     
-                    <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                    <div class="form-grid">
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label>ชื่อแคมเปญ / งาน:</label>
-                            <input type="text" id="qCampaign" placeholder="เช่น โปรเจคแพ็คสินค้าปีใหม่" style="padding: 8px;">
+                            <input type="text" id="qCampaign" placeholder="เช่น โปรเจคแพ็คสินค้าปีใหม่">
                         </div>
-                        
                         <div class="form-group">
                             <label>ตำแหน่งงาน (เลือกหรือพิมพ์):</label>
-                            <input list="posDatalist" id="qPosition" placeholder="ระบุตำแหน่ง..." style="padding: 8px;">
+                            <input list="posDatalist" id="qPosition" placeholder="ระบุตำแหน่ง...">
                             <datalist id="posDatalist"></datalist>
                         </div>
-                        
                         <div class="form-group">
                             <label>จำนวนที่ต้องการ (คน):</label>
-                            <input type="number" id="qAmount" min="1" value="1" style="padding: 8px;">
+                            <input type="number" id="qAmount" min="1" value="1">
                         </div>
-
                         <div class="form-group">
                             <label>วันที่เริ่ม - สิ้นสุด:</label>
                             <div style="display:flex; gap:5px;">
-                                <input type="date" id="qStartDate" style="padding: 8px;">
-                                <input type="date" id="qEndDate" style="padding: 8px;">
+                                <input type="date" id="qStartDate">
+                                <input type="date" id="qEndDate">
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label>เวลาเข้า - ออกกะ:</label>
                             <div style="display:flex; gap:5px;">
-                                <input type="time" id="qStartTime" style="padding: 8px;">
-                                <input type="time" id="qEndTime" style="padding: 8px;">
+                                <input type="time" id="qStartTime">
+                                <input type="time" id="qEndTime">
                             </div>
                         </div>
                     </div>
                     
                     <h4 style="margin: 10px 0 5px 0; color:#555; border-bottom:1px dashed #eee; padding-bottom:5px; font-size: 13px;">💰 ข้อมูลค่าตอบแทน (บาท/วัน)</h4>
-                    <div class="form-grid" style="grid-template-columns:
+                    <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่าแรงฐาน:</label>
+                            <input type="number" id="wBase" value="0" style="font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่ากะ:</label>
+                            <input type="number" id="wShift" value="0" style="font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">ค่าทักษะ:</label>
+                            <input type="number" id="wSkill" value="0" style="font-size: 13px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px;">เงินพิเศษ:</label>
+                            <input type="number" id="wSpecial" value="0" style="font-size: 13px;">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px; margin-bottom: 15px; background: #fdf2e9; padding: 10px; border-radius: 8px; border: 1px solid #fad7a1;">
+                        <label style="color: #d35400;">ส่งเรื่องให้ HR ส่วนกลางท่านใดรับผิดชอบ:</label>
+                        <select id="qHrSelect" style="font-weight: bold; border-color: #e67e22;"><option value="">-- เลือกเจ้าหน้าที่ HR --</option></select>
+                    </div>
+
+                    <button class="btn-submit" onclick="submitQuotaRequest()">ส่งคำขอโควต้า</button>
+                </div>
+
+                <h3 style="color:#2c3e50;">📋 ประวัติคำขอโควต้าของแผนก</h3>
+                <div id="quotaRequestHistory"></div>
+
+            </div>
+
+            <div id="main-tab-staff" class="tab-content">
+                <div class="user-grid" id="allStaffContainer"></div>
+            </div>
+
+            <div id="main-tab-export" class="tab-content">
+                <div class="form-card" style="border-top-color: #27ae60;">
+                    <h2 style="margin-top: 0; color: #27ae60;">ดาวน์โหลดรายชื่อพนักงานประจำแผนก</h2>
+                    <p style="color: #7f8c8d; font-size: 14px;">ส่งออกเป็นไฟล์ Excel (.csv)</p>
+                    <button class="btn-submit" style="background: #27ae60;" onclick="exportToExcel()">📥 ดาวน์โหลดไฟล์</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="reasonModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color:#e74c3c;">ยืนยันการยกเลิก/แก้ไข</h3>
+            <p style="font-size: 14px; color: #555;">กรุณาระบุเหตุผล เพื่อแจ้งให้ HR ส่วนกลางทราบ:</p>
+            <textarea id="reasonInput" style="width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px;"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button class="close-btn" style="background:#ecf0f1; border:none; padding:10px; border-radius:5px; flex:1;" onclick="closeReasonModal()">ปิด</button>
+                <button class="btn-submit" style="background:#e74c3c; flex:2;" onclick="confirmCancelQuota()">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <h3>ประวัติการทำงานและการประเมิน</h3>
+            <div class="history-list" id="historyListContainer">
+                <div class="empty-state">กำลังโหลดประวัติ...</div>
+            </div>
+            <button class="close-btn" style="width:100%; margin-top:15px; padding:10px; background:#ecf0f1; border:none; border-radius:5px; font-weight:bold;" onclick="closeHistoryModal()">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
+            authDomain: "maersk-mcl-v2.firebaseapp.com",
+            projectId: "maersk-mcl-v2",
+            storageBucket: "maersk-mcl-v2.firebasestorage.app",
+            messagingSenderId: "447590679734",
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const deptUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
+        
+        let deptHeadData = null;
+        let masterData = { companies: {}, depts: {}, positions: {}, warehouses: {} };
+        let allDeptUsers = []; 
+        let attendanceToday = {}; 
+        let activeQuotaSum = 0;
+        let cancelTargetId = null;
+
+        if (!deptUid) {
+            alert("ไม่พบข้อมูลการเข้าสู่ระบบ");
+            window.location.replace("index.html");
+        }
+
+        async function initDeptPanel() {
+            try {
+                const userDoc = await db.collection("users").doc(deptUid).get();
+                if (!userDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
+                deptHeadData = userDoc.data();
+                
+                // อนุญาตให้หัวหน้าแผนก และ "ผู้ช่วยหัวหน้าแผนก (asst_dept)" เข้าได้
+                if (deptHeadData.role !== "dept" && deptHeadData.role !== "asst_dept" && deptHeadData.role !== "superuser") {
+                    alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะหัวหน้าแผนก/ผู้ช่วย)");
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                // ตรวจสอบว่ามีแผนกไหม (ไม่บังคับว่าต้องมีคลัง เผื่อ Superuser ไม่ได้ตั้งไว้)
+                if (!deptHeadData.managedDeptId) {
+                    document.getElementById("loadingMsg").style.display = "none";
+                    document.getElementById("noAccessMsg").style.display = "block";
+                    return;
+                }
+
+                document.getElementById("deptHeadName").innerText = `ยินดีต้อนรับ, คุณ ${deptHeadData.fullname}`;
+                
+                await loadMasterData();
+                
+                const whName = masterData.warehouses[deptHeadData.managedWarehouseId] || "ไม่ระบุ";
+                const dpName = masterData.depts[deptHeadData.managedDeptId] || "ไม่ระบุ";
+                document.getElementById("deptLocationInfo").innerText = `📍 อาคาร: ${whName} | 📂 แผนก: ${dpName}`;
+
+                document.getElementById("loadingMsg").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+
+                listenToUsersAndAttendance();
+                listenToQuotaRequests();
+
+            } catch (error) {
+                document.getElementById("loadingMsg").innerHTML = `<span style="color:red;">ข้อผิดพลาด: ${error.message}</span>`;
+            }
+        }
+
+        async function loadMasterData() {
+            const whSnap = await db.collection("warehouses").get();
+            whSnap.forEach(doc => masterData.warehouses[doc.id] = doc.data().name);
+
+            const deptSnap = await db.collection("departments").get();
+            deptSnap.forEach(doc => masterData.depts[doc.id] = doc.data().name);
+
+            const compSnap = await db.collection("companies").get();
+            compSnap.forEach(doc => masterData.companies[doc.id] = doc.data().name);
+
+            const posSnap = await db.collection("positions").get();
+            const dl = document.getElementById("posDatalist");
+            posSnap.forEach(doc => {
+                masterData.positions[doc.id] = doc.data().name;
+                dl.innerHTML += `<option value="${doc.data().name}">`;
+            });
+
+            const hrSnap = await db.collection("users").where("role", "==", "hr").get();
+            const hrSelect = document.getElementById("qHrSelect");
+            hrSnap.forEach(doc => {
+                hrSelect.innerHTML += `<option value="${doc.id}">${doc.data().fullname}</option>`;
+            });
+        }
+
+        function listenToUsersAndAttendance() {
+            db.collection("users")
+              .where("role", "==", "visitor")
+              .where("status", "==", "approved")
+              .where("departmentId", "==", deptHeadData.managedDeptId)
+              .onSnapshot(userSnap => {
+                  allDeptUsers = [];
+                  userSnap.forEach(doc => {
+                      const u = doc.data(); u.id = doc.id;
+                      allDeptUsers.push(u);
+                  });
+                  renderAllStaff();
+                  updateQuotaDashboard();
+              });
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            db.collection("daily_records")
+              .where("date", "==", todayStr)
+              .where("deptId", "==", deptHeadData.managedDeptId)
+              .onSnapshot(attSnap => {
+                  attendanceToday = {};
+                  attSnap.forEach(doc => {
+                      const data = doc.data();
+                      attendanceToday[data.uid] = { id: doc.id, ...data };
+                  });
+                  renderAttendanceEval();
+              });
+        }
+
+        function renderAllStaff() {
+            const container = document.getElementById("allStaffContainer");
+            container.innerHTML = "";
+            if(allDeptUsers.length === 0) return container.innerHTML = `<div class="empty-state">ไม่มีพนักงาน Active ในแผนก</div>`;
+            
+            allDeptUsers.forEach(user => {
+                const compStr = masterData.companies[user.companyId] || '-';
+                const posStr = masterData.positions[user.positionId] || '-';
+                const card = document.createElement("div");
+                card.className = "user-card";
+                card.innerHTML = `
+                    <div class="user-card-header">
+                        <img src="${user.photoUrl || 'https://via.placeholder.com/50'}" class="user-avatar">
+                        <div class="user-details">
+                            <h3>${user.fullname}</h3>
+                            <p>🏢 ${compStr} | 👔 ${posStr}</p>
+                            <p>⭐ เรตติ้งเฉลี่ย: (คำนวณ...)</p>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewHistory('${user.id}', '${user.fullname}')">📝 ดูประวัติย้อนหลัง</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderAttendanceEval() {
+            const container = document.getElementById("evalListContainer");
+            container.innerHTML = "";
+            
+            const presentUsers = allDeptUsers.filter(u => attendanceToday[u.id] && attendanceToday[u.id].status === 'in');
+
+            if(presentUsers.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="border: 2px dashed #f39c12;">⏳ รอพนักงานสแกนรับเข้างานจาก รปภ. ...</div>`;
+                return;
+            }
+
+            presentUsers.forEach(user => {
+                const attData = attendanceToday[user.id];
+                const compStr = masterData.companies[user.companyId] || '-';
+                const posStr = masterData.positions[user.positionId] || '-';
+                
+                const card = document.createElement("div");
+                card.className = "eval-card";
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>${user.fullname}</strong>
+                        <button class="btn-small btn-cancel" onclick="markNotShow('${attData.id}')">❌ ไม่มา (ละทิ้งงาน)</button>
+                    </div>
+                    <div class="eval-info">
+                        <span>🏢 ${compStr}</span> <span>👔 ${posStr}</span>
+                        <span style="color:#27ae60;">IN: ${attData.scanInTime || '-'}</span>
+                    </div>
+                    
+                    <div class="eval-inputs">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="font-size:13px; font-weight:bold; color:#555;">ให้คะแนนประเมิน:</label>
+                            <div class="star-rating">
+                                <input type="radio" id="star5_${user.id}" name="rating_${user.id}" value="5"><label for="star5_${user.id}">★</label>
+                                <input type="radio" id="star4_${user.id}" name="rating_${user.id}" value="4"><label for="star4_${user.id}">★</label>
+                                <input type="radio" id="star3_${user.id}" name="rating_${user.id}" value="3" checked><label for="star3_${user.id}">★</label>
+                                <input type="radio" id="star2_${user.id}" name="rating_${user.id}" value="2"><label for="star2_${user.id}">★</label>
+                                <input type="radio" id="star1_${user.id}" name="rating_${user.id}" value="1"><label for="star1_${user.id}">★</label>
+                            </div>
+                        </div>
+                        <input type="text" id="comment_${user.id}" placeholder="ระบุเหตุผลประกอบการประเมิน (ทางเลือก)...">
+                        <button class="btn btn-submit" style="padding:8px; font-size:14px;" onclick="saveEvaluation('${attData.id}', '${user.id}')">💾 บันทึกผลประเมิน</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function saveEvaluation(recordId, uid) {
+            const rating = document.querySelector(`input[name="rating_${uid}"]:checked`).value;
+            const comment = document.getElementById(`comment_${uid}`).value;
+            try {
+                await db.collection("daily_records").doc(recordId).update({
+                    status: 'evaluated', rating: parseInt(rating), comment: comment, evalTime: new Date().toLocaleTimeString('th-TH')
+                });
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        async function markNotShow(recordId) {
+            if(!confirm("ยืนยันว่าพนักงานคนนี้ ไม่มา/ละทิ้งหน้าที่ ใช่หรือไม่?")) return;
+            try { await db.collection("daily_records").doc(recordId).update({ status: 'not_show' }); } 
+            catch (e) { alert("Error: " + e.message); }
+        }
+
+        function listenToQuotaRequests() {
+            db.collection("quota_requests").where("deptId", "==", deptHeadData.managedDeptId).onSnapshot(snap => {
+                  const container = document.getElementById("quotaRequestHistory");
+                  container.innerHTML = "";
+                  activeQuotaSum = 0;
+
+                  if(snap.empty) { container.innerHTML = `<div class="empty-state">ยังไม่มีประวัติการขอโควต้า</div>`; return; }
+
+                  let reqs = [];
+                  snap.forEach(doc => {
+                      const d = doc.data(); d.id = doc.id; reqs.push(d);
+                      if (d.status === 'pending' || d.status === 'approved') activeQuotaSum += parseInt(d.amount);
+                  });
+                  reqs.sort((a,b) => b.createdAt?.seconds - a.createdAt?.seconds);
+
+                  reqs.forEach(req => {
+                      let sHtml = ''; let bClass = '';
+                      if(req.status === 'pending') { sHtml = '⏳ รอดำเนินการ'; bClass = 'status-pending'; }
+                      else if(req.status === 'approved') { sHtml = '✅ อนุมัติแล้ว'; bClass = ''; }
+                      else { sHtml = `🚫 ยกเลิก/ถูกปฏิเสธ (เหตุผล: ${req.cancelReason||'-'})`; bClass = 'status-cancelled'; }
+
+                      container.innerHTML += `
+                          <div class="quota-item ${bClass}">
+                              <div>
+                                  <strong>${req.campaignName}</strong> <span style="font-size:12px; color:#999;">(ขอไป ${req.amount} คน)</span><br>
+                                  <span style="font-size:13px; color:#555;">เริ่ม ${req.startDate} ถึง ${req.endDate} | กะ: ${req.startTime} - ${req.endTime}</span>
+                              </div>
+                              <div style="text-align:right;">
+                                  <span style="font-size:12px; font-weight:bold;">${sHtml}</span>
+                                  ${req.status === 'pending' ? `<br><button class="btn-small btn-cancel" style="margin-top:5px;" onclick="promptCancelQuota('${req.id}')">ยกเลิก/แก้ไข</button>` : ''}
+                              </div>
+                          </div>
+                      `;
+                  });
+                  updateQuotaDashboard();
+              });
+        }
+
+        function updateQuotaDashboard() {
+            const activeStaff = allDeptUsers.length;
+            document.getElementById("statRequested").innerText = activeQuotaSum;
+            document.getElementById("statActive").innerText = activeStaff;
+            
+            const diff = activeStaff - activeQuotaSum;
+            const diffEl = document.getElementById("statDiff");
+            diffEl.innerText = diff > 0 ? `+${diff}` : diff;
+            diffEl.style.color = diff > 0 ? "#e74c3c" : (diff === 0 ? "#27ae60" : "#f39c12");
+
+            const pb = document.getElementById("quotaProgressBar");
+            const pt = document.getElementById("quotaProgressText");
+            if (activeQuotaSum === 0) { pb.style.width = "0%"; pt.innerText = "ไม่มีการขอโควต้า"; }
+            else {
+                let pct = (activeStaff / activeQuotaSum) * 100;
+                pb.style.width = Math.min(pct, 100) + "%";
+                pt.innerText = `${activeStaff} / ${activeQuotaSum} (${pct.toFixed(0)}%)`;
+                pb.style.background = pct > 100 ? "#e74c3c" : "#00e676";
+            }
+        }
+
+        async function submitQuotaRequest() {
+            const data = {
+                deptId: deptHeadData.managedDeptId,
+                warehouseId: deptHeadData.managedWarehouseId || '',
+                campaignName: document.getElementById("qCampaign").value,
+                startDate: document.getElementById("qStartDate").value,
+                endDate: document.getElementById("qEndDate").value,
+                position: document.getElementById("qPosition").value,
+                amount: parseInt(document.getElementById("qAmount").value),
+                startTime: document.getElementById("qStartTime").value,
+                endTime: document.getElementById("qEndTime").value,
+                assignedHrId: document.getElementById("qHrSelect").value,
+                wages: {
+                    base: parseInt(document.getElementById("wBase").value),
+                    shift: parseInt(document.getElementById("wShift").value),
+                    skill: parseInt(document.getElementById("wSkill").value),
+                    special: parseInt(document.getElementById("wSpecial").value)
+                },
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdBy: deptUid
+            };
+
+            if(!data.campaignName || !data.startDate || !data.assignedHrId || !data.position) return alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน");
+
+            try {
+                await db.collection("quota_requests").add(data);
+                alert("ส่งคำขอเรียบร้อยแล้ว");
+                document.getElementById("qCampaign").value = "";
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        function promptCancelQuota(id) {
+            cancelTargetId = id;
+            document.getElementById("reasonInput").value = "";
+            document.getElementById("reasonModal").style.display = "flex";
+        }
+        function closeReasonModal() { document.getElementById("reasonModal").style.display = "none"; }
+        
+        async function confirmCancelQuota() {
+            const reason = document.getElementById("reasonInput").value.trim();
+            if(!reason) return alert("กรุณาระบุเหตุผลการยกเลิก/แก้ไข");
+            try {
+                await db.collection("quota_requests").doc(cancelTargetId).update({ status: 'cancelled', cancelReason: reason });
+                closeReasonModal();
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        // --- ดูประวัติ (Modal) ---
+        async function viewHistory(uid, name) {
+            const container = document.getElementById("historyListContainer");
+            container.innerHTML = "<div style='text-align:center; color:#999; padding:20px;'>กำลังโหลดข้อมูล...</div>";
+            document.getElementById("historyModal").style.display = "flex";
+
+            try {
+                // แก้ปัญหา Index ใน Firebase (ดึงมาก่อนแล้วค่อย Sort)
+                const snap = await db.collection("daily_records").where("uid", "==", uid).get();
+                if(snap.empty) { container.innerHTML = "<div class='empty-state'>ไม่พบประวัติการทำงาน</div>"; return; }
+                
+                let records = [];
+                snap.forEach(doc => records.push(doc.data()));
+                records.sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+                records = records.slice(0, 30);
+                
+                container.innerHTML = `<h4 style="margin-top:0;">ประวัติของ: ${name}</h4>`;
+                records.forEach(d => {
+                    const dName = masterData.depts[d.deptId] || '-';
+                    const stars = d.rating ? "★".repeat(d.rating) + "☆".repeat(5-d.rating) : "-";
+                    let sText = '';
+                    if(d.status === 'evaluated') sText = `<span style="color:#27ae60;">ประเมินแล้ว (${stars})</span>`;
+                    else if(d.status === 'not_show') sText = `<span style="color:#e74c3c;">ละทิ้งงาน</span>`;
+                    else if(d.status === 'in') sText = `<span style="color:#3498db;">เข้างานแล้ว (รอออก)</span>`;
+                    else sText = `<span style="color:#f39c12;">รอประเมิน</span>`;
+
+                    container.innerHTML += `
+                        <div class="history-item">
+                            <div class="h-head"><span>วันที่: ${d.date}</span> <span>${sText}</span></div>
+                            <div>
+                                แผนก: <b>${dName}</b><br>
+                                ⏱️ เข้า: <b style="color:#27ae60;">${d.scanInTime||'-'}</b> | ออก: <b style="color:#e67e22;">${d.scanOutTime||'-'}</b><br>
+                                คอมเมนต์: <i>${d.comment || '-'}</i>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) { container.innerHTML = "Error: " + e.message; }
+        }
+        function closeHistoryModal() { document.getElementById("historyModal").style.display = "none"; }
+
+        function exportToExcel() { alert("รอดึงข้อมูลจากระบบจริง"); }
+
+        function switchMainTab(tabId, btnElement) {
+            document.querySelectorAll('#mainContent > .tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('main-tab-' + tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        initDeptPanel();
+    </script>
+</body>
+</html>
