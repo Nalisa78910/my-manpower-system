@@ -31,7 +31,7 @@
 
     <div class="loader"></div>
     <p id="status-text">กำลังตรวจสอบสิทธิ์...</p>
-    <span class="fast-note">Fast Login Mode ⚡</span>
+    <span class="fast-note">หากค้างอยู่หน้าเดิมให้กดรีเฟรช</span>
 
     <script>
         // --- ส่วนที่ 1: ตั้งค่า Firebase ---
@@ -51,6 +51,9 @@
         function redirectUser(role, userId) {
             if (role === "visitor") {
                 window.location.replace("badge.html?uid=" + userId);
+            } else if (role === "asst_dept") {
+                // แก้ไข: ให้ผู้ช่วยหัวหน้าแผนกใช้หน้าเดียวกับหัวหน้าแผนก
+                window.location.replace("dept.html?uid=" + userId);
             } else {
                 window.location.replace(role + ".html?uid=" + userId);
             }
