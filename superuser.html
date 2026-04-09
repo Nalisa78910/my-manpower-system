@@ -2,206 +2,74 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Superuser - จัดการระบบแบบครบวงจร</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Superuser Hub - ระบบจัดการส่วนกลาง</title>
 
-    <!-- เรียกใช้ Firebase -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
 
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        body { font-family: 'Kanit', sans-serif; background: #0f172a; margin: 0; min-height: 100dvh; display: flex; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .app-container { width: 100%; max-width: 600px; background: #f8fafc; position: relative; display: flex; flex-direction: column; min-height: 100dvh; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
         
-        .header { background: #8e44ad; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
-
-        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; }
-
-        /* ระบบ Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-        .tab-btn { padding: 12px 20px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #666; white-space: nowrap; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .tab-btn.active { background: #8e44ad; color: white; border-color: #8e44ad; box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        .tab-content { display: none; flex-direction: column; flex-grow: 1; padding-bottom: 20px;}
+        .tab-content.active { display: flex; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ส่วน User Management */
-        .filter-bar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .filter-bar select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; flex: 1; min-width: 150px; font-weight: bold; color: #2c3e50; }
-        .badge-count { background: #8e44ad; color: white; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
         
-        /* การ์ดผู้ใช้แบบกะทัดรัด (Compact View) */
-        .user-card-compact { background: white; border-radius: 8px; padding: 10px 15px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; border-left: 4px solid #3498db; transition: 0.2s; }
-        .user-card-compact:hover { background: #fdfdfd; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-        .user-info-c { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px; }
-        .user-info-c .top-row { display: flex; align-items: center; gap: 8px; }
-        .user-info-c .name { font-size: 14px; font-weight: bold; color: #2c3e50; }
-        .user-info-c .phone { font-size: 12px; color: #7f8c8d; }
-        .user-info-c .bottom-row { display: flex; align-items: center; gap: 8px; font-size: 12px; flex-wrap: wrap; }
-        .badge-sm { padding: 2px 6px; border-radius: 5px; font-size: 11px; background: #ecf0f1; color: #34495e; border: 1px solid #bdc3c7; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+        @media(min-width: 600px) { .modal-overlay { align-items: center; } }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        .modal-content { background: white; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.1); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @media(min-width: 600px) { .modal-content { border-radius: 24px; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Custom Input Styling */
+        .input-field { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 14px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
+        .input-field:focus { border-color: #8b5cf6; background: white; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        .input-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; margin-left: 4px; }
         
-        .c-actions { display: flex; gap: 5px; align-items: center; }
-        .btn-sm { padding: 6px 10px; border: none; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-setting { background: #3498db; color: white; }
-        .btn-setting:hover { background: #2980b9; }
-        .btn-ban-sm { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
-        .btn-ban-sm:hover { background: #c0392b; color: white; }
-
-        /* ส่วน Master Data Grid */
-        .master-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .master-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid #9b59b6; display: flex; flex-direction: column; }
-        .master-card h3 { margin: 0 0 15px 0; font-size: 16px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        
-        .input-group { display: flex; gap: 8px; margin-bottom: 15px; flex-direction: column; }
-        .input-group input, .input-group select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; width: 100%; }
-        .btn-add { background: #27ae60; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        
-        .data-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; flex: 1; }
-        .data-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .data-list li:last-child { border-bottom: none; }
-        .data-list li span { flex: 1; }
-        .data-list li small { color: #7f8c8d; display: block; font-size: 11px; margin-top: 2px; }
-        .btn-delete { background: none; border: none; color: #e74c3c; cursor: pointer; padding: 5px; border-radius: 3px; }
-        .btn-delete:hover { background: #fdeaea; }
-
-        /* ส่วน Export */
-        .export-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid #27ae60; margin-top: 20px; }
-        .export-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; text-align: left; margin: 20px 0; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
-        .export-form-grid .form-group { margin-bottom: 0; }
-        .export-form-grid label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
-        .export-form-grid input, .export-form-grid select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-
-        /* Modal ตั้งค่าสิทธิ์ */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .modal-content h3 { margin-top: 0; color: #8e44ad; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
-        .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-cancel { flex: 1; padding: 10px; background: #ecf0f1; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: #333; }
-        .btn-confirm { flex: 2; padding: 10px; background: #27ae60; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; }
-
-        /* CSS สำหรับ Modal ดูประวัติ */
-        .detail-row { display: flex; margin-bottom: 10px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 5px; text-align: left;}
-        .detail-row .label { width: 120px; font-weight: bold; color: #7f8c8d; }
-        .detail-row .value { flex: 1; color: #2c3e50; font-weight: 500; }
-        .history-box { background: #f9f9f9; border: 1px solid #eee; border-radius: 5px; padding: 10px; margin-top: 15px; font-size: 13px; color: #555; height: 200px; overflow-y: auto; text-align: left;}
-
-        #loadingGlobal { text-align: center; padding: 40px; color: #7f8c8d; }
+        #global-loading { position: fixed; inset: 0; background: #f8fafc; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>👑 System Admin</h1>
-    </div>
-
-    <div class="container">
+    <div class="app-container">
         
-        <!-- แท็บนำทาง -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('users', this)">👥 จัดการผู้ใช้งาน</button>
-            <button class="tab-btn" onclick="switchTab('master', this)">⚙️ ตั้งค่าฐานข้อมูล</button>
-            <button class="tab-btn" onclick="switchTab('export', this)">📥 ดาวน์โหลด Excel</button>
+        <div id="global-loading">
+            <i data-lucide="loader-2" class="w-10 h-10 text-purple-600 animate-spin mb-4"></i>
+            <h2 class="text-lg font-bold text-slate-700">กำลังเชื่อมต่อระบบ...</h2>
+            <p class="text-sm text-slate-500" id="loading-text">โหลดฐานข้อมูลหลัก</p>
         </div>
 
-        <div id="loadingGlobal">กำลังโหลดข้อมูลระบบ...</div>
-
-        <!-- แท็บที่ 1: จัดการผู้ใช้งาน -->
-        <div id="tab-users" class="tab-content active" style="display: none;">
-            <div class="filter-bar">
-                <strong>กรอง:</strong>
-                <select id="roleFilter" onchange="renderUsers()">
-                    <option value="pending" selected>🔥 รออนุมัติ (ผู้ใช้ใหม่)</option>
-                    <option value="all">แสดงทั้งหมด (150 ล่าสุด)</option>
-                    <option value="visitor">พนักงานซับฯ (Visitor)</option>
-                    <option value="admin">หัวหน้าซับฯ (Admin)</option>
-                    <option value="inspector">รปภ. (Inspector)</option>
-                    <option value="dept">หัวหน้าแผนก (Dept)</option>
-                    <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
-                    <option value="hr">ฝ่ายบุคคล (HR)</option>
-                    <option value="safety">จป. (Safety)</option>
-                    <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
-                </select>
-                <span id="userCount" class="badge-count">0 คน</span>
+        <header class="bg-gradient-to-r from-purple-700 to-indigo-700 px-6 pt-8 pb-6 text-white rounded-b-[32px] shadow-lg shrink-0 text-center relative z-10">
+            <h1 class="text-2xl font-black tracking-wide flex items-center justify-center gap-2">
+                <i data-lucide="shield" class="w-6 h-6 text-purple-300"></i> SYSTEM <span class="text-purple-300">ADMIN</span>
+            </h1>
+            <p class="text-xs text-purple-200 mt-1">Superuser Dashboard</p>
+            
+            <div class="flex overflow-x-auto hide-scroll gap-2 mt-6 pb-1 scroll-smooth snap-x" id="main-tabs-container">
+                <button onclick="switchTab('users', this)" class="tab-btn active shrink-0 snap-start bg-white text-purple-700 font-bold px-5 py-2.5 rounded-full text-sm shadow-md transition flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4"></i> ผู้ใช้งาน</button>
+                <button onclick="switchTab('master', this)" class="tab-btn shrink-0 snap-start bg-purple-800/50 text-white hover:bg-purple-800 font-medium px-5 py-2.5 rounded-full text-sm transition flex items-center gap-1.5 border border-purple-500/30"><i data-lucide="database" class="w-4 h-4"></i> ฐานข้อมูล</button>
+                <button onclick="switchTab('export', this)" class="tab-btn shrink-0 snap-start bg-purple-800/50 text-white hover:bg-purple-800 font-medium px-5 py-2.5 rounded-full text-sm transition flex items-center gap-1.5 border border-purple-500/30"><i data-lucide="download" class="w-4 h-4"></i> ส่งออกข้อมูล</button>
             </div>
-            <!-- พื้นที่แสดงการ์ดพนักงานแบบ Compact -->
-            <div id="userListContainer"></div>
-        </div>
+        </header>
 
-        <!-- แท็บที่ 2: Master Data -->
-        <div id="tab-master" class="tab-content" style="display: none;">
-            <div class="master-grid">
-                <!-- บริษัท -->
-                <div class="master-card">
-                    <h3>🏢 จัดการบริษัท</h3>
-                    <div class="input-group">
-                        <input type="text" id="inputCompany" placeholder="ชื่อบริษัท...">
-                        <button class="btn-add" onclick="addData('companies', 'inputCompany')">+ เพิ่มบริษัท</button>
-                    </div>
-                    <ul class="data-list" id="listCompanies"></ul>
-                </div>
-                <!-- คลัง/อาคาร -->
-                <div class="master-card" style="border-top-color: #e67e22;">
-                    <h3>🏭 จัดการคลัง / อาคาร</h3>
-                    <div class="input-group">
-                        <input type="text" id="inputWarehouse" placeholder="ชื่ออาคาร/คลังสินค้า...">
-                        <button class="btn-add" onclick="addData('warehouses', 'inputWarehouse')">+ เพิ่มคลัง</button>
-                    </div>
-                    <ul class="data-list" id="listWarehouses"></ul>
-                </div>
-                <!-- แผนก (ผูกคลัง) -->
-                <div class="master-card" style="border-top-color: #3498db;">
-                    <h3>📂 จัดการแผนก (ผูกกับคลัง)</h3>
-                    <div class="input-group">
-                        <select id="selectWarehouseForDept"><option value="">-- เลือกคลัง/อาคาร --</option></select>
-                        <input type="text" id="inputDept" placeholder="ชื่อแผนก...">
-                        <button class="btn-add" onclick="addDepartment()">+ เพิ่มแผนก</button>
-                    </div>
-                    <ul class="data-list" id="listDepartments"></ul>
-                </div>
-                <!-- ตำแหน่งงาน -->
-                <div class="master-card" style="border-top-color: #1abc9c;">
-                    <h3>👔 จัดการตำแหน่งงาน</h3>
-                    <div class="input-group">
-                        <input type="text" id="inputPosition" placeholder="ชื่อตำแหน่งงาน...">
-                        <button class="btn-add" onclick="addData('positions', 'inputPosition')">+ เพิ่มตำแหน่ง</button>
-                    </div>
-                    <ul class="data-list" id="listPositions"></ul>
-                </div>
-                <!-- จุดตรวจ -->
-                <div class="master-card" style="border-top-color: #e74c3c;">
-                    <h3>📍 จัดการจุดตรวจ (รปภ.)</h3>
-                    <div class="input-group">
-                        <input type="text" id="inputCheckpoint" placeholder="ชื่อจุดตรวจ / ประตู...">
-                        <button class="btn-add" onclick="addData('checkpoints', 'inputCheckpoint')">+ เพิ่มจุดตรวจ</button>
-                    </div>
-                    <ul class="data-list" id="listCheckpoints"></ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- แท็บที่ 3: ดาวน์โหลด Excel -->
-        <div id="tab-export" class="tab-content" style="display: none;">
-            <div class="export-card">
-                <h2 style="margin-top: 0; color: #27ae60;">ดาวน์โหลดข้อมูลผู้ใช้งานแบบละเอียด</h2>
-                <p style="color: #7f8c8d; font-size: 14px;">กำหนดเงื่อนไขที่ต้องการก่อนกดดาวน์โหลด</p>
-                
-                <div class="export-form-grid">
-                    <div class="form-group">
-                        <label>ตั้งแต่วันที่ (ลงทะเบียน):</label>
-                        <input type="date" id="exportStartDate">
-                    </div>
-                    <div class="form-group">
-                        <label>ถึงวันที่ (ลงทะเบียน):</label>
-                        <input type="date" id="exportEndDate">
-                    </div>
-                    <div class="form-group">
-                        <label>ตำแหน่ง (Role):</label>
-                        <select id="exportRoleSelect">
-                            <option value="all">-- ทุกตำแหน่ง --</option>
+        <main class="flex-grow overflow-y-auto relative z-0 hide-scroll">
+            
+            <div id="tab-users" class="tab-content active p-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-4 sticky top-0 z-10">
+                    <label class="input-label">กรองตามตำแหน่ง (Role)</label>
+                    <div class="flex gap-2">
+                        <select id="roleFilter" onchange="renderUsers()" class="input-field py-2.5">
+                            <option value="pending" selected>🔥 รออนุมัติ (พนักงานใหม่)</option>
+                            <option value="all">แสดงทั้งหมด (ล่าสุด)</option>
                             <option value="visitor">พนักงานซับฯ (Visitor)</option>
                             <option value="admin">หัวหน้าซับฯ (Admin)</option>
                             <option value="inspector">รปภ. (Inspector)</option>
@@ -211,158 +79,227 @@
                             <option value="safety">จป. (Safety)</option>
                             <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
                         </select>
+                        <div class="bg-purple-100 text-purple-700 font-bold px-4 rounded-xl flex items-center justify-center shrink-0 border border-purple-200" id="userCount">0</div>
                     </div>
-                    <div class="form-group">
-                        <label>สถานะ:</label>
-                        <select id="exportStatusSelect">
-                            <option value="all">-- ทุกสถานะ --</option>
-                            <option value="pending">รออนุมัติ</option>
-                            <option value="approved">อนุมัติแล้ว (Active)</option>
-                            <option value="banned">ระงับการใช้งาน</option>
-                        </select>
+                </div>
+
+                <div id="userListContainer" class="space-y-3">
                     </div>
-                    <div class="form-group">
-                        <label>บริษัทซับคอนแทรค:</label>
-                        <select id="exportCompanySelect">
-                            <option value="all">-- ทุกบริษัท --</option>
-                        </select>
+            </div>
+
+            <div id="tab-master" class="tab-content p-4 space-y-4">
+                <div class="bg-blue-50 text-blue-800 p-4 rounded-2xl text-sm border border-blue-100 mb-2">
+                    <i data-lucide="info" class="w-4 h-4 inline mb-0.5"></i> ข้อมูลในหน้านี้จะถูกนำไปใช้เป็นตัวเลือกในหน้าระบบอื่นๆ
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="building-2" class="w-4 h-4 text-emerald-500"></i> อาคาร / คลังสินค้า</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="inputWarehouse" placeholder="ชื่ออาคาร..." class="input-field py-2">
+                        <button onclick="addData('warehouses', 'inputWarehouse')" class="bg-emerald-600 text-white px-4 rounded-xl font-bold active:scale-95 transition">+</button>
                     </div>
-                    <div class="form-group">
-                        <label>แผนก:</label>
-                        <select id="exportDeptSelect">
-                            <option value="all">-- ทุกแผนก --</option>
+                    <ul id="listWarehouses" class="space-y-2 max-h-48 overflow-y-auto hide-scroll pr-1"></ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="folder-tree" class="w-4 h-4 text-indigo-500"></i> แผนก (ผูกกับอาคาร)</h3>
+                    <div class="flex flex-col gap-2 mb-3">
+                        <select id="selectWarehouseForDept" class="input-field py-2"><option value="">-- เลือกอาคาร --</option></select>
+                        <div class="flex gap-2">
+                            <input type="text" id="inputDept" placeholder="ชื่อแผนก..." class="input-field py-2">
+                            <button onclick="addDepartment()" class="bg-indigo-600 text-white px-4 rounded-xl font-bold active:scale-95 transition shrink-0">+</button>
+                        </div>
+                    </div>
+                    <ul id="listDepartments" class="space-y-2 max-h-48 overflow-y-auto hide-scroll pr-1"></ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="briefcase" class="w-4 h-4 text-amber-500"></i> บริษัทซับคอนแทรค</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="inputCompany" placeholder="ชื่อบริษัท..." class="input-field py-2">
+                        <button onclick="addData('companies', 'inputCompany')" class="bg-amber-500 text-white px-4 rounded-xl font-bold active:scale-95 transition">+</button>
+                    </div>
+                    <ul id="listCompanies" class="space-y-2 max-h-48 overflow-y-auto hide-scroll pr-1"></ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-3"><i data-lucide="map-pin" class="w-4 h-4 text-rose-500"></i> จุดตรวจ (รปภ.)</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="inputCheckpoint" placeholder="ชื่อจุดตรวจ..." class="input-field py-2">
+                        <button onclick="addData('checkpoints', 'inputCheckpoint')" class="bg-rose-500 text-white px-4 rounded-xl font-bold active:scale-95 transition">+</button>
+                    </div>
+                    <ul id="listCheckpoints" class="space-y-2 max-h-48 overflow-y-auto hide-scroll pr-1"></ul>
+                </div>
+            </div>
+
+            <div id="tab-export" class="tab-content p-4">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                        <i data-lucide="file-spreadsheet" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-center text-slate-800 mb-1">ส่งออกฐานข้อมูล</h2>
+                    <p class="text-xs text-center text-slate-500 mb-6">ดาวน์โหลดรายชื่อและข้อมูลผู้ใช้งานทั้งหมดในระบบ</p>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label class="input-label">ช่วงวันที่ลงทะเบียน</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" id="exportStartDate" class="input-field py-2.5 text-xs">
+                                <input type="date" id="exportEndDate" class="input-field py-2.5 text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="input-label">ตำแหน่ง (Role)</label>
+                            <select id="exportRoleSelect" class="input-field py-2.5">
+                                <option value="all">-- ทุกตำแหน่ง --</option>
+                                <option value="visitor">พนักงานซับฯ (Visitor)</option>
+                                <option value="admin">หัวหน้าซับฯ (Admin)</option>
+                                <option value="inspector">รปภ. (Inspector)</option>
+                                <option value="dept">หัวหน้าแผนก (Dept)</option>
+                                <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
+                                <option value="hr">ฝ่ายบุคคล (HR)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="input-label">อาคาร/คลังสินค้า</label>
+                            <select id="exportWarehouseSelect" class="input-field py-2.5"><option value="all">-- ทุกอาคาร --</option></select>
+                        </div>
+                    </div>
+
+                    <button onclick="exportAllUsers()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-200 active:scale-95 transition flex justify-center items-center gap-2">
+                        <i data-lucide="download" class="w-5 h-5"></i> ดาวน์โหลด Excel (CSV)
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="roleModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-purple-700 flex items-center gap-2"><i data-lucide="settings-2" class="w-5 h-5"></i> กำหนดสิทธิ์</h3>
+                    <p id="modalEmpName" class="text-xs text-slate-500 mt-1 font-medium">ชื่อพนักงาน</p>
+                </div>
+                <button onclick="closeRoleModal()" class="p-1.5 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 active:scale-90"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="input-label">ตำแหน่งในระบบ <span class="text-rose-500">*</span></label>
+                    <select id="modalRole" onchange="toggleRoleOptions()" class="input-field">
+                        <option value="visitor">พนักงานซับฯ (Visitor)</option>
+                        <option value="admin">หัวหน้าซับฯ (Admin)</option>
+                        <option value="inspector">รปภ. (Inspector)</option>
+                        <option value="dept">หัวหน้าแผนก (Dept)</option>
+                        <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก (Asst Dept)</option>
+                        <option value="hr">ฝ่ายบุคคล (HR)</option>
+                        <option value="safety">เจ้าหน้าที่ จป. (Safety)</option>
+                        <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
+                    </select>
+                </div>
+
+                <div id="extraCompany" class="hidden p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                    <label class="input-label text-amber-700">สังกัดบริษัท (สำหรับ Admin) <span class="text-rose-500">*</span></label>
+                    <select id="modalCompany" class="input-field border-amber-200 mt-1"></select>
+                </div>
+
+                <div id="extraDeptArea" class="hidden p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-3">
+                    <div>
+                        <label class="input-label text-indigo-700">1. เลือกอาคาร/คลัง <span class="text-rose-500">*</span></label>
+                        <select id="modalWarehouse" onchange="updateModalDeptDropdown()" class="input-field border-indigo-200 mt-1"></select>
+                    </div>
+                    <div>
+                        <label class="input-label text-indigo-700">2. เลือกแผนกที่ดูแล <span class="text-rose-500">*</span></label>
+                        <select id="modalDept" class="input-field border-indigo-200 mt-1">
+                            <option value="">-- กรุณาเลือกอาคารก่อน --</option>
                         </select>
                     </div>
                 </div>
 
-                <button class="btn-add" style="padding: 15px 30px; font-size: 16px; width: 100%;" onclick="exportAllUsers()">
-                    📥 ดาวน์โหลดไฟล์ Excel (CSV)
-                </button>
-            </div>
-        </div>
+                <div id="extraCheckpoint" class="hidden p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                    <label class="input-label text-rose-700">ประจำจุดตรวจ (สำหรับ รปภ.) <span class="text-rose-500">*</span></label>
+                    <select id="modalCheckpoint" class="input-field border-rose-200 mt-1"></select>
+                </div>
 
-    </div>
-
-    <!-- Modal เปลี่ยนสิทธิ์อัจฉริยะ -->
-    <div id="roleModal" class="modal">
-        <div class="modal-content">
-            <h3>⚙️ กำหนดสิทธิ์การใช้งาน</h3>
-            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 15px;" id="modalEmpName">ชื่อพนักงาน</p>
-            
-            <div class="form-group">
-                <label>เลือกตำแหน่ง (Role):</label>
-                <select id="modalRole" onchange="toggleRoleOptions()">
-                    <option value="visitor">พนักงานซับฯ (Visitor)</option>
-                    <option value="admin">หัวหน้าซับฯ (Admin)</option>
-                    <option value="inspector">รปภ. (Inspector)</option>
-                    <option value="dept">หัวหน้าแผนก (Dept)</option>
-                    <option value="asst_dept">ผู้ช่วยหัวหน้าแผนก</option>
-                    <option value="hr">ฝ่ายบุคคล (HR)</option>
-                    <option value="safety">จป. (Safety)</option>
-                    <option value="superuser">ผู้ดูแลระบบ (Superuser)</option>
-                </select>
-            </div>
-
-            <!-- ส่วนขยายสำหรับแต่ละ Role -->
-            <div class="form-group" id="extraCompany" style="display:none;">
-                <label>สังกัดบริษัท (สำหรับ Admin):</label>
-                <select id="modalCompany"></select>
-            </div>
-            <div class="form-group" id="extraDept" style="display:none;">
-                <label>ดูแลแผนก (สำหรับ หัวหน้า/ผู้ช่วย):</label>
-                <select id="modalDept"></select>
-            </div>
-            <div class="form-group" id="extraCheckpoint" style="display:none;">
-                <label>ประจำจุดตรวจ (สำหรับ รปภ.):</label>
-                <select id="modalCheckpoint"></select>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeRoleModal()">ยกเลิก</button>
-                <button class="btn-confirm" onclick="saveRoleSetting()">บันทึก (และอนุมัติ)</button>
+                <div class="pt-2">
+                    <button onclick="saveRoleSetting()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-200 active:scale-95 transition flex justify-center items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i> บันทึกและอนุมัติสิทธิ์
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal ดูประวัติ / ข้อมูลแบบละเอียด -->
-    <div id="detailsModal" class="modal">
-        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
-            <h3 style="color: #3498db; text-align: center;">ข้อมูลพนักงานและประวัติ</h3>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <img id="detailImg" src="" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ecf0f1;">
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content !bg-slate-50">
+            <div class="flex justify-between items-center mb-4 shrink-0 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex items-center gap-3">
+                    <img id="hist-img" src="" class="w-12 h-12 rounded-full object-cover border border-slate-200">
+                    <div>
+                        <h3 id="hist-name" class="font-bold text-slate-800 text-sm">ชื่อ</h3>
+                        <p id="hist-details" class="text-[10px] text-slate-500">รายละเอียด</p>
+                    </div>
+                </div>
+                <button onclick="closeHistoryModal()" class="p-2 bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 active:scale-90"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="detail-row"><div class="label">ชื่อ-นามสกุล:</div><div class="value" id="detailName">-</div></div>
-            <div class="detail-row"><div class="label">เบอร์โทร:</div><div class="value" id="detailPhone">-</div></div>
-            <div class="detail-row"><div class="label">เลข ปชช.:</div><div class="value" id="detailIdCard">-</div></div>
-            <div class="detail-row"><div class="label">สถานะ:</div><div class="value" id="detailStatus">-</div></div>
-            <div class="detail-row"><div class="label">บริษัท / แผนก:</div><div class="value" id="detailCompDept">-</div></div>
-            
-            <h4 style="margin: 15px 0 5px 0; color: #2c3e50; text-align: left;">📝 ประวัติการเข้าทำงาน</h4>
-            <div class="history-box" id="detailHistory">
-                <div style="text-align: center; color: #aaa; margin-top: 40px;">กำลังโหลด...</div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-cancel" style="width: 100%;" onclick="closeDetailsModal()">ปิดหน้าต่าง</button>
-            </div>
+            <h4 class="text-xs font-bold text-slate-500 uppercase ml-2 mb-2 flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i> ประวัติ 30 วันล่าสุด</h4>
+            <div id="hist-unified-list" class="space-y-3 pb-2">
+                </div>
         </div>
     </div>
 
     <script>
-        // --- 1. ตั้งค่า Firebase ---
+        // ==========================================
+        // 1. Firebase & State
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
             authDomain: "maersk-mcl-v2.firebaseapp.com",
             projectId: "maersk-mcl-v2",
             storageBucket: "maersk-mcl-v2.firebasestorage.app",
             messagingSenderId: "447590679734",
-            appId: "1:447590679734:web:f6881338981f9ae86bd217",
-            measurementId: "G-9CPJJVL2G6"
+            appId: "1:447590679734:web:f6881338981f9ae86bd217"
         };
-        
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- 2. ตัวแปรเก็บข้อมูล (State) ---
         let allUsers = [];
-        let masterData = {
-            companies: {}, warehouses: {}, departments: {}, positions: {}, checkpoints: {}
-        };
+        let masterData = { companies: {}, warehouses: {}, departments: {}, positions: {}, checkpoints: {} };
         let currentEditingUid = null;
 
         const roleNames = {
-            'visitor': 'พนักงานซับฯ', 'admin': 'Admin ซับฯ', 'inspector': 'รปภ.',
+            'visitor': 'พนักงานซับฯ', 'admin': 'Admin บริษัท', 'inspector': 'รปภ.',
             'dept': 'หัวหน้าแผนก', 'asst_dept': 'ผู้ช่วยหัวหน้าแผนก', 'hr': 'ฝ่ายบุคคล',
             'safety': 'จป.', 'superuser': 'Superuser'
         };
 
-        // สลับหน้าแท็บ
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabId).style.display = 'block';
-            btnElement.classList.add('active');
-        }
-
-        // --- 3. โหลดข้อมูลระบบทั้งหมดพร้อมกัน ---
+        // ==========================================
+        // 2. Initialization
+        // ==========================================
         async function initializeSystem() {
-            listenToMasterData('companies', 'listCompanies', updateModalDropdowns);
-            listenToMasterData('warehouses', 'listWarehouses', updateWarehouseDropdowns);
-            listenToMasterData('departments', 'listDepartments', updateModalDropdowns, true);
-            listenToMasterData('positions', 'listPositions');
-            listenToMasterData('checkpoints', 'listCheckpoints', updateModalDropdowns);
+            lucide.createIcons();
+            
+            // โหลด Master Data พร้อมกัน
+            listenToMasterData('companies', 'listCompanies');
+            listenToMasterData('warehouses', 'listWarehouses');
+            listenToMasterData('departments', 'listDepartments', true);
+            listenToMasterData('checkpoints', 'listCheckpoints');
 
+            // โหลดผู้ใช้
             db.collection("users").orderBy("registeredAt", "desc").limit(300).onSnapshot(snapshot => {
                 allUsers = [];
-                snapshot.forEach(doc => { allUsers.push({ id: doc.id, ...doc.data() }); });
+                snapshot.forEach(doc => allUsers.push({ id: doc.id, ...doc.data() }));
                 renderUsers();
-                document.getElementById('loadingGlobal').style.display = 'none';
-                document.getElementById('tab-users').style.display = 'block';
+                document.getElementById('global-loading').style.display = 'none';
             });
         }
 
-        // --- 4. ฟังก์ชันจัดการ Users (Compact View) ---
+        // ==========================================
+        // TAB 1: Users & Rendering
+        // ==========================================
         function renderUsers() {
             const container = document.getElementById("userListContainer");
             const filterRole = document.getElementById("roleFilter").value;
@@ -372,92 +309,91 @@
             if (filterRole === "pending") filteredUsers = allUsers.filter(u => u.status === 'pending');
             else if (filterRole !== "all") filteredUsers = allUsers.filter(u => u.role === filterRole);
 
-            document.getElementById("userCount").innerText = `${filteredUsers.length} คน`;
+            document.getElementById("userCount").innerText = filteredUsers.length;
 
             if (filteredUsers.length === 0) {
-                container.innerHTML = "<div style='text-align:center; padding: 40px; color:#7f8c8d; background:white; border-radius:10px;'>ไม่พบผู้ใช้งานในหมวดหมู่นี้ 🎉</div>";
+                container.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl border border-slate-200"><i data-lucide="inbox" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i><p class="text-sm text-slate-500 font-medium">ไม่พบผู้ใช้งาน</p></div>`;
+                lucide.createIcons();
                 return;
             }
 
             filteredUsers.forEach(user => {
-                const compName = masterData.companies[user.companyId]?.name || "-";
-                const deptName = masterData.departments[user.departmentId]?.name || "-";
                 const roleName = roleNames[user.role] || user.role;
                 
-                let statusHtml = '';
-                let borderLeftColor = '#3498db';
-                
-                if (user.status === 'approved') {
-                    statusHtml = '<span style="color: #27ae60; font-weight: bold;">✅ อนุมัติแล้ว</span>';
-                    borderLeftColor = '#27ae60';
-                } else if (user.status === 'banned') {
-                    statusHtml = '<span style="color: #c0392b; font-weight: bold;">🚫 ระงับใช้งาน</span>';
-                    borderLeftColor = '#c0392b';
-                } else {
-                    statusHtml = '<span style="color: #f39c12; font-weight: bold;">⏳ รออนุมัติ</span>';
-                    borderLeftColor = '#f39c12';
+                let sColor = '', sText = '', sIcon = '';
+                if (user.status === 'approved') { sColor = 'text-emerald-600 bg-emerald-50 border-emerald-200'; sText = 'อนุมัติ'; sIcon = 'check-circle'; } 
+                else if (user.status === 'banned') { sColor = 'text-rose-600 bg-rose-50 border-rose-200'; sText = 'แบน'; sIcon = 'slash'; } 
+                else { sColor = 'text-amber-600 bg-amber-50 border-amber-200'; sText = 'รออนุมัติ'; sIcon = 'clock'; }
+
+                let detailHtml = '';
+                if(user.role === 'visitor') {
+                    detailHtml = `<span class="truncate">🏢 ${masterData.companies[user.companyId]?.name||'-'}</span> <span class="truncate">📂 ${masterData.departments[user.departmentId]?.name||'-'}</span>`;
+                } else if(user.role === 'admin' && user.companyId) {
+                    detailHtml = `<span class="truncate text-amber-600">🏢 ดูแล: ${masterData.companies[user.companyId]?.name||'-'}</span>`;
+                } else if((user.role === 'dept' || user.role === 'asst_dept') && user.managedDeptId) {
+                    detailHtml = `<span class="truncate text-indigo-600">📂 ดูแล: ${masterData.departments[user.managedDeptId]?.name||'-'}</span>`;
+                } else if(user.role === 'inspector' && user.checkpointId) {
+                    detailHtml = `<span class="truncate text-rose-600">📍 จุดตรวจ: ${masterData.checkpoints[user.checkpointId]?.name||'-'}</span>`;
                 }
 
-                // สรุปข้อมูลเสริมตาม Role (เพื่อให้เห็นชัดเจน)
-                let extraBadge = '';
-                if(user.role === 'admin' && user.companyId) extraBadge = `<span class="badge-sm">🏢 ดูแล: ${masterData.companies[user.companyId]?.name || 'ไม่ทราบ'}</span>`;
-                if((user.role === 'dept' || user.role === 'asst_dept') && user.managedDeptId) extraBadge = `<span class="badge-sm">📂 ดูแล: ${masterData.departments[user.managedDeptId]?.name || 'ไม่ทราบ'}</span>`;
-                if(user.role === 'inspector' && user.checkpointId) extraBadge = `<span class="badge-sm">📍 จุดตรวจ: ${masterData.checkpoints[user.checkpointId]?.name || 'ไม่ทราบ'}</span>`;
-
-                const div = document.createElement("div");
-                div.className = "user-card-compact";
-                div.style.borderLeftColor = borderLeftColor;
-                if (user.status === 'banned') div.style.opacity = '0.7';
-
-                div.innerHTML = `
-                    <div class="user-info-c">
-                        <div class="top-row">
-                            <span class="name">${user.fullname}</span>
-                            <span class="phone">📞 ${user.phone}</span>
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 ${user.status==='banned'?'opacity-60':''}">
+                        <div class="flex items-start gap-3 mb-3 pb-3 border-b border-slate-50">
+                            <img src="${user.photoUrl || 'https://via.placeholder.com/50'}" class="w-12 h-12 rounded-full object-cover bg-slate-100 shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-sm text-slate-800 truncate pr-2">${user.fullname}</h4>
+                                    <span class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded border flex items-center gap-1 ${sColor}"><i data-lucide="${sIcon}" class="w-3 h-3"></i>${sText}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mt-0.5">📞 ${user.phone}</p>
+                                <div class="text-[10px] font-medium text-slate-600 mt-1 flex gap-2 w-full overflow-hidden">
+                                    <span class="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 border border-slate-200 shrink-0">${roleName}</span>
+                                    ${detailHtml}
+                                </div>
+                            </div>
                         </div>
-                        <div class="bottom-row">
-                            <span class="badge-sm" style="background:#e8f4f8; color:#2980b9;">${roleName}</span>
-                            <span>${statusHtml}</span>
-                            ${user.role === 'visitor' ? `<span class="badge-sm">🏢 ${compName}</span> <span class="badge-sm">📂 ${deptName}</span>` : extraBadge}
+                        <div class="flex gap-2">
+                            <button onclick="openHistoryModal('${user.id}')" class="flex-1 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl transition flex justify-center items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> ประวัติ</button>
+                            <button onclick="openRoleModal('${user.id}')" class="flex-1 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-xs font-bold rounded-xl transition flex justify-center items-center gap-1.5"><i data-lucide="settings-2" class="w-3.5 h-3.5"></i> ตั้งสิทธิ์</button>
+                            ${user.status !== 'banned' ? `<button onclick="banUser('${user.id}')" class="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl transition"><i data-lucide="slash" class="w-3.5 h-3.5"></i></button>` : ''}
                         </div>
-                    </div>
-                    <div class="c-actions">
-                        <button class="btn-sm btn-info" style="background:#e8f4f8; color:#2980b9; border:1px solid #2980b9;" onclick="openDetailsModal('${user.id}')">📝 ประวัติ</button>
-                        <button class="btn-sm btn-setting" onclick="openRoleModal('${user.id}')">⚙️ สิทธิ์</button>
-                        ${user.status !== 'banned' ? `<button class="btn-sm btn-ban-sm" onclick="banUser('${user.id}')">🚫 แบน</button>` : ''}
                     </div>
                 `;
-                container.appendChild(div);
             });
+            lucide.createIcons();
         }
 
         async function banUser(uid) {
-            if (!confirm("⚠️ คุณแน่ใจหรือไม่ที่จะ แบน/ระงับการใช้งาน ผู้ใช้นี้?")) return;
-            try { await db.collection("users").doc(uid).update({ status: 'banned' }); } 
-            catch (error) { alert("อัปเดตสถานะไม่สำเร็จ: " + error.message); }
+            const res = await Swal.fire({ title: 'ระงับการใช้งาน?', text: "ผู้ใช้นี้จะไม่สามารถเข้าสู่ระบบได้อีก", icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'ยืนยันแบน' });
+            if(res.isConfirmed) {
+                try { await db.collection("users").doc(uid).update({ status: 'banned' }); } 
+                catch (e) { Swal.fire('Error', e.message, 'error'); }
+            }
         }
 
-        // --- 5. ระบบ Modal ตั้งค่าสิทธิ์อัจฉริยะ ---
-        function updateModalDropdowns() {
-            // เติมข้อมูลใส่ Dropdown ใน Modal
-            const cSelect = document.getElementById("modalCompany"); cSelect.innerHTML = '<option value="">-- เลือกบริษัท --</option>';
-            const dSelect = document.getElementById("modalDept"); dSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
-            const cpSelect = document.getElementById("modalCheckpoint"); cpSelect.innerHTML = '<option value="">-- เลือกจุดตรวจ --</option>';
-            
-            // เติมข้อมูลใส่ Dropdown ฝั่งหน้า Export Excel ด้วย
-            const expCSelect = document.getElementById("exportCompanySelect"); expCSelect.innerHTML = '<option value="all">-- ทุกบริษัท --</option>';
-            const expDSelect = document.getElementById("exportDeptSelect"); expDSelect.innerHTML = '<option value="all">-- ทุกแผนก --</option>';
+        // ==========================================
+        // Modal: Role Assignment (Cascading Logic)
+        // ==========================================
+        function populateDropdown(selectId, dataObj, placeholder) {
+            const el = document.getElementById(selectId);
+            el.innerHTML = `<option value="">-- ${placeholder} --</option>`;
+            Object.keys(dataObj).forEach(id => {
+                el.innerHTML += `<option value="${id}">${dataObj[id].name}</option>`;
+            });
+            // Update export dropdowns concurrently
+            if(selectId === 'modalWarehouse') populateDropdown('exportWarehouseSelect', dataObj, 'ทุกอาคาร');
+        }
 
-            Object.keys(masterData.companies).forEach(id => {
-                cSelect.innerHTML += `<option value="${id}">${masterData.companies[id].name}</option>`;
-                expCSelect.innerHTML += `<option value="${id}">${masterData.companies[id].name}</option>`;
-            });
-            Object.keys(masterData.departments).forEach(id => {
-                dSelect.innerHTML += `<option value="${id}">${masterData.departments[id].name}</option>`;
-                expDSelect.innerHTML += `<option value="${id}">${masterData.departments[id].name}</option>`;
-            });
-            Object.keys(masterData.checkpoints).forEach(id => {
-                cpSelect.innerHTML += `<option value="${id}">${masterData.checkpoints[id].name}</option>`;
+        function updateModalDeptDropdown() {
+            const whId = document.getElementById('modalWarehouse').value;
+            const deptSelect = document.getElementById('modalDept');
+            deptSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+            if (!whId) return;
+
+            Object.entries(masterData.departments).forEach(([id, dept]) => {
+                if (dept.warehouseId === whId) {
+                    deptSelect.innerHTML += `<option value="${id}">${dept.name}</option>`;
+                }
             });
         }
 
@@ -465,294 +401,238 @@
             const user = allUsers.find(u => u.id === uid);
             if(!user) return;
             currentEditingUid = uid;
-            document.getElementById("modalEmpName").innerText = `พนักงาน: ${user.fullname} | 📞 ${user.phone}`;
+            
+            // Populate fresh data
+            populateDropdown('modalCompany', masterData.companies, 'เลือกบริษัท');
+            populateDropdown('modalWarehouse', masterData.warehouses, 'เลือกอาคาร/คลัง');
+            populateDropdown('modalCheckpoint', masterData.checkpoints, 'เลือกจุดตรวจ');
+            
+            document.getElementById("modalEmpName").innerText = `${user.fullname} (${user.phone})`;
             document.getElementById("modalRole").value = user.role;
             
-            // ใส่ค่าเดิมถ้ามี
+            // Prefill existing data
             if(user.companyId) document.getElementById("modalCompany").value = user.companyId;
-            if(user.managedDeptId) document.getElementById("modalDept").value = user.managedDeptId;
             if(user.checkpointId) document.getElementById("modalCheckpoint").value = user.checkpointId;
+            
+            // Logic สำหรับ Heads: หา Warehouse จาก Dept แล้ว Prefill
+            if(user.managedDeptId && masterData.departments[user.managedDeptId]) {
+                const whId = masterData.departments[user.managedDeptId].warehouseId;
+                document.getElementById('modalWarehouse').value = whId;
+                updateModalDeptDropdown(); // Generate depts for this warehouse
+                document.getElementById('modalDept').value = user.managedDeptId;
+            } else {
+                document.getElementById('modalWarehouse').value = "";
+                updateModalDeptDropdown();
+            }
 
             toggleRoleOptions();
-            document.getElementById("roleModal").style.display = "flex";
+            document.getElementById("roleModal").classList.add("active");
         }
 
-        function closeRoleModal() { document.getElementById("roleModal").style.display = "none"; currentEditingUid = null; }
+        function closeRoleModal() { document.getElementById("roleModal").classList.remove("active"); currentEditingUid = null; }
 
         function toggleRoleOptions() {
-            const role = document.getElementById("modalRole").value;
-            document.getElementById("extraCompany").style.display = (role === 'admin') ? 'block' : 'none';
-            document.getElementById("extraDept").style.display = (role === 'dept' || role === 'asst_dept') ? 'block' : 'none';
-            document.getElementById("extraCheckpoint").style.display = (role === 'inspector') ? 'block' : 'none';
+            const r = document.getElementById("modalRole").value;
+            document.getElementById("extraCompany").style.display = (r === 'admin') ? 'block' : 'none';
+            document.getElementById("extraDeptArea").style.display = (r === 'dept' || r === 'asst_dept') ? 'block' : 'none';
+            document.getElementById("extraCheckpoint").style.display = (r === 'inspector') ? 'block' : 'none';
         }
 
         async function saveRoleSetting() {
             if(!currentEditingUid) return;
             const newRole = document.getElementById("modalRole").value;
-            
-            // เปลี่ยน Role และอนุมัติสถานะพร้อมกัน
-            let updatePayload = { 
-                role: newRole, 
-                status: 'approved' // <--- อนุมัติให้อัตโนมัติทันที
-            };
+            let payload = { role: newRole, status: 'approved' }; // Auto approve
 
-            // ตรวจสอบข้อมูลบังคับตาม Role
             if(newRole === 'admin') {
-                const compId = document.getElementById("modalCompany").value;
-                if(!compId) return alert("กรุณาระบุ 'บริษัท' สำหรับ Admin");
-                updatePayload.companyId = compId;
+                const val = document.getElementById("modalCompany").value;
+                if(!val) return Swal.fire('ข้อมูลไม่ครบ', "กรุณาระบุ 'บริษัท' สำหรับ Admin", 'warning');
+                payload.companyId = val;
             } 
             else if(newRole === 'dept' || newRole === 'asst_dept') {
-                const deptId = document.getElementById("modalDept").value;
-                if(!deptId) return alert("กรุณาระบุ 'แผนก' สำหรับหัวหน้า/ผู้ช่วย");
-                updatePayload.managedDeptId = deptId;
-                // หาคลังที่แผนกนี้สังกัดอยู่แล้วผูกให้ด้วย
-                updatePayload.managedWarehouseId = masterData.departments[deptId]?.warehouseId || '';
+                const whId = document.getElementById("modalWarehouse").value;
+                const dpId = document.getElementById("modalDept").value;
+                if(!whId || !dpId) return Swal.fire('ข้อมูลไม่ครบ', "กรุณาระบุ 'อาคาร' และ 'แผนก'", 'warning');
+                payload.managedWarehouseId = whId;
+                payload.managedDeptId = dpId;
             } 
             else if(newRole === 'inspector') {
                 const cpId = document.getElementById("modalCheckpoint").value;
-                if(!cpId) return alert("กรุณาระบุ 'จุดตรวจ' สำหรับ รปภ.");
-                updatePayload.checkpointId = cpId;
+                if(!cpId) return Swal.fire('ข้อมูลไม่ครบ', "กรุณาระบุ 'จุดตรวจ' สำหรับ รปภ.", 'warning');
+                payload.checkpointId = cpId;
             }
 
+            Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             try {
-                await db.collection("users").doc(currentEditingUid).update(updatePayload);
+                await db.collection("users").doc(currentEditingUid).update(payload);
                 closeRoleModal();
-            } catch (error) {
-                alert("บันทึกไม่สำเร็จ: " + error.message);
-            }
+                Swal.fire({icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false});
+            } catch (e) { Swal.fire('Error', e.message, 'error'); }
         }
 
-        // --- ระบบ Modal ข้อมูล/ประวัติพนักงาน ---
-        async function openDetailsModal(uid) {
+        // ==========================================
+        // Modal: History
+        // ==========================================
+        async function openHistoryModal(uid) {
             const user = allUsers.find(u => u.id === uid);
             if(!user) return;
-
-            document.getElementById("detailImg").src = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/100');
-            document.getElementById("detailName").innerText = user.fullname;
-            document.getElementById("detailPhone").innerText = user.phone || "-";
-            document.getElementById("detailIdCard").innerText = user.idCard || "-";
             
-            let statusStr = user.status === 'approved' ? '✅ อนุมัติแล้ว' : (user.status === 'banned' ? '🚫 ระงับการใช้งาน' : '⏳ รออนุมัติ');
-            document.getElementById("detailStatus").innerHTML = statusStr;
-
-            let cStr = masterData.companies[user.companyId]?.name || '-';
-            let dStr = masterData.departments[user.departmentId]?.name || '-';
-            if(user.role === 'dept' || user.role === 'asst_dept') dStr = masterData.departments[user.managedDeptId]?.name || '-';
-            if(user.role === 'admin') dStr = '-'; // Admin might not be assigned to a dept
+            document.getElementById('hist-img').src = user.photoUrl || 'https://via.placeholder.com/150';
+            document.getElementById('hist-name').innerText = user.fullname;
+            const comp = masterData.companies[user.companyId]?.name || '-';
+            const dept = masterData.departments[user.departmentId]?.name || '-';
+            document.getElementById('hist-details').innerText = `${comp} | ${dept}`;
             
-            document.getElementById("detailCompDept").innerText = `${cStr} / ${dStr}`;
-            document.getElementById("detailsModal").style.display = "flex";
-
-            // โหลดประวัติการสแกน (ดึงจาก daily_records)
-            const historyContainer = document.getElementById("detailHistory");
-            historyContainer.innerHTML = "<div style='text-align: center; color: #aaa; margin-top: 40px;'>กำลังโหลดข้อมูล...</div>";
+            const container = document.getElementById("hist-unified-list");
+            container.innerHTML = "<div class='text-center py-6 text-slate-400 text-xs'><i data-lucide='loader-2' class='w-5 h-5 mx-auto animate-spin mb-1'></i> กำลังโหลด...</div>";
+            lucide.createIcons();
+            
+            document.getElementById('historyModal').classList.add('active');
 
             try {
-                // แก้ปัญหา The query requires an index: ดึงข้อมูลมาก่อน แล้วค่อย Sort ด้วย JavaScript
                 const snap = await db.collection("daily_records").where("uid", "==", uid).get();
+                if(snap.empty) { container.innerHTML = "<div class='bg-emerald-50 text-emerald-600 p-4 rounded-xl text-center text-xs font-bold border border-emerald-100'>✨ พนักงานใหม่ (ยังไม่มีประวัติ)</div>"; return; }
                 
-                if(snap.empty) {
-                    historyContainer.innerHTML = "<div style='text-align: center; color: #27ae60; font-weight: bold; margin-top: 40px;'>✨ พนักงานใหม่ (ยังไม่มีประวัติการทำงาน)</div>";
-                    return;
-                }
-                
-                // นำข้อมูลมาเก็บใน Array เพื่อเรียงลำดับ
                 let records = [];
                 snap.forEach(doc => records.push(doc.data()));
-                
-                // เรียงลำดับวันที่ (ล่าสุดขึ้นก่อน)
-                records.sort((a, b) => {
-                    const dateA = a.date || "";
-                    const dateB = b.date || "";
-                    if (dateA !== dateB) return dateB.localeCompare(dateA); // เรียงวันที่
-                    const timeA = a.scanInTime || "";
-                    const timeB = b.scanInTime || "";
-                    return timeB.localeCompare(timeA); // เรียงเวลาเข้า (ถ้าวันเดียวกัน)
-                });
-                
-                // จำกัดให้แสดงแค่ 30 รายการล่าสุด
+                records.sort((a,b) => (b.date || "").localeCompare(a.date || ""));
                 records = records.slice(0, 30);
                 
-                historyContainer.innerHTML = "";
+                container.innerHTML = "";
                 records.forEach(d => {
+                    const stars = d.rating ? "★".repeat(d.rating) + "☆".repeat(5-d.rating) : "";
+                    let statusHtml = '';
+                    if(d.status === 'evaluated') statusHtml = `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-bold">ประเมินแล้ว</span> <span class="text-amber-500 text-[10px]">${stars}</span>`;
+                    else if(d.status === 'not_show') statusHtml = `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded text-[9px] font-bold">ไม่มา/ละทิ้งงาน</span>`;
+                    else statusHtml = `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[9px] font-bold">รอประเมิน</span>`;
+
                     const dName = masterData.depts[d.deptId]?.name || '-';
-                    const stars = d.rating ? "★".repeat(d.rating) + "☆".repeat(5-d.rating) : "-";
-                    
-                    let sText = '';
-                    if(d.status === 'evaluated') sText = `<span style="color:#27ae60;">ประเมินแล้ว (${stars})</span>`;
-                    else if(d.status === 'not_show') sText = `<span style="color:#e74c3c;">ละทิ้งงาน</span>`;
-                    else if(d.status === 'in') sText = `<span style="color:#3498db;">กำลังทำงาน (เข้าแล้ว)</span>`;
-                    else sText = `<span style="color:#f39c12;">รอประเมิน</span>`;
 
-                    const inTime = d.scanInTime || '-';
-                    const outTime = d.scanOutTime || '-';
-
-                    historyContainer.innerHTML += `
-                        <div style="background: white; border: 1px solid #ddd; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
-                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 5px; margin-bottom: 5px;">
-                                <strong>📅 ${d.date}</strong> <span>${sText}</span>
+                    container.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-slate-700"><i data-lucide="calendar" class="w-3 h-3 inline text-indigo-500 mb-0.5"></i> ${d.date}</span>
+                                ${statusHtml}
                             </div>
-                            <div style="font-size: 13px; color: #555;">
-                                🏢 แผนก: <b>${dName}</b><br>
-                                ⏱️ เวลาเข้า: <b style="color:#27ae60;">${inTime}</b> | เวลาออก: <b style="color:#e67e22;">${outTime}</b><br>
-                                💬 คอมเมนต์: <i>${d.comment || '-'}</i>
-                            </div>
+                            <p class="text-[10px] text-slate-500 mb-1 truncate">📂 แผนก: ${dName}</p>
+                            <p class="text-[10px] font-medium text-slate-600 bg-slate-50 p-1.5 rounded-lg inline-block w-full">
+                                IN: <strong class="text-emerald-600">${d.scanInTime||'-'}</strong> &nbsp;|&nbsp; OUT: <strong class="text-amber-600">${d.scanOutTime||'-'}</strong>
+                            </p>
+                            ${d.comment ? `<p class="text-[10px] mt-1 text-slate-500 italic">💬 "${d.comment}"</p>` : ''}
                         </div>
                     `;
                 });
-            } catch (e) {
-                historyContainer.innerHTML = "<div style='color: red; text-align: center; margin-top: 20px;'>โหลดประวัติไม่สำเร็จ: " + e.message + "</div>";
-            }
+                lucide.createIcons();
+            } catch(e) { container.innerHTML = `<div class="text-rose-500 text-xs text-center p-4">Error: ${e.message}</div>`; }
         }
 
-        function closeDetailsModal() { document.getElementById("detailsModal").style.display = "none"; }
+        function closeHistoryModal() { document.getElementById("historyModal").classList.remove("active"); }
 
-        // --- 6. Export Excel แบบละเอียด ---
-        function exportAllUsers() {
-            if (allUsers.length === 0) return alert("ไม่มีข้อมูลผู้ใช้งาน");
+        // ==========================================
+        // TAB 2: Master Data Management
+        // ==========================================
+        function listenToMasterData(colName, listId, isDept = false) {
+            db.collection(colName).orderBy("name").onSnapshot(snap => {
+                masterData[colName] = {};
+                const ul = document.getElementById(listId);
+                if(ul) ul.innerHTML = "";
 
-            // ดึงค่าตัวกรอง
-            const startDateInput = document.getElementById("exportStartDate").value;
-            const endDateInput = document.getElementById("exportEndDate").value;
-            const selectedRole = document.getElementById("exportRoleSelect").value;
-            const selectedStatus = document.getElementById("exportStatusSelect").value;
-            const selectedComp = document.getElementById("exportCompanySelect").value;
-            const selectedDept = document.getElementById("exportDeptSelect").value;
-
-            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
-            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
-
-            // คัดกรองข้อมูล
-            let exportUsers = allUsers.filter(u => {
-                if (selectedRole !== "all" && u.role !== selectedRole) return false;
-                if (selectedStatus !== "all" && u.status !== selectedStatus) return false;
-                
-                // ตรวจสอบบริษัทและแผนกที่ผู้ใช้ดูแล (ตาม Role)
-                let uComp = u.companyId;
-                let uDept = u.departmentId;
-                if(u.role === 'dept' || u.role === 'asst_dept') uDept = u.managedDeptId;
-
-                if (selectedComp !== "all" && uComp !== selectedComp) return false;
-                if (selectedDept !== "all" && uDept !== selectedDept) return false;
-
-                // กรองช่วงวันที่ลงทะเบียน
-                if (startDate || endDate) {
-                    if (!u.registeredAt) return false;
-                    const regDate = u.registeredAt.toDate();
-                    if (startDate && regDate < startDate) return false;
-                    if (endDate && regDate > endDate) return false;
-                }
-
-                return true;
-            });
-
-            if (exportUsers.length === 0) return alert("ไม่พบข้อมูลที่ตรงกับเงื่อนไขที่กำหนด");
-
-            let csvContent = "\uFEFF"; // BOM สำหรับภาษาไทยให้ Excel อ่านออก
-            csvContent += "วันที่ลงทะเบียน,ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ตำแหน่งระบบ (Role),สถานะ,บริษัท,แผนก,จุดตรวจ (รปภ.)\n";
-
-            exportUsers.forEach(user => {
-                const regDateStr = user.registeredAt ? user.registeredAt.toDate().toLocaleDateString('th-TH') : '-';
-                const rName = roleNames[user.role] || user.role;
-                const statusStr = user.status === 'approved' ? 'อนุมัติแล้ว' : (user.status === 'banned' ? 'ระงับการใช้งาน' : 'รออนุมัติ');
-                
-                let cStr = masterData.companies[user.companyId]?.name || '-';
-                let dStr = masterData.departments[user.departmentId]?.name || '-';
-                if(user.role === 'dept' || user.role === 'asst_dept') dStr = masterData.departments[user.managedDeptId]?.name || '-';
-                let cpStr = masterData.checkpoints[user.checkpointId]?.name || '-';
-
-                const row = [
-                    `"${regDateStr}"`,
-                    `"${user.fullname}"`, 
-                    `'${user.phone}`, 
-                    `'${user.idCard || '-'}`,
-                    `"${rName}"`,
-                    `"${statusStr}"`,
-                    `"${cStr}"`,
-                    `"${dStr}"`,
-                    `"${cpStr}"`
-                ];
-                csvContent += row.join(",") + "\n";
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `ข้อมูลระบบทั้งหมด_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // --- 7. ฟังก์ชันจัดการ Master Data ---
-        function listenToMasterData(collectionName, listId, callback = null, isDept = false) {
-            db.collection(collectionName).orderBy("name").onSnapshot(snapshot => {
-                masterData[collectionName] = {};
-                const listEl = document.getElementById(listId);
-                if(listEl) listEl.innerHTML = "";
-
-                if (snapshot.empty && listEl) listEl.innerHTML = "<li style='color:#ccc; justify-content:center;'>ไม่มีข้อมูล</li>";
-
-                snapshot.forEach(doc => {
+                snap.forEach(doc => {
                     const data = doc.data();
-                    masterData[collectionName][doc.id] = data;
-                    
-                    if(listEl) {
-                        let extraInfo = "";
-                        if (isDept && data.warehouseId) extraInfo = `<small>📍 คลัง: ${masterData.warehouses[data.warehouseId]?.name || "ไม่ทราบ"}</small>`;
-                        const li = document.createElement("li");
-                        li.innerHTML = `<div><span>${data.name}</span>${extraInfo}</div><button class="btn-delete" onclick="deleteData('${collectionName}', '${doc.id}')">🗑️</button>`;
-                        listEl.appendChild(li);
+                    masterData[colName][doc.id] = data;
+                    if(ul) {
+                        let subInfo = "";
+                        if(isDept && data.warehouseId) {
+                            subInfo = `<p class="text-[9px] text-slate-400 mt-0.5">📍 ${masterData.warehouses[data.warehouseId]?.name || 'ไม่ทราบอาคาร'}</p>`;
+                        }
+                        ul.innerHTML += `
+                            <li class="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm font-medium text-slate-700">
+                                <div>${data.name} ${subInfo}</div>
+                                <button onclick="deleteData('${colName}', '${doc.id}')" class="p-1.5 text-rose-400 hover:bg-rose-100 hover:text-rose-600 rounded-lg transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </li>
+                        `;
                     }
                 });
-
-                if (callback) callback();
-                renderUsers(); 
+                lucide.createIcons();
+                // Update dropdowns if needed
+                if(colName === 'warehouses') populateDropdown('selectWarehouseForDept', masterData.warehouses, 'เลือกอาคาร');
             });
         }
 
-        async function addData(collectionName, inputId) {
+        async function addData(colName, inputId) {
             const input = document.getElementById(inputId);
-            const name = input.value.trim();
-            if (!name) return alert("กรุณากรอกข้อมูล");
-            try {
-                input.disabled = true;
-                await db.collection(collectionName).add({ name: name });
-                input.value = "";
-            } catch (error) { alert("ล้มเหลว: " + error.message); }
-            input.disabled = false;
+            const val = input.value.trim();
+            if(!val) return;
+            try { await db.collection(colName).add({ name: val }); input.value = ""; } 
+            catch (e) { Swal.fire('Error', e.message, 'error'); }
         }
 
         async function addDepartment() {
-            const input = document.getElementById("inputDept");
-            const selectWh = document.getElementById("selectWarehouseForDept");
-            const name = input.value.trim();
-            const whId = selectWh.value;
-            if (!whId || !name) return alert("กรุณาเลือกคลังและกรอกชื่อแผนก");
-            try {
-                input.disabled = selectWh.disabled = true;
-                await db.collection("departments").add({ name: name, warehouseId: whId });
-                input.value = "";
-            } catch (error) { alert("ล้มเหลว: " + error.message); }
-            input.disabled = selectWh.disabled = false;
+            const val = document.getElementById("inputDept").value.trim();
+            const whId = document.getElementById("selectWarehouseForDept").value;
+            if(!val || !whId) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกอาคารและพิมพ์ชื่อแผนก', 'warning');
+            try { 
+                await db.collection("departments").add({ name: val, warehouseId: whId }); 
+                document.getElementById("inputDept").value = ""; 
+            } 
+            catch (e) { Swal.fire('Error', e.message, 'error'); }
         }
 
-        function updateWarehouseDropdowns() {
-            const select = document.getElementById("selectWarehouseForDept");
-            select.innerHTML = '<option value="">-- เลือกคลัง/อาคาร --</option>';
-            Object.keys(masterData.warehouses).forEach(id => select.innerHTML += `<option value="${id}">${masterData.warehouses[id].name}</option>`);
-        }
-
-        async function deleteData(collectionName, docId) {
-            if (confirm("ลบข้อมูลนี้หรือไม่?\n(ข้อมูลที่เชื่อมโยงอยู่จะกลายเป็นค่าว่าง)")) {
-                try { await db.collection(collectionName).doc(docId).delete(); } 
-                catch (error) { alert("ลบข้อมูลล้มเหลว: " + error.message); }
+        async function deleteData(colName, docId) {
+            const res = await Swal.fire({ title: 'ลบข้อมูล?', text: "ลบแล้วจะไม่สามารถกู้คืนได้", icon: 'warning', showCancelButton: true, confirmButtonColor: '#e11d48' });
+            if(res.isConfirmed) {
+                try { await db.collection(colName).doc(docId).delete(); } 
+                catch (e) { Swal.fire('Error', e.message, 'error'); }
             }
         }
 
+        // ==========================================
+        // TAB 3: Export Excel
+        // ==========================================
+        function exportAllUsers() {
+            if(allUsers.length === 0) return Swal.fire('ไม่มีข้อมูล', 'ไม่พบรายชื่อผู้ใช้งานในระบบ', 'info');
+            Swal.fire({ title: 'กำลังเตรียมไฟล์...', timer: 1500, didOpen: () => Swal.showLoading() });
+            
+            // (ฟังก์ชัน Export เดิม)
+            setTimeout(() => {
+                let csvContent = "\uFEFF"; 
+                csvContent += "วันที่ลงทะเบียน,ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ตำแหน่ง (Role),สถานะ,บริษัท,แผนก,จุดตรวจ\n";
+
+                allUsers.forEach(u => {
+                    const dStr = u.registeredAt ? u.registeredAt.toDate().toLocaleDateString('th-TH') : '-';
+                    const rStr = roleNames[u.role] || u.role;
+                    const statStr = u.status === 'approved' ? 'อนุมัติ' : (u.status === 'banned' ? 'แบน' : 'รอ');
+                    
+                    let cName = masterData.companies[u.companyId]?.name || '-';
+                    let dpName = masterData.departments[u.departmentId]?.name || '-';
+                    if(u.role === 'dept' || u.role === 'asst_dept') dpName = masterData.departments[u.managedDeptId]?.name || '-';
+                    let cpName = masterData.checkpoints[u.checkpointId]?.name || '-';
+
+                    csvContent += `"${dStr}","${u.fullname}","'${u.phone}","'${u.idCard||'-'}","${rStr}","${statStr}","${cName}","${dpName}","${cpName}"\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `User_Export_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            }, 1000);
+        }
+
+        // Navigation
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-white', 'text-purple-700', 'shadow-md', 'active');
+                el.classList.add('bg-purple-800/50', 'text-white', 'border', 'border-purple-500/30');
+            });
+
+            document.getElementById('tab-' + tabId).classList.add('active');
+            btn.classList.remove('bg-purple-800/50', 'text-white', 'border', 'border-purple-500/30');
+            btn.classList.add('bg-white', 'text-purple-700', 'shadow-md', 'active');
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        // Start
         initializeSystem();
 
     </script>
