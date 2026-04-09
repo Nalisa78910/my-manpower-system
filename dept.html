@@ -390,11 +390,13 @@
             deptSnap.forEach(doc => masterData.depts[doc.id] = doc.data().name);
             compSnap.forEach(doc => masterData.companies[doc.id] = doc.data().name);
             
-            const dl = document.getElementById("posDatalist");
-            posSnap.forEach(doc => {
-                masterData.positions[doc.id] = doc.data().name;
-                dl.innerHTML += `<option value="${doc.data().name}">`;
-            });
+            const dl = document.getElementById("positions-list");
+            if (dl) {
+                posSnap.forEach(doc => {
+                    masterData.positions[doc.id] = doc.data().name;
+                    dl.innerHTML += `<option value="${doc.data().name}">`;
+                });
+            }
 
             const hrSelect = document.getElementById("qHrSelect");
             hrSnap.forEach(doc => {
