@@ -2,327 +2,168 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>e-Badge | บัตรพนักงานดิจิทัล</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Badge - บัตรพนักงาน</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+    <!-- เรียกใช้ Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
+    
+    <!-- เรียกใช้ Library สร้าง QR Code (เบาและทำงานแบบ Offline ได้) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
-        body { font-family: 'Kanit', sans-serif; background: #f1f5f9; margin: 0; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; -webkit-tap-highlight-color: transparent; }
-        .app-container { width: 100%; max-width: 400px; min-height: 100dvh; background: #f8fafc; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.1); }
-        .hide-scroll::-webkit-scrollbar { display: none; }
+        * { box-sizing: border-box; }
+        body { font-family: sans-serif; background: #e9ecef; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         
-        /* สไตล์สำหรับ Loading Screen */
-        #global-loading { position: absolute; inset: 0; background: #f8fafc; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .badge-card { background: white; width: 100%; max-width: 350px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); overflow: hidden; text-align: center; padding-bottom: 30px; }
+        
+        .header-bg { background: #34495e; height: 100px; width: 100%; }
+        
+        .profile-img { width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; margin-top: -60px; object-fit: cover; background: #f0f0f0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        
+        h2 { margin: 15px 0 5px 0; color: #333; font-size: 22px; }
+        p.company { margin: 0; color: #7f8c8d; font-size: 16px; margin-bottom: 15px; }
+        
+        .status-badge { display: inline-block; padding: 8px 20px; border-radius: 20px; font-weight: bold; color: white; margin-bottom: 15px; font-size: 14px; }
+        
+        /* สีสถานะต่างๆ */
+        .status-pending { background-color: #f39c12; } /* สีเหลือง รออนุมัติ */
+        .status-approved { background-color: #27ae60; } /* สีเขียว อนุมัติแล้ว */
+        .status-rejected { background-color: #c0392b; } /* สีแดง ไม่อนุมัติ/แบน */
 
-        /* Card 3D Effect */
-        .badge-card {
-            background: linear-gradient(145deg, #ffffff, #f8fafc);
-            border-radius: 24px;
-            box-shadow: 
-                0 20px 40px -5px rgba(0,0,0,0.1),
-                0 10px 20px -5px rgba(0,0,0,0.04),
-                inset 0 0 0 1px rgba(255,255,255,1);
-            position: relative;
-            overflow: hidden;
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-
-        /* Lanyard Hole Design (ช่องใส่สายคล้องบัตร) */
-        .lanyard-hole {
-            width: 60px;
-            height: 12px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            margin: 0 auto 16px auto;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* QR Code Container Style */
-        #qrcode-container {
-            background: white;
-            padding: 16px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: inline-block;
-            margin: 0 auto;
-        }
-        #qrcode img { display: block; margin: 0 auto; }
-
-        /* Status Colors */
-        .theme-active { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: white; }
-        .theme-pending { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .theme-banned { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; }
+        .qr-container { display: flex; justify-content: center; margin-top: 10px; padding: 15px; background: #f8f9fa; border-radius: 10px; width: 80%; margin-left: auto; margin-right: auto; }
+        
+        #loading { color: #555; margin-top: 50px; }
+        .content { display: none; /* ซ่อนไว้ก่อนจนกว่าข้อมูลจะโหลดเสร็จ */ }
+        
+        .info-message { font-size: 13px; font-weight: bold; padding: 15px; margin: 0 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <h3 id="loading">กำลังโหลดข้อมูลบัตร...</h3>
+
+    <div class="badge-card content" id="badgeContent">
+        <div class="header-bg"></div>
+        <img id="profilePic" class="profile-img" src="" alt="Profile Picture">
+        <h2 id="empName">ชื่อ - นามสกุล</h2>
+        <p class="company" id="empCompany">บริษัทต้นสังกัด</p>
         
-        <div id="global-loading">
-            <i data-lucide="loader-2" class="w-10 h-10 text-sky-500 animate-spin mb-4"></i>
-            <h2 class="text-lg font-bold text-slate-700">กำลังสร้างบัตรดิจิทัล...</h2>
-            <p class="text-sm text-slate-500" id="loading-text">กำลังดึงข้อมูลส่วนตัว</p>
+        <div id="statusBadge" class="status-badge status-pending">รออนุมัติ</div>
+        
+        <!-- ส่วนแสดง QR Code (จะซ่อนไว้ก่อนถ้ายังไม่อนุมัติ) -->
+        <div id="qrSection" style="display: none;">
+            <p style="font-size: 12px; color: #999; margin-bottom: 5px;">QR Code สำหรับสแกนเข้า-ออก</p>
+            <div class="qr-container">
+                <div id="qrcode"></div>
+            </div>
         </div>
 
-        <nav class="bg-white px-5 py-4 flex justify-between items-center shrink-0 border-b border-slate-100 z-10 relative">
-            <h1 class="text-lg font-black tracking-wide flex items-center gap-2 text-slate-800">
-                <i data-lucide="scan-face" class="w-5 h-5 text-sky-500"></i> e-Badge
-            </h1>
-            <button onclick="logout()" class="p-2 bg-rose-50 text-rose-500 rounded-full hover:bg-rose-100 active:scale-90 transition-all">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-            </button>
-        </nav>
-
-        <main class="flex-grow overflow-y-auto relative z-0 hide-scroll p-6 flex flex-col justify-center bg-slate-50/50">
-            
-            <div class="badge-card p-6 w-full max-w-[340px] mx-auto transition-all duration-500 transform" id="main-badge">
-                
-                <div class="lanyard-hole"></div>
-
-                <div id="status-banner" class="theme-pending -mx-6 -mt-2 mb-6 py-2.5 px-6 text-center font-bold text-sm tracking-widest uppercase shadow-sm flex items-center justify-center gap-1.5">
-                    <i data-lucide="clock" class="w-4 h-4" id="status-icon"></i> <span id="status-text">รอการอนุมัติ</span>
-                </div>
-
-                <div class="flex flex-col items-center">
-                    <div class="relative mb-4">
-                        <div class="w-28 h-28 rounded-full p-1 bg-white shadow-md z-10 relative border-2 border-slate-100" id="img-border">
-                            <img id="emp-photo" src="" class="w-full h-full object-cover rounded-full bg-slate-100">
-                        </div>
-                    </div>
-
-                    <h2 id="emp-name" class="text-2xl font-black text-slate-800 tracking-tight mb-1 text-center leading-tight">กำลังโหลดชื่อ...</h2>
-                    <p id="emp-pos" class="text-sm font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full mb-4 border border-sky-100">-</p>
-
-                    <div class="w-full space-y-2 mb-6">
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
-                            <div class="min-w-0">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">บริษัทซับคอนแทรค</p>
-                                <p id="emp-comp" class="text-xs font-bold text-slate-700 truncate">-</p>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i data-lucide="folder-tree" class="w-4 h-4"></i></div>
-                            <div class="min-w-0">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">แผนกที่สังกัด</p>
-                                <p id="emp-dept" class="text-xs font-bold text-slate-700 truncate">-</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="w-full border-t border-dashed border-slate-200 pt-6 text-center">
-                        
-                        <div id="qr-section" class="hidden flex-col items-center">
-                            <p class="text-[10px] font-bold text-slate-500 uppercase mb-2 flex items-center justify-center gap-1"><i data-lucide="scan" class="w-3 h-3"></i> สแกนเพื่อเข้า-ออกพื้นที่</p>
-                            <div id="qrcode-container">
-                                <div id="qrcode"></div>
-                            </div>
-                            <p id="emp-expiry" class="text-[10px] font-bold text-rose-500 mt-3 bg-rose-50 px-2 py-1 rounded border border-rose-100 inline-block"></p>
-                        </div>
-
-                        <div id="pending-section" class="flex flex-col items-center py-4">
-                            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-3">
-                                <i data-lucide="clock-4" class="w-8 h-8"></i>
-                            </div>
-                            <h3 class="text-sm font-bold text-amber-600">บัตรยังไม่พร้อมใช้งาน</h3>
-                            <p class="text-xs text-slate-500 mt-1 px-4">กรุณารอฝ่ายบุคคลส่วนกลางตรวจสอบและอนุมัติสิทธิ์เข้าพื้นที่</p>
-                        </div>
-
-                        <div id="banned-section" class="hidden flex-col items-center py-4">
-                            <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-3">
-                                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-                            </div>
-                            <h3 class="text-sm font-bold text-rose-600">บัตรถูกระงับการใช้งาน</h3>
-                            <p id="banned-reason" class="text-xs text-slate-600 mt-1 px-4 bg-rose-50 p-2 rounded-lg border border-rose-100 font-medium"></p>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <p class="text-center text-[10px] text-slate-400 mt-6 px-6 font-medium">
-                * บัตรอิเล็กทรอนิกส์นี้ใช้เพื่อยืนยันตัวตนสำหรับพนักงานซับคอนแทรค กรุณาเปิดหน้านี้ให้เจ้าหน้าที่ รปภ. สแกนเมื่อเข้าหรือออกจากพื้นที่
-            </p>
-            
-        </main>
+        <!-- ส่วนแสดงข้อความแจ้งเตือนเมื่อยังไม่อนุมัติ -->
+        <div id="noQrMessage" class="info-message" style="display: none;"></div>
+        
     </div>
 
     <script>
-        // ==========================================
-        // 1. Firebase Setup & Global State
-        // ==========================================
+        // 1. ตั้งค่า Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
             authDomain: "maersk-mcl-v2.firebaseapp.com",
             projectId: "maersk-mcl-v2",
             storageBucket: "maersk-mcl-v2.firebasestorage.app",
             messagingSenderId: "447590679734",
-            appId: "1:447590679734:web:f6881338981f9ae86bd217"
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        // ตรวจสอบก่อนว่ามีการ initialize หรือยัง
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.firestore();
 
+        // 2. ดึง UID จาก URL
         const urlParams = new URLSearchParams(window.location.search);
-        const myUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
-        
-        let masterData = { companies: {}, depts: {}, positions: {} };
+        const uid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
 
-        // ==========================================
-        // 2. Initialization & Listeners
-        // ==========================================
-        async function initBadge() {
-            if (!myUid) {
-                window.location.replace("index.html");
-                return;
-            }
+        let qrCodeObj = null; // ตัวแปรเก็บ Object QR Code
 
-            try {
-                // โหลด Master Data ก่อน
-                const [compSnap, deptSnap, posSnap] = await Promise.all([
-                    db.collection("companies").get(),
-                    db.collection("departments").get(),
-                    db.collection("positions").get()
-                ]);
-                compSnap.forEach(doc => masterData.companies[doc.id] = doc.data().name);
-                deptSnap.forEach(doc => masterData.depts[doc.id] = doc.data().name);
-                posSnap.forEach(doc => masterData.positions[doc.id] = doc.data().name);
+        if(!uid) {
+            document.getElementById("loading").innerText = "ไม่พบข้อมูล กรุณาเข้าสู่ระบบใหม่";
+        } else {
+            // 3. ดึงข้อมูลแบบ Real-time (onSnapshot)
+            db.collection("users").doc(uid).onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    // ใส่ข้อมูลลงในการ์ด
+                    // เช็คว่ารูปเป็น base64 (ขึ้นต้นด้วย data:image) หรือ url ธรรมดา
+                    document.getElementById("profilePic").src = data.photoUrl && data.photoUrl.startsWith('data:image') ? data.photoUrl : (data.photoUrl || "https://via.placeholder.com/150");
+                    document.getElementById("empName").innerText = data.fullname;
+                    
+                    // ส่วนจัดการ UI
+                    const statusEl = document.getElementById("statusBadge");
+                    const qrSection = document.getElementById("qrSection");
+                    const noQrMessage = document.getElementById("noQrMessage");
 
-                // ดึงข้อมูลพนักงานแบบ Real-time
-                listenToMyData();
+                    // ตรวจสอบสถานะเพื่อแสดง QR Code
+                    if (data.status === "approved") {
+                        statusEl.innerText = "✅ อนุมัติแล้ว (พร้อมเข้างาน)";
+                        statusEl.className = "status-badge status-approved";
+                        
+                        // แสดง QR ซ่อนข้อความเตือน
+                        qrSection.style.display = "block";
+                        noQrMessage.style.display = "none";
 
-            } catch (error) {
-                document.getElementById('loading-text').innerText = `ข้อผิดพลาด: ${error.message}`;
-            }
-        }
+                        // สร้าง QR Code หากยังไม่เคยสร้าง
+                        if (!qrCodeObj) {
+                            qrCodeObj = new QRCode(document.getElementById("qrcode"), {
+                                text: uid, // ใช้ UID เป็นข้อมูลใน QR Code ให้ รปภ. สแกน
+                                width: 150,
+                                height: 150,
+                                colorDark : "#000000",
+                                colorLight : "#ffffff",
+                                correctLevel : QRCode.CorrectLevel.H
+                            });
+                        }
+                    } else {
+                        // ซ่อน QR แสดงข้อความเตือน
+                        qrSection.style.display = "none";
+                        noQrMessage.style.display = "block";
 
-        function listenToMyData() {
-            db.collection("users").doc(myUid).onSnapshot(doc => {
-                if(!doc.exists) {
-                    alert("ไม่พบข้อมูลบัญชีของคุณ");
-                    logout();
-                    return;
+                        if(data.status === "pending") {
+                            statusEl.innerText = "⏳ รออนุมัติ";
+                            statusEl.className = "status-badge status-pending";
+                            noQrMessage.innerText = "กรุณารอฝ่ายบุคคลอนุมัติบัตร เพื่อแสดง QR Code สำหรับสแกนเข้าพื้นที่";
+                            noQrMessage.style.backgroundColor = "#fcf3cf";
+                            noQrMessage.style.color = "#b9770e";
+                        } else if (data.status === "rejected" || data.status === "banned") {
+                            statusEl.innerText = "❌ ไม่อนุมัติ / ระงับสิทธิ์";
+                            statusEl.className = "status-badge status-rejected";
+                            noQrMessage.innerText = "บัตรถูกระงับการใช้งาน ไม่สามารถสแกนเข้าพื้นที่ได้";
+                            noQrMessage.style.backgroundColor = "#fadbd8";
+                            noQrMessage.style.color = "#943126";
+                        }
+                    }
+
+                    // ปิด Loading และแสดงการ์ด
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("badgeContent").style.display = "block";
+
+                    // ไปดึงชื่อบริษัทมาแสดงให้สวยงาม
+                    if(data.companyId) {
+                        db.collection("companies").doc(data.companyId).get().then(compDoc => {
+                            if(compDoc.exists) {
+                                document.getElementById("empCompany").innerText = compDoc.data().name;
+                            }
+                        });
+                    }
+
+                } else {
+                    document.getElementById("loading").innerText = "ไม่พบประวัติการลงทะเบียนในระบบ";
                 }
-
-                const userData = doc.data();
-                if(userData.role !== 'visitor') {
-                    alert("คุณไม่ใช่พนักงานซับคอนแทรค ระบบจะพากลับไปหน้าแรก");
-                    window.location.replace("index.html");
-                    return;
-                }
-
-                updateBadgeUI(userData);
-                document.getElementById('global-loading').style.display = "none";
-                lucide.createIcons();
             });
         }
-
-        function updateBadgeUI(user) {
-            // อัปเดตข้อมูลทั่วไป
-            document.getElementById('emp-img').src = user.photoUrl || 'https://via.placeholder.com/150';
-            document.getElementById('emp-name').innerText = user.fullname;
-            document.getElementById('emp-comp').innerText = masterData.companies[user.companyId] || 'กำลังรอการจัดสรร';
-            document.getElementById('emp-dept').innerText = masterData.depts[user.departmentId] || 'กำลังรอการจัดสรร';
-            document.getElementById('emp-pos').innerText = masterData.positions[user.positionId] || 'พนักงานซับคอนแทรค';
-
-            const banner = document.getElementById('status-banner');
-            const icon = document.getElementById('status-icon');
-            const text = document.getElementById('status-text');
-            const imgBorder = document.getElementById('img-border');
-            
-            const qrSec = document.getElementById('qr-section');
-            const penSec = document.getElementById('pending-section');
-            const banSec = document.getElementById('banned-section');
-
-            // ซ่อนทุก Section ของ QR ก่อน
-            qrSec.classList.add('hidden');
-            qrSec.classList.remove('flex');
-            penSec.classList.add('hidden');
-            penSec.classList.remove('flex');
-            banSec.classList.add('hidden');
-            banSec.classList.remove('flex');
-
-            // ตรวจสอบสถานะการอนุมัติ (Status Logic)
-            if (user.status === 'approved') {
-                
-                // ถ้าระบุวันหมดอายุ เช็คว่าหมดอายุหรือยัง
-                if (user.expireDate) {
-                    const today = new Date();
-                    today.setHours(0,0,0,0);
-                    const expDate = new Date(user.expireDate);
-                    
-                    if(expDate < today) {
-                        // บัตรหมดอายุ -> ถือว่าโดนระงับอัตโนมัติ
-                        setBannedUI(banner, icon, text, imgBorder, banSec, "บัตรหมดอายุแล้ว กรุณาติดต่อ HR");
-                        return;
-                    }
-                    document.getElementById('emp-expiry').innerText = `บัตรหมดอายุ: ${expDate.toLocaleDateString('th-TH')}`;
-                } else {
-                    document.getElementById('emp-expiry').innerText = "ยังไม่กำหนดวันหมดอายุ";
-                }
-
-                // UI บัตรใช้งานได้ (Active)
-                banner.className = "theme-active -mx-6 -mt-2 mb-6 py-2.5 px-6 text-center font-bold text-sm tracking-widest uppercase shadow-sm flex items-center justify-center gap-1.5";
-                icon.setAttribute('data-lucide', 'check-circle');
-                text.innerText = "บัตรใช้งานได้ปกติ";
-                imgBorder.className = "w-28 h-28 rounded-full p-1 bg-white shadow-md z-10 relative border-2 border-sky-400";
-                
-                qrSec.classList.remove('hidden');
-                qrSec.classList.add('flex');
-                
-                // สร้าง QR Code (เคลียร์ของเก่าก่อน)
-                document.getElementById("qrcode").innerHTML = "";
-                new QRCode(document.getElementById("qrcode"), {
-                    text: myUid, // ใช้ UID ของ Firebase เป็นรหัสสำหรับให้ รปภ. สแกน
-                    width: 160,
-                    height: 160,
-                    colorDark : "#0f172a",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-
-            } else if (user.status === 'banned') {
-                // UI บัตรโดนแบน (Banned)
-                setBannedUI(banner, icon, text, imgBorder, banSec, user.reason || "ละเมิดกฎระเบียบของบริษัท");
-            } else {
-                // UI บัตรยังไม่อนุมัติ (Pending)
-                banner.className = "theme-pending -mx-6 -mt-2 mb-6 py-2.5 px-6 text-center font-bold text-sm tracking-widest uppercase shadow-sm flex items-center justify-center gap-1.5";
-                icon.setAttribute('data-lucide', 'clock');
-                text.innerText = "รอตรวจสอบและอนุมัติ";
-                imgBorder.className = "w-28 h-28 rounded-full p-1 bg-white shadow-md z-10 relative border-2 border-amber-300";
-                
-                penSec.classList.remove('hidden');
-                penSec.classList.add('flex');
-            }
-        }
-
-        function setBannedUI(banner, icon, text, imgBorder, banSec, reasonText) {
-            banner.className = "theme-banned -mx-6 -mt-2 mb-6 py-2.5 px-6 text-center font-bold text-sm tracking-widest uppercase shadow-sm flex items-center justify-center gap-1.5";
-            icon.setAttribute('data-lucide', 'shield-alert');
-            text.innerText = "บัตรถูกระงับการใช้งาน";
-            imgBorder.className = "w-28 h-28 rounded-full p-1 bg-white shadow-md z-10 relative border-2 border-rose-500";
-            
-            document.getElementById('banned-reason').innerText = `" ${reasonText} "`;
-            banSec.classList.remove('hidden');
-            banSec.classList.add('flex');
-        }
-
-        window.logout = function() {
-            localStorage.removeItem("myAppUserId");
-            localStorage.removeItem("myAppRole");
-            window.location.replace("index.html");
-        }
-
-        initBadge();
-
     </script>
 </body>
 </html>
