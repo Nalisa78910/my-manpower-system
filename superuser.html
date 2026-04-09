@@ -217,25 +217,38 @@
                     </select>
                 </div>
 
-                <div id="extraCompany" class="hidden p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                    <label class="input-label text-amber-700">สังกัดบริษัท (สำหรับ Admin) <span class="text-rose-500">*</span></label>
+                <div id="extraCompany" class="hidden p-3 bg-amber-50 border border-amber-100 rounded-xl mt-2">
+                    <label class="input-label text-amber-700">สังกัดบริษัท <span class="text-rose-500">*</span></label>
                     <select id="modalCompany" class="input-field py-2 text-xs border-amber-200 mt-1"></select>
                 </div>
 
-                <div id="extraDeptArea" class="hidden p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2">
+                <div id="extraDeptArea" class="hidden p-3 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2 mt-2">
                     <div>
                         <label class="input-label text-indigo-700">1. เลือกอาคาร/คลัง <span class="text-rose-500">*</span></label>
                         <select id="modalWarehouse" onchange="updateModalDeptDropdown()" class="input-field py-2 text-xs border-indigo-200"></select>
                     </div>
                     <div>
-                        <label class="input-label text-indigo-700">2. เลือกแผนกที่ดูแล <span class="text-rose-500">*</span></label>
+                        <label class="input-label text-indigo-700">2. เลือกแผนกที่ดูแล/สังกัด <span class="text-rose-500">*</span></label>
                         <select id="modalDept" class="input-field py-2 text-xs border-indigo-200">
                             <option value="">-- กรุณาเลือกอาคารก่อน --</option>
                         </select>
                     </div>
                 </div>
 
-                <div id="extraCheckpoint" class="hidden p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                <div id="extraDateArea" class="hidden p-3 bg-emerald-50 border border-emerald-100 rounded-xl space-y-2 mt-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="input-label text-emerald-700">วันที่เริ่มงาน <span class="text-rose-500">*</span></label>
+                            <input type="date" id="modalStartDate" class="input-field py-2 text-xs border-emerald-200">
+                        </div>
+                        <div>
+                            <label class="input-label text-emerald-700">วันสิ้นสุด/หมดอายุ <span class="text-rose-500">*</span></label>
+                            <input type="date" id="modalExpireDate" class="input-field py-2 text-xs border-emerald-200">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="extraCheckpoint" class="hidden p-3 bg-rose-50 border border-rose-100 rounded-xl mt-2">
                     <label class="input-label text-rose-700">ประจำจุดตรวจ (สำหรับ รปภ.) <span class="text-rose-500">*</span></label>
                     <select id="modalCheckpoint" class="input-field py-2 text-xs border-rose-200 mt-1"></select>
                 </div>
@@ -431,13 +444,16 @@
             // Prefill existing data
             if(user.companyId) document.getElementById("modalCompany").value = user.companyId;
             if(user.checkpointId) document.getElementById("modalCheckpoint").value = user.checkpointId;
+            document.getElementById("modalStartDate").value = user.startDate || '';
+            document.getElementById("modalExpireDate").value = user.expireDate || '';
             
-            // Logic สำหรับ Heads: หา Warehouse จาก Dept แล้ว Prefill
-            if(user.managedDeptId && masterData.departments[user.managedDeptId]) {
-                const whId = masterData.departments[user.managedDeptId].warehouseId;
+            // Logic สำหรับหา Warehouse จาก Dept แล้ว Prefill (รองรับทั้ง Visitor และ Head)
+            let targetDeptId = (user.role === 'visitor') ? user.departmentId : user.managedDeptId;
+            if(targetDeptId && masterData.departments[targetDeptId]) {
+                const whId = masterData.departments[targetDeptId].warehouseId;
                 document.getElementById('modalWarehouse').value = whId;
                 updateModalDeptDropdown(); // Generate depts for this warehouse
-                document.getElementById('modalDept').value = user.managedDeptId;
+                document.getElementById('modalDept').value = targetDeptId;
             } else {
                 document.getElementById('modalWarehouse').value = "";
                 updateModalDeptDropdown();
@@ -451,8 +467,9 @@
 
         function toggleRoleOptions() {
             const r = document.getElementById("modalRole").value;
-            document.getElementById("extraCompany").style.display = (r === 'admin') ? 'block' : 'none';
-            document.getElementById("extraDeptArea").style.display = (r === 'dept' || r === 'asst_dept') ? 'block' : 'none';
+            document.getElementById("extraCompany").style.display = (r === 'admin' || r === 'visitor') ? 'block' : 'none';
+            document.getElementById("extraDeptArea").style.display = (r === 'dept' || r === 'asst_dept' || r === 'visitor') ? 'block' : 'none';
+            document.getElementById("extraDateArea").style.display = (r === 'visitor') ? 'block' : 'none';
             document.getElementById("extraCheckpoint").style.display = (r === 'inspector') ? 'block' : 'none';
         }
 
@@ -467,6 +484,21 @@
                 if(!val) return Swal.fire('ข้อมูลไม่ครบ', "กรุณาระบุ 'บริษัท' สำหรับ Admin", 'warning');
                 payload.companyId = val;
             } 
+            else if (newRole === 'visitor') {
+                const compId = document.getElementById("modalCompany").value;
+                const whId = document.getElementById("modalWarehouse").value;
+                const dpId = document.getElementById("modalDept").value;
+                const sDate = document.getElementById("modalStartDate").value;
+                const eDate = document.getElementById("modalExpireDate").value;
+
+                if(!compId || !whId || !dpId || !sDate || !eDate) {
+                    return Swal.fire('ข้อมูลไม่ครบ', "กรุณาระบุข้อมูลสังกัดและวันที่ให้ครบถ้วน สำหรับพนักงานซับฯ", 'warning');
+                }
+                payload.companyId = compId;
+                payload.departmentId = dpId;
+                payload.startDate = sDate;
+                payload.expireDate = eDate;
+            }
             else if(newRole === 'dept' || newRole === 'asst_dept') {
                 const whId = document.getElementById("modalWarehouse").value;
                 const dpId = document.getElementById("modalDept").value;
