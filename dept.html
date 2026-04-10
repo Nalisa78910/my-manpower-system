@@ -49,7 +49,7 @@
             </div>
             <h2 class="text-xl font-bold text-slate-800 mb-2">ปฏิเสธการเข้าถึง</h2>
             <p class="text-sm text-slate-500 mb-6">คุณยังไม่ได้รับมอบหมายแผนก หรือไม่มีสิทธิ์เข้าใช้งานหน้านี้ กรุณาติดต่อ System Admin</p>
-            <button onclick="window.location.replace('index.html')" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
+            <button onclick="window.location.href='index.html'" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
         </div>
 
         <!-- Header -->
@@ -327,7 +327,9 @@
         // ==========================================
         async function initDeptPanel() {
             if (!deptUid) {
-                window.location.replace("index.html");
+                document.getElementById('global-loading').style.display = "none";
+                document.getElementById('no-access-screen').classList.remove("hidden");
+                document.getElementById('no-access-screen').classList.add("flex");
                 return;
             }
 
@@ -870,7 +872,7 @@
         window.logout = function() {
             localStorage.removeItem("myAppUserId");
             localStorage.removeItem("myAppRole");
-            window.location.replace("index.html");
+            window.location.href = "index.html";
         }
 
         initDeptPanel();
