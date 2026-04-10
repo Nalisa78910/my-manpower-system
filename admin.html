@@ -75,79 +75,78 @@
         <!-- Main Content Area -->
         <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll">
             
-            <!-- TAB 1: จัดการพนักงาน -->
+            <!-- TAB 1: จัดการพนักงาน (แสดงเฉพาะฟิลเตอร์และรายชื่อ) -->
             <div id="tab-staff" class="tab-content active p-3 flex flex-col h-full">
                 
-                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-2 shrink-0">
+                <!-- Filter Section -->
+                <div class="flex flex-col gap-2 mb-2 shrink-0">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                        <input type="text" id="search-emp" placeholder="ค้นหาชื่อ หรือ เลขบัตร ปชช..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs transition-colors">
+                        <input type="text" id="search-emp" placeholder="ค้นหาชื่อพนักงาน..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs shadow-sm transition-colors">
+                    </div>
+                    <div class="flex gap-2 overflow-x-auto hide-scroll pb-1">
+                        <button onclick="setEmpFilter('all')" id="filter-all" class="text-[10px] font-bold px-3 py-1.5 bg-blue-700 text-white rounded-lg shadow-sm transition-all border border-blue-700 whitespace-nowrap">ทั้งหมด</button>
+                        <button onclick="setEmpFilter('pending')" id="filter-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 flex items-center gap-1 whitespace-nowrap">รออนุมัติ <span id="badge-pending" class="bg-slate-300 text-white px-1.5 rounded-full text-[8px] hidden">0</span></button>
+                        <button onclick="setEmpFilter('approved')" id="filter-approved" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 whitespace-nowrap">ใช้งาน</button>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center overflow-x-auto hide-scroll mb-2 shrink-0">
-                    <div class="flex gap-2 min-w-max">
-                        <button onclick="setEmpFilter('all')" id="filter-all" class="text-[10px] font-bold px-3 py-1.5 bg-blue-700 text-white rounded-lg shadow-sm transition-all border border-blue-700">ทั้งหมด</button>
-                        <button onclick="setEmpFilter('pending')" id="filter-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 flex items-center gap-1">รออนุมัติ <span id="badge-pending" class="bg-amber-500 text-white px-1.5 rounded-full text-[8px]">0</span></button>
-                        <button onclick="setEmpFilter('approved')" id="filter-approved" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200">ใช้งาน</button>
-                    </div>
-                </div>
-
+                <!-- Staff List -->
                 <div id="staff-list" class="space-y-2.5 pb-4 flex-grow overflow-y-auto hide-scroll">
                     <!-- รายชื่อพนักงาน -->
                 </div>
             </div>
 
-            <!-- TAB 2: โควต้ากำลังคน -->
+            <!-- TAB 2: โควต้ากำลังคน (แสดงเฉพาะภาพรวมและสถานะ) -->
             <div id="tab-quota" class="tab-content p-3 space-y-3 flex flex-col h-full">
                 
-                <!-- Dashboard โควต้า -->
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-center relative overflow-hidden shrink-0">
-                    <div class="absolute -right-4 -top-4 opacity-5"><i data-lucide="pie-chart" class="w-24 h-24 text-blue-500"></i></div>
-                    <h3 class="text-[13px] font-bold text-slate-800 mb-0.5 relative z-10">ภาพรวมโควต้าของบริษัท</h3>
-                    <p class="text-[9px] text-slate-500 mb-3 relative z-10">อัตรากำลังที่ได้รับจัดสรรจาก HR</p>
+                <!-- ภาพรวมโควต้า -->
+                <div class="bg-gradient-to-br from-blue-700 to-indigo-800 p-4 rounded-2xl shadow-sm text-white text-center relative overflow-hidden shrink-0">
+                    <div class="absolute -right-4 -top-4 opacity-10"><i data-lucide="pie-chart" class="w-24 h-24 text-white"></i></div>
+                    <h3 class="text-[13px] font-bold mb-0.5 relative z-10 text-blue-50">ภาพรวมโควต้าของบริษัท</h3>
                     
-                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden shadow-inner relative z-10 mb-3">
-                        <div id="quota-progress-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="w-full bg-blue-900/50 h-3 rounded-full overflow-hidden shadow-inner relative z-10 mb-3 mt-2">
+                        <div id="quota-progress-bar" class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                     
                     <div class="grid grid-cols-3 gap-2 relative z-10">
-                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase">โควต้ารวม</p>
-                            <h4 id="stat-total-quota" class="text-base font-black text-blue-600">0</h4>
+                        <div class="bg-blue-900/40 p-2 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+                            <p class="text-[9px] font-bold text-blue-200 uppercase">โควต้ารวม</p>
+                            <h4 id="stat-total-quota" class="text-base font-black text-white">0</h4>
                         </div>
-                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase">คนทำงานจริง</p>
-                            <h4 id="stat-active-staff" class="text-base font-black text-emerald-600">0</h4>
+                        <div class="bg-blue-900/40 p-2 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+                            <p class="text-[9px] font-bold text-blue-200 uppercase">ทำงานจริง</p>
+                            <h4 id="stat-active-staff" class="text-base font-black text-emerald-300">0</h4>
                         </div>
-                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-                            <p class="text-[9px] font-bold text-slate-500 uppercase">ขาดอีก</p>
-                            <h4 id="stat-missing" class="text-base font-black text-rose-500">0</h4>
+                        <div class="bg-blue-900/40 p-2 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+                            <p class="text-[9px] font-bold text-blue-200 uppercase">ขาดอีก</p>
+                            <h4 id="stat-missing" class="text-base font-black text-rose-300">0</h4>
                         </div>
                     </div>
                 </div>
 
+                <!-- รายการสถานะโควต้า -->
                 <div class="flex-grow overflow-y-auto hide-scroll flex flex-col">
-                    <h3 class="text-[11px] font-bold text-slate-600 uppercase flex items-center gap-1 mb-2 ml-1 shrink-0"><i data-lucide="inbox" class="w-3.5 h-3.5"></i> งานที่ได้รับมอบหมาย (Allocated Quotas)</h3>
+                    <h3 class="text-[11px] font-bold text-slate-600 uppercase flex items-center gap-1 mb-2 ml-1 shrink-0"><i data-lucide="list-checks" class="w-3.5 h-3.5"></i> สถานะโควต้าที่ได้รับ</h3>
                     <div id="quota-list" class="space-y-2 pb-6 flex-grow">
                         <!-- รายการโควต้า -->
                     </div>
                 </div>
             </div>
 
-            <!-- TAB 3: ส่งออกข้อมูล -->
-            <div id="tab-export" class="tab-content p-4">
+            <!-- TAB 3: ส่งออกข้อมูล (แสดงเฉพาะส่วนดาวน์โหลด) -->
+            <div id="tab-export" class="tab-content p-4 flex flex-col justify-center h-full">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 mx-auto">
                         <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
                     </div>
-                    <h2 class="text-[15px] font-bold text-center text-slate-800 mb-1">ดาวน์โหลดข้อมูลพนักงาน</h2>
-                    <p class="text-[10px] text-center text-slate-500 mb-5">ส่งออกรายชื่อพนักงานทั้งหมดที่สังกัดบริษัทของท่านเป็นไฟล์ Excel (CSV)</p>
+                    <h2 class="text-[15px] font-bold text-center text-slate-800 mb-1">จัดการดาวน์โหลดรายงาน</h2>
+                    <p class="text-[10px] text-center text-slate-500 mb-5">ระบุช่วงเวลาของการปฏิบัติงานจริง (เวลาเข้า-ออก) เพื่อส่งออกข้อมูล</p>
                     
                     <div class="space-y-3 mb-5 text-left">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="input-label">ตั้งแต่ (วันที่ลงทะเบียน)</label>
+                                <label class="input-label">ตั้งแต่วันที่</label>
                                 <input type="date" id="exportStartDate" class="input-field font-mono">
                             </div>
                             <div>
@@ -402,9 +401,15 @@
 
                 companyEmployees.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
                 
-                document.getElementById('badge-pending').innerText = pendingCount;
-                if(pendingCount > 0) document.getElementById('badge-pending').classList.replace('bg-slate-300', 'bg-amber-500');
-                else document.getElementById('badge-pending').classList.replace('bg-amber-500', 'bg-slate-300');
+                const badgeEl = document.getElementById('badge-pending');
+                badgeEl.innerText = pendingCount;
+                if(pendingCount > 0) {
+                    badgeEl.classList.remove('hidden');
+                    badgeEl.classList.replace('bg-slate-300', 'bg-amber-500');
+                } else {
+                    badgeEl.classList.add('hidden');
+                    badgeEl.classList.replace('bg-amber-500', 'bg-slate-300');
+                }
 
                 renderEmployees();
                 updateQuotaDashboard();
@@ -419,14 +424,13 @@
             let filtered = companyEmployees.filter(emp => {
                 if (filterState === 'all') return true;
                 if (filterState === 'pending') return emp.status === 'pending';
-                if (filterState === 'approved') return emp.status === 'approved';
+                if (filterState === 'approved') return emp.status === 'approved' || emp.status === 'expired';
                 return true;
             });
 
             if (keyword) {
                 filtered = filtered.filter(emp => 
-                    (emp.fullname && emp.fullname.toLowerCase().includes(keyword)) || 
-                    (emp.idCard && emp.idCard.includes(keyword))
+                    (emp.fullname && emp.fullname.toLowerCase().includes(keyword))
                 );
             }
 
@@ -456,7 +460,7 @@
                                     <span class="shrink-0 text-[8px] font-bold px-1.5 py-0.5 rounded border ${sColor}">${sText}</span>
                                 </div>
                                 ${isPending ? 
-                                    `<p class="text-[9px] text-slate-500 mt-1">📞 ${emp.phone}</p><p class="text-[9px] text-slate-400">ID: ${emp.idCard || '-'}</p>` : 
+                                    `<p class="text-[9px] text-slate-500 mt-1">📞 ${emp.phone}</p>` : 
                                     `<p class="text-[9px] text-slate-500 mt-0.5 truncate">📂 ${deptStr} | 👔 ${posStr}</p>
                                      <p class="text-[8px] text-slate-400 mt-1">สิ้นสุด/หมดอายุ: <strong class="${emp.expireDate && new Date(emp.expireDate) < new Date() ? 'text-rose-500' : 'text-slate-600'}">${emp.expireDate || '-'}</strong></p>`
                                 }
@@ -653,12 +657,12 @@
                                 <h4 class="font-bold text-[12px] text-blue-900">${q.campaignName}</h4>
                                 <p class="text-[9px] text-slate-500 mt-0.5">📂 ${deptStr}</p>
                             </div>
-                            <div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-100 text-center shadow-sm">
-                                <span class="text-[7px] font-bold uppercase block leading-none mb-0.5">ได้รับ</span>
+                            <div class="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg border border-emerald-100 text-center shadow-sm">
+                                <span class="text-[7px] font-bold uppercase block leading-none mb-0.5">ได้รับโควต้า</span>
                                 <span class="text-[13px] font-black leading-none">${q.myAmount} <small class="text-[8px] font-normal">คน</small></span>
                             </div>
                         </div>
-                        <div class="text-[9px] text-slate-600 bg-slate-50 p-2 rounded-lg">
+                        <div class="text-[9px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
                             <p>📅 เริ่ม: <strong class="text-slate-800">${startStr}</strong> &nbsp; | &nbsp; ⏱️ กะ: <strong class="text-slate-800">${q.startTime}-${q.endTime} น.</strong></p>
                             <p class="mt-1">👔 ตำแหน่ง: <strong class="text-slate-800">${q.position}</strong></p>
                         </div>
@@ -727,55 +731,74 @@
             } catch(e) { listEl.innerHTML = `<p class="text-rose-500 text-[10px] text-center">Error: ${e.message}</p>`; }
         }
 
-        function exportToExcel() {
-            if(companyEmployees.length === 0) return Swal.fire('ไม่มีข้อมูล', 'ไม่มีพนักงานในสังกัดเพื่อดาวน์โหลด', 'info');
-
+        window.exportToExcel = async function() {
             const startDateInput = document.getElementById("exportStartDate").value;
             const endDateInput = document.getElementById("exportEndDate").value;
             const selectedWh = document.getElementById("exportWarehouseSelect").value;
             const selectedDept = document.getElementById("exportDeptSelect").value;
 
-            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
-            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
+            if (!startDateInput || !endDateInput) {
+                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกตั้งแต่วันที่ และ ถึงวันที่', 'warning');
+            }
 
-            let exportUsers = companyEmployees.filter(u => {
-                // Filter Date
-                if (startDate || endDate) {
-                    if (!u.registeredAt) return false; 
-                    const regDate = u.registeredAt.toDate();
-                    if (startDate && regDate < startDate) return false;
-                    if (endDate && regDate > endDate) return false;
+            Swal.fire({title:'กำลังเตรียมไฟล์...', timer:2000, didOpen: () => Swal.showLoading()});
+
+            try {
+                // ดึงข้อมูลการทำงานจริง
+                const snap = await db.collection("daily_records")
+                    .where("date", ">=", startDateInput)
+                    .where("date", "<=", endDateInput)
+                    .get();
+
+                if (snap.empty) {
+                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีประวัติคนมาทำงานในช่วงวันที่เลือก', 'info');
                 }
-                // Filter Department
-                if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
-                // Filter Warehouse (if dept is 'all' but warehouse is selected)
-                if (selectedWh !== "all" && selectedDept === "all") {
-                    const deptData = masterData.depts[u.departmentId];
-                    if (!deptData || deptData.warehouseId !== selectedWh) return false;
+
+                let records = [];
+                snap.forEach(doc => records.push(doc.data()));
+
+                let exportRecords = records.filter(r => {
+                    const u = companyEmployees.find(emp => emp.id === r.uid);
+                    if(!u) return false; 
+
+                    if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
+                    if (selectedWh !== "all" && selectedDept === "all") {
+                        const deptData = masterData.depts[u.departmentId];
+                        if (!deptData || deptData.warehouseId !== selectedWh) return false;
+                    }
+
+                    return true;
+                });
+
+                if (exportRecords.length === 0) {
+                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลพนักงานที่ตรงกับเงื่อนไขอาคาร/แผนกที่คุณเลือก', 'info');
                 }
-                return true;
-            });
 
-            if (exportUsers.length === 0) return Swal.fire('ไม่พบข้อมูล', 'ไม่มีพนักงานที่ตรงกับเงื่อนไขที่คุณเลือก', 'info');
+                exportRecords.sort((a,b) => {
+                    if (a.date !== b.date) return a.date.localeCompare(b.date);
+                    return (a.scanInTime || "").localeCompare(b.scanInTime || "");
+                });
 
-            Swal.fire({title:'กำลังเตรียมไฟล์...', timer:1000, didOpen: () => Swal.showLoading()});
-            
-            setTimeout(() => {
-                let csvContent = "\uFEFFรหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ทะเบียนรถ,แผนก,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
-                exportUsers.forEach(user => {
+                let csvContent = "\uFEFFวันที่ทำงาน,ชื่อ-นามสกุล,เบอร์โทรศัพท์,บริษัท,แผนก,ตำแหน่ง,เวลาเข้า(IN),เวลาออก(OUT),คะแนนประเมิน,คอมเมนต์\n";
+
+                exportRecords.forEach(r => {
+                    const user = companyEmployees.find(emp => emp.id === r.uid);
+                    const compStr = masterData.companies[user.companyId] || '-';
                     const deptStr = masterData.depts[user.departmentId]?.name || '-';
                     const posStr = masterData.positions[user.positionId] || '-';
-                    const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'pending' ? 'รออนุมัติ' : 'ระงับ/ไม่อนุมัติ');
                     
-                    csvContent += `${user.id},"${user.fullname}","'${user.phone}","'${user.idCard||'-'}","${user.vehicle||'-'}","${deptStr}","${posStr}","${statusStr}","${user.startDate||'-'}","${user.expireDate||'-'}"\n`;
+                    csvContent += `"${r.date}","${user.fullname}","'${user.phone}","${compStr}","${deptStr}","${posStr}","${r.scanInTime||'-'}","${r.scanOutTime||'-'}","${r.rating||'-'}","${r.comment||'-'}"\n`;
                 });
 
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `Subcontract_Staff_${new Date().toISOString().split('T')[0]}.csv`;
+                link.download = `รายงานการทำงาน_${startDateInput}_ถึง_${endDateInput}.csv`;
                 link.click();
-            }, 800);
+
+            } catch(e) {
+                Swal.fire('Error', e.message, 'error');
+            }
         }
 
         window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
