@@ -2,538 +2,698 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Dashboard - จัดการพนักงานและโควต้า</title>
 
-    <!-- เรียกใช้ Firebase -->
+    <!-- Tailwind CSS, Lucide Icons, SweetAlert2, Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore-compat.js"></script>
 
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 0; color: #333; }
+        body { font-family: 'Kanit', sans-serif; background: #0f172a; margin: 0; height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+        .app-container { width: 100%; max-width: 450px; height: 100%; background: #f8fafc; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
         
-        .header { background: #2980b9; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; }
-
-        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
-
-        .admin-info-bar { background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        .admin-info-bar h2 { margin: 0; font-size: 16px; color: #2c3e50; }
-        .admin-info-bar p { margin: 5px 0 0 0; color: #7f8c8d; font-size: 14px; }
-        .company-badge { background: #ecf0f1; padding: 5px 12px; border-radius: 20px; font-weight: bold; color: #2980b9; font-size: 14px; }
-
-        /* ระบบ Tabs หลัก */
-        .main-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; }
-        .main-tab-btn { flex: 1; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: bold; color: #666; text-align: center; transition: 0.2s; white-space: nowrap; }
-        .main-tab-btn.active { background: #2980b9; color: white; border-color: #2980b9; box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3); }
-
-        /* ระบบ Tabs ย่อย (สถานะพนักงาน) */
-        .sub-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
-        .sub-tab-btn { padding: 10px 20px; background: transparent; border: none; cursor: pointer; font-weight: bold; color: #95a5a6; transition: 0.2s; position: relative; }
-        .sub-tab-btn.active { color: #2980b9; }
-        .sub-tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background: #2980b9; border-radius: 3px 3px 0 0; }
-        
-        .badge-count { background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; vertical-align: top;}
-        .badge-count.zero { background: #bdc3c7; }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        .tab-content { display: none; flex-direction: column; height: 100%; }
+        .tab-content.active { display: flex; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* การ์ดพนักงาน */
-        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .user-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 10px; border-top: 4px solid #3498db; }
-        .user-card-header { display: flex; gap: 15px; align-items: center; }
-        .user-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ecf0f1; }
-        .user-details { flex: 1; }
-        .user-details h3 { margin: 0 0 5px 0; font-size: 16px; color: #2c3e50; }
-        .user-details p { margin: 2px 0; font-size: 13px; color: #7f8c8d; }
-        .action-buttons { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; flex-wrap: wrap;}
-        .btn { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: 0.2s; text-align: center; }
-        .btn-approve { background: #e8f8f5; color: #27ae60; border: 1px solid #27ae60; }
-        .btn-approve:hover { background: #27ae60; color: white; }
-        .btn-reject { background: #fdedec; color: #c0392b; border: 1px solid #c0392b; }
-        .btn-reject:hover { background: #c0392b; color: white; }
-        .btn-info { background: #ebf5fb; color: #2980b9; border: 1px solid #2980b9; }
-        .btn-info:hover { background: #2980b9; color: white; }
-
-        /* ส่วนของโควต้า */
-        .quota-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
-        .progress-container { width: 100%; background: #ecf0f1; border-radius: 10px; height: 25px; margin: 20px 0; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; background: #27ae60; transition: width 0.5s ease-in-out; }
-        .progress-text { position: absolute; top: 0; left: 0; width: 100%; text-align: center; line-height: 25px; font-weight: bold; color: #333; font-size: 14px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
-        .quota-stats { display: flex; justify-content: space-around; margin-top: 15px; }
-        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 8px; flex: 1; margin: 0 5px; }
-        .stat-box h4 { margin: 0 0 5px 0; color: #7f8c8d; font-size: 13px; }
-        .stat-box .num { font-size: 24px; font-weight: bold; color: #2c3e50; }
-
-        /* Modal อนุมัติ */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .modal-content h3 { margin-top: 0; color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 13px; color: #555; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         
-        .empty-state { text-align: center; padding: 40px 20px; color: #95a5a6; background: white; border-radius: 10px; grid-column: 1 / -1; }
-        #loadingMsg { text-align: center; padding: 40px; color: #7f8c8d; font-size: 16px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
+
+        /* Custom Input */
+        .input-field { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
+        .input-field:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .input-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; margin-left: 4px; }
+
+        #global-loading { position: absolute; inset: 0; background: #f8fafc; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🏢 Admin Dashboard</h1>
+    <div class="app-container">
+        
+        <!-- Loading Screen -->
+        <div id="global-loading">
+            <i data-lucide="loader-2" class="w-10 h-10 text-blue-600 animate-spin mb-4"></i>
+            <h2 class="text-lg font-bold text-slate-700">กำลังเชื่อมต่อระบบ...</h2>
+            <p class="text-sm text-slate-500" id="loading-text">ตรวจสอบสิทธิ์ Admin</p>
+        </div>
+
+        <!-- หน้าจอแจ้งเตือนกรณีไม่มีสิทธิ์ -->
+        <div id="no-access-screen" class="hidden absolute inset-0 bg-white z-50 flex-col items-center justify-center p-6 text-center">
+            <div class="w-20 h-20 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="shield-alert" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">ปฏิเสธการเข้าถึง</h2>
+            <p class="text-sm text-slate-500 mb-6">คุณไม่มีสิทธิ์เข้าใช้งานหน้านี้ (เฉพาะ Admin บริษัทซับคอนแทรค)</p>
+            <button onclick="window.location.replace('./index.html')" class="w-full bg-blue-700 text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
+        </div>
+
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-800 to-indigo-700 px-5 py-5 text-white rounded-b-3xl shadow-lg shrink-0 relative z-10 border-b-[3px] border-blue-400">
+            <div class="absolute top-4 right-4 flex gap-2">
+                <button onclick="logout()" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 px-2.5 py-1.5 rounded-lg transition shadow-sm border border-rose-500 flex items-center gap-1">
+                    <i data-lucide="log-out" class="w-3 h-3"></i> ออก
+                </button>
+            </div>
+            <h1 class="text-xl font-black tracking-wide flex items-center gap-2 mt-1">
+                <i data-lucide="briefcase" class="w-6 h-6 text-blue-300"></i> ADMIN <span class="text-blue-300">SUBCON</span>
+            </h1>
+            <p id="admin-name" class="text-xs text-blue-200 mt-1">ยินดีต้อนรับ, กำลังโหลด...</p>
+            <div class="mt-3 inline-block bg-blue-900/50 px-3 py-1.5 rounded-full border border-blue-500/50 shadow-sm flex items-center gap-1.5 w-max max-w-full">
+                <i data-lucide="building" class="w-3.5 h-3.5 text-blue-300 shrink-0"></i>
+                <span id="admin-company" class="text-[11px] font-bold uppercase tracking-wide truncate">สังกัด: กำลังโหลด...</span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll">
+            
+            <!-- TAB 1: จัดการพนักงาน -->
+            <div id="tab-staff" class="tab-content active p-4">
+                
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-3 sticky top-0 z-10">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                        <input type="text" id="search-emp" placeholder="ค้นหาชื่อ หรือ เลขบัตร ปชช..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs transition-colors">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center px-1 overflow-x-auto hide-scroll mb-3">
+                    <div class="flex gap-2 min-w-max">
+                        <button onclick="setEmpFilter('all')" id="filter-all" class="text-[10px] font-bold px-3 py-1.5 bg-blue-700 text-white rounded-lg shadow-sm transition-all border border-blue-700">ทั้งหมด</button>
+                        <button onclick="setEmpFilter('pending')" id="filter-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 flex items-center gap-1">รออนุมัติ <span id="badge-pending" class="bg-amber-500 text-white px-1.5 rounded-full text-[8px]">0</span></button>
+                        <button onclick="setEmpFilter('approved')" id="filter-approved" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200">ใช้งาน</button>
+                    </div>
+                </div>
+
+                <div id="staff-list" class="space-y-3 pb-4">
+                    <!-- รายชื่อพนักงาน -->
+                </div>
+            </div>
+
+            <!-- TAB 2: โควต้ากำลังคน -->
+            <div id="tab-quota" class="tab-content p-4 space-y-4">
+                
+                <!-- Dashboard โควต้า -->
+                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-5"><i data-lucide="pie-chart" class="w-32 h-32 text-blue-500"></i></div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1 relative z-10">ภาพรวมโควต้าของบริษัท</h3>
+                    <p class="text-[10px] text-slate-500 mb-4 relative z-10">อัตรากำลังที่ได้รับจัดสรรจาก HR ส่วนกลาง</p>
+                    
+                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner relative z-10 mb-4">
+                        <div id="quota-progress-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2 relative z-10">
+                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase">โควต้ารวม</p>
+                            <h4 id="stat-total-quota" class="text-lg font-black text-blue-600">0</h4>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase">คนทำงานจริง</p>
+                            <h4 id="stat-active-staff" class="text-lg font-black text-emerald-600">0</h4>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                            <p class="text-[9px] font-bold text-slate-500 uppercase">ขาดอีก</p>
+                            <h4 id="stat-missing" class="text-lg font-black text-rose-500">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-[11px] font-bold text-slate-600 uppercase flex items-center gap-1 mb-2 ml-1"><i data-lucide="inbox" class="w-3.5 h-3.5"></i> งานที่ได้รับมอบหมาย (Allocated Quotas)</h3>
+                    <div id="quota-list" class="space-y-3 pb-6">
+                        <!-- รายการโควต้า -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: ส่งออกข้อมูล -->
+            <div id="tab-export" class="tab-content p-4">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+                        <i data-lucide="file-spreadsheet" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="text-base font-bold text-center text-slate-800 mb-1">ดาวน์โหลดข้อมูลพนักงาน</h2>
+                    <p class="text-[10px] text-center text-slate-500 mb-6">ส่งออกรายชื่อพนักงานทั้งหมดที่สังกัดบริษัทของท่านเป็นไฟล์ Excel (CSV)</p>
+                    
+                    <button onclick="exportToExcel()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
+                        <i data-lucide="download" class="w-4 h-4 text-blue-300"></i> ดาวน์โหลดรายงาน (CSV)
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-slate-200 flex justify-around p-2 shrink-0 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-3xl">
+            <button id="nav-staff" onclick="switchTab('staff')" class="flex flex-col items-center justify-center w-full p-2 text-blue-700 transition-colors">
+                <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-bold">จัดการพนักงาน</span>
+            </button>
+            <button id="nav-quota" onclick="switchTab('quota')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
+                <i data-lucide="pie-chart" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-bold">โควต้ากำลังคน</span>
+            </button>
+            <button id="nav-export" onclick="switchTab('export')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
+                <i data-lucide="download" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-bold">ส่งออก</span>
+            </button>
+        </nav>
     </div>
 
-    <div class="container">
-        <div id="loadingMsg">กำลังตรวจสอบสิทธิ์และโหลดข้อมูล...</div>
+    <!-- ==============================================
+         MODALS 
+         ============================================== -->
 
-        <div id="mainContent" style="display: none;">
+    <!-- Modal: จัดการ/อนุมัติ พนักงาน -->
+    <div id="manage-modal" class="modal-overlay">
+        <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> จัดการและอนุมัติ
+                </h3>
+                <button onclick="closeModal('manage-modal')" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
             
-            <div class="admin-info-bar">
-                <div>
-                    <h2 id="adminName">ยินดีต้อนรับ, แอดมิน</h2>
-                    <p>จัดการพนักงานในสังกัดของคุณ</p>
-                </div>
-                <div class="company-badge" id="adminCompany">สังกัด: กำลังโหลด...</div>
-            </div>
-
-            <!-- แท็บหลัก (ฟีเจอร์) -->
-            <div class="main-tabs">
-                <button class="main-tab-btn active" onclick="switchMainTab('staff', this)">👥 จัดการพนักงาน</button>
-                <button class="main-tab-btn" onclick="switchMainTab('quota', this)">📊 โควต้ากำลังคน</button>
-                <button class="main-tab-btn" onclick="switchMainTab('export', this)">📥 ส่งออกรายงาน Excel</button>
-            </div>
-
-            <!-- หมวด: จัดการพนักงาน -->
-            <div id="main-tab-staff" class="tab-content active">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchSubTab('pending', this)">
-                        ⏳ รออนุมัติ <span id="countPending" class="badge-count">0</span>
-                    </button>
-                    <button class="sub-tab-btn" onclick="switchSubTab('approved', this)">
-                        ✅ พนักงาน Active <span id="countApproved" class="badge-count zero">0</span>
-                    </button>
-                </div>
-                <div id="tab-pending" class="tab-content active"><div class="user-grid" id="listPending"></div></div>
-                <div id="tab-approved" class="tab-content"><div class="user-grid" id="listApproved"></div></div>
-            </div>
-
-            <!-- หมวด: โควต้ากำลังคน -->
-            <div id="main-tab-quota" class="tab-content">
-                <div class="quota-card">
-                    <h3 style="margin-top: 0; color: #2c3e50;">อัตรากำลังคนปัจจุบัน</h3>
-                    <p style="color: #7f8c8d; font-size: 14px;">โควต้าที่ได้รับจัดสรรจาก HR ส่วนกลาง</p>
-                    
-                    <div class="progress-container">
-                        <div class="progress-bar" id="quotaProgressBar" style="width: 0%;"></div>
-                        <div class="progress-text" id="quotaProgressText">คำนวณข้อมูล...</div>
+            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
+                <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+                    <img id="modal-emp-img" src="" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
+                    <div class="flex-1 min-w-0 text-left">
+                        <p id="modal-emp-name" class="font-bold text-sm text-slate-800 truncate"></p>
+                        <p id="modal-emp-phone" class="text-[10px] text-slate-500 font-mono truncate my-0.5"></p>
                     </div>
-                    
-                    <div class="quota-stats">
-                        <div class="stat-box">
-                            <h4>โควต้าทั้งหมด (คน)</h4>
-                            <div class="num" id="quotaTotal">0</div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="input-label">สถานะพนักงาน <span class="text-rose-500">*</span></label>
+                        <select id="modal-emp-status" onchange="toggleRejectReason()" class="input-field py-2.5 font-bold">
+                            <option value="pending" class="text-amber-600">⏳ รออนุมัติ (Pending)</option>
+                            <option value="approved" class="text-emerald-600">✅ อนุมัติใช้งาน (Active)</option>
+                            <option value="rejected" class="text-rose-600">❌ ไม่อนุมัติ / ระงับ (Rejected)</option>
+                        </select>
+                    </div>
+
+                    <div id="reject-reason-group" class="hidden">
+                        <label class="input-label text-rose-600">เหตุผลที่ไม่อนุมัติ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="modal-emp-reason" placeholder="เช่น เอกสารไม่ครบ..." class="input-field py-2.5 border-rose-200 focus:border-rose-500">
+                    </div>
+
+                    <div id="approve-group" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="input-label">จัดสรรเข้าแผนก</label>
+                                <select id="modal-emp-dept" class="input-field py-2.5 text-xs"></select>
+                            </div>
+                            <div>
+                                <label class="input-label">ตำแหน่ง</label>
+                                <select id="modal-emp-pos" class="input-field py-2.5 text-xs"></select>
+                            </div>
                         </div>
-                        <div class="stat-box">
-                            <h4>บรรจุแล้ว (Active)</h4>
-                            <div class="num" id="quotaActive" style="color: #27ae60;">0</div>
-                        </div>
-                        <div class="stat-box">
-                            <h4>ขาดอีก (คน)</h4>
-                            <div class="num" id="quotaMissing" style="color: #e74c3c;">0</div>
+
+                        <div class="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                            <div>
+                                <label class="input-label text-blue-700">เริ่มงานวันที่</label>
+                                <input type="date" id="modal-emp-start" class="input-field py-2 text-[10px] font-mono">
+                            </div>
+                            <div>
+                                <label class="input-label text-rose-600">บัตรหมดอายุ</label>
+                                <input type="date" id="modal-emp-expire" class="input-field py-2 text-[10px] font-mono border-rose-200">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- หมวด: ส่งออกข้อมูล -->
-            <div id="main-tab-export" class="tab-content">
-                <div class="quota-card">
-                    <h3 style="margin-top: 0; color: #2c3e50;">ดาวน์โหลดข้อมูลพนักงาน</h3>
-                    <p style="color: #7f8c8d; font-size: 14px;">ดึงรายชื่อพนักงานทั้งหมดที่เคยทำงานและลงทะเบียนกับสังกัดของท่าน ออกมาเป็นไฟล์ Excel (CSV)</p>
-                    <button class="btn btn-approve" style="padding: 15px 30px; font-size: 16px; margin-top: 20px;" onclick="exportToExcel()">
-                        📥 ดาวน์โหลดไฟล์ Excel (CSV)
-                    </button>
-                </div>
+            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveEmployeeData()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4 text-blue-300"></i> บันทึกข้อมูลพนักงาน
+                </button>
             </div>
-
         </div>
     </div>
 
-    <!-- Modal อนุมัติพนักงาน -->
-    <div id="approveModal" class="modal">
-        <div class="modal-content">
-            <h3>ตั้งค่าข้อมูลพนักงาน</h3>
-            <p style="font-size: 13px; color: #7f8c8d;" id="modalEmpName">ชื่อพนักงาน</p>
-            
-            <div class="form-group">
-                <label>จัดสรรเข้าแผนก:</label>
-                <select id="modalDept"><option value="">-- เลือกแผนก --</option></select>
-            </div>
-            <div class="form-group">
-                <label>ตำแหน่งงาน:</label>
-                <select id="modalPos"><option value="">-- เลือกตำแหน่ง --</option></select>
-            </div>
-            <div class="form-group">
-                <label>วันที่เริ่มงาน:</label>
-                <input type="date" id="modalStart">
-            </div>
-            <div class="form-group">
-                <label>วันหมดอายุบัตร:</label>
-                <input type="date" id="modalExpire">
+    <!-- Modal ดูประวัติ -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4 shrink-0">
+                <h3 class="text-lg font-bold text-slate-800">ประวัติการทำงาน</h3>
+                <button onclick="closeModal('history-modal')" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <div class="modal-actions">
-                <button class="btn btn-reject" onclick="closeModal()">ยกเลิก</button>
-                <button class="btn btn-approve" onclick="confirmApprove()">✅ ยืนยันการอนุมัติ</button>
+            <div class="flex-grow overflow-y-auto hide-scroll space-y-4">
+                <div id="hist-list" class="space-y-3">
+                    <!-- ประวัติ -->
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. ตั้งค่า Firebase ---
+        // ==========================================
+        // 1. Firebase Setup & Global State
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyArJLTChk1lyzfTph6ELTdzKIdb4sQ_ybc",
             authDomain: "maersk-mcl-v2.firebaseapp.com",
             projectId: "maersk-mcl-v2",
             storageBucket: "maersk-mcl-v2.firebasestorage.app",
             messagingSenderId: "447590679734",
-            appId: "1:447590679734:web:f6881338981f9ae86bd217",
-            measurementId: "G-9CPJJVL2G6"
+            appId: "1:447590679734:web:f6881338981f9ae86bd217"
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // --- ตัวแปรระบบ ---
         const urlParams = new URLSearchParams(window.location.search);
         const adminUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
         
         let adminData = null;
-        let masterData = { depts: {}, positions: {} };
+        let masterData = { depts: {}, positions: {}, companies: {} };
+        let companyEmployees = [];
+        let companyQuotas = [];
+        let filterState = 'all';
         let currentTargetUid = null;
-        let companyEmployees = []; // เก็บรายชื่อพนักงานในบริษัททั้งหมด
-        let totalCompanyQuota = 0; // เก็บโควต้าที่ได้จาก HR
+        let totalCompanyQuota = 0;
 
-        if (!adminUid) {
-            alert("ไม่พบข้อมูลการเข้าสู่ระบบ");
-            window.location.replace("index.html");
-        }
-
-        // --- 2. เริ่มต้นการโหลดข้อมูล ---
+        // ==========================================
+        // 2. Initialization
+        // ==========================================
         async function initAdminPanel() {
+            if (!adminUid) {
+                window.location.replace("./index.html");
+                return;
+            }
+
             try {
-                const adminDoc = await db.collection("users").doc(adminUid).get();
-                if (!adminDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
+                const userDoc = await db.collection("users").doc(adminUid).get();
+                if (!userDoc.exists) throw new Error("ไม่พบข้อมูลบัญชีของคุณ");
                 
-                adminData = adminDoc.data();
+                adminData = userDoc.data();
                 if (adminData.role !== "admin" && adminData.role !== "superuser") {
-                    alert("คุณไม่มีสิทธิ์เข้าถึงหน้านี้!");
-                    window.location.replace("index.html");
+                    document.getElementById('global-loading').style.display = "none";
+                    document.getElementById('no-access-screen').classList.replace("hidden", "flex");
                     return;
                 }
 
-                document.getElementById("adminName").innerText = `ยินดีต้อนรับ, คุณ ${adminData.fullname}`;
+                document.getElementById("admin-name").innerText = `ยินดีต้อนรับ, ${adminData.fullname}`;
                 
-                if (adminData.companyId) {
-                    const compDoc = await db.collection("companies").doc(adminData.companyId).get();
-                    if (compDoc.exists) document.getElementById("adminCompany").innerText = `สังกัด: ${compDoc.data().name}`;
+                await loadMasterData();
+
+                if (adminData.companyId && masterData.companies[adminData.companyId]) {
+                    document.getElementById("admin-company").innerText = `สังกัด: ${masterData.companies[adminData.companyId]}`;
                 } else {
-                    document.getElementById("adminCompany").innerText = "สังกัด: Superuser (เห็นทั้งหมด)";
+                    document.getElementById("admin-company").innerText = "สังกัด: Superuser (ทั้งหมด)";
                 }
 
-                // โหลด Master Data มาเตรียมไว้ใส่ Dropdown
-                await loadMasterData();
-                
-                document.getElementById("loadingMsg").style.display = "none";
-                document.getElementById("mainContent").style.display = "block";
-
-                // ดึงพนักงานและโควต้า
                 listenToCompanyEmployees();
-                listenToCompanyQuota();
+                listenToQuotas();
+
+                document.getElementById('global-loading').style.display = "none";
+                lucide.createIcons();
 
             } catch (error) {
-                document.getElementById("loadingMsg").innerHTML = `<span style="color:red;">ข้อผิดพลาด: ${error.message}</span>`;
+                document.getElementById('loading-text').innerText = `ข้อผิดพลาด: ${error.message}`;
             }
         }
 
         async function loadMasterData() {
-            const deptSnap = await db.collection("departments").get();
-            const deptSelect = document.getElementById("modalDept");
-            deptSnap.forEach(doc => {
-                masterData.depts[doc.id] = doc.data().name;
-                deptSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
-            });
+            const [deptSnap, posSnap, compSnap] = await Promise.all([
+                db.collection("departments").get(),
+                db.collection("positions").get(),
+                db.collection("companies").get()
+            ]);
 
-            const posSnap = await db.collection("positions").get();
-            const posSelect = document.getElementById("modalPos");
-            posSnap.forEach(doc => {
-                masterData.positions[doc.id] = doc.data().name;
-                posSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
-            });
+            const deptSelect = document.getElementById("modal-emp-dept");
+            const posSelect = document.getElementById("modal-emp-pos");
+            
+            deptSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+            posSelect.innerHTML = '<option value="">-- เลือกตำแหน่ง --</option>';
+
+            deptSnap.forEach(d => { masterData.depts[d.id] = d.data().name; deptSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; });
+            posSnap.forEach(d => { masterData.positions[d.id] = d.data().name; posSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; });
+            compSnap.forEach(d => { masterData.companies[d.id] = d.data().name; });
         }
 
-        // --- 3. ดึงรายชื่อพนักงาน ---
+        // ==========================================
+        // 3. Employee Management
+        // ==========================================
         function listenToCompanyEmployees() {
-            db.collection("users").onSnapshot(snapshot => {
-                const pendingUsers = [];
-                const approvedUsers = [];
-                companyEmployees = []; 
-
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    user.id = doc.id;
-                    
-                    const isSameCompany = (adminData.role === 'superuser') || (user.companyId === adminData.companyId);
-                    
-                    // เก็บทุกคนในบริษัทสำหรับหน้า Export Excel
-                    if (isSameCompany) {
-                        companyEmployees.push(user);
-                        
-                        // กรองเฉพาะ visitor เพื่อนำมาจัดการอนุมัติ
-                        if (user.role === 'visitor') {
-                            if (user.status === 'pending') pendingUsers.push(user);
-                            else if (user.status === 'approved') approvedUsers.push(user);
-                        }
+            db.collection("users").where("role", "==", "visitor").onSnapshot(snap => {
+                companyEmployees = [];
+                let pendingCount = 0;
+                
+                snap.forEach(doc => {
+                    const u = doc.data(); u.id = doc.id;
+                    // แอดมินเห็นเฉพาะบริษัทตัวเอง (ถ้า superuser เห็นหมด)
+                    if (adminData.role === 'superuser' || u.companyId === adminData.companyId) {
+                        companyEmployees.push(u);
+                        if(u.status === 'pending') pendingCount++;
                     }
                 });
 
-                pendingUsers.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
-                approvedUsers.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
-
-                updateBadgeCount("countPending", pendingUsers.length);
-                updateBadgeCount("countApproved", approvedUsers.length);
-
-                renderUserCards("listPending", pendingUsers, true);
-                renderUserCards("listApproved", approvedUsers, false);
+                companyEmployees.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
                 
-                // อัปเดตหลอดโควต้าทุกครั้งที่คน Active เปลี่ยนแปลง
-                calculateQuotaProgress(approvedUsers.length);
+                document.getElementById('badge-pending').innerText = pendingCount;
+                if(pendingCount > 0) document.getElementById('badge-pending').classList.replace('bg-slate-300', 'bg-amber-500');
+                else document.getElementById('badge-pending').classList.replace('bg-amber-500', 'bg-slate-300');
+
+                renderEmployees();
+                updateQuotaDashboard();
             });
         }
 
-        function updateBadgeCount(elementId, count) {
-            const el = document.getElementById(elementId);
-            el.innerText = count;
-            el.classList.toggle("zero", count === 0);
-        }
+        function renderEmployees() {
+            const listEl = document.getElementById('staff-list');
+            listEl.innerHTML = '';
+            const keyword = document.getElementById('search-emp').value.toLowerCase();
 
-        // --- 4. ดึงข้อมูลโควต้าจาก HR ---
-        function listenToCompanyQuota() {
-            if (!adminData.companyId || adminData.role === 'superuser') return; // Superuser ไม่จำกัดโควต้า
-
-            // จำลองดึงข้อมูลจาก collection allocations (ที่จะสร้างจากหน้า HR)
-            db.collection("allocations").where("companyId", "==", adminData.companyId).onSnapshot(snapshot => {
-                totalCompanyQuota = 0;
-                snapshot.forEach(doc => {
-                    totalCompanyQuota += (doc.data().amount || 0); // รวมโควต้าที่ได้รับ
-                });
-                
-                // ถ้ายังไม่มีข้อมูลโควต้า สมมติให้เป็น 0
-                const activeCount = parseInt(document.getElementById("countApproved").innerText) || 0;
-                calculateQuotaProgress(activeCount);
+            let filtered = companyEmployees.filter(emp => {
+                if (filterState === 'all') return true;
+                if (filterState === 'pending') return emp.status === 'pending';
+                if (filterState === 'approved') return emp.status === 'approved';
+                return true;
             });
-        }
 
-        function calculateQuotaProgress(activeCount) {
-            document.getElementById("quotaTotal").innerText = totalCompanyQuota;
-            document.getElementById("quotaActive").innerText = activeCount;
-            
-            let missing = totalCompanyQuota - activeCount;
-            document.getElementById("quotaMissing").innerText = missing > 0 ? missing : 0;
-
-            const progressBar = document.getElementById("quotaProgressBar");
-            const progressText = document.getElementById("quotaProgressText");
-
-            if (totalCompanyQuota === 0) {
-                progressBar.style.width = "0%";
-                progressText.innerText = "ยังไม่ได้รับโควต้าจาก HR";
-                progressBar.style.background = "#bdc3c7";
-            } else {
-                let percent = (activeCount / totalCompanyQuota) * 100;
-                if (percent > 100) percent = 100;
-                
-                progressBar.style.width = `${percent}%`;
-                progressText.innerText = `${activeCount} / ${totalCompanyQuota} คน (${percent.toFixed(0)}%)`;
-
-                if (activeCount > totalCompanyQuota) {
-                    progressBar.style.background = "#e74c3c"; // แดง (เกินโควต้า)
-                    document.getElementById("quotaMissing").innerText = "เกินโควต้า!";
-                } else if (percent === 100) {
-                    progressBar.style.background = "#27ae60"; // เขียว (ครบพอดี)
-                } else {
-                    progressBar.style.background = "#f39c12"; // ส้ม (ยังขาด)
-                }
+            if (keyword) {
+                filtered = filtered.filter(emp => 
+                    (emp.fullname && emp.fullname.toLowerCase().includes(keyword)) || 
+                    (emp.idCard && emp.idCard.includes(keyword))
+                );
             }
-        }
 
-        // --- 5. วาดการ์ด (แยกมุมมอง รออนุมัติ / อนุมัติแล้ว) ---
-        function renderUserCards(containerId, usersArray, isPending) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = "";
-
-            if (usersArray.length === 0) {
-                container.innerHTML = `<div class="empty-state">ไม่มีพนักงานในหมวดหมู่นี้ 🎉</div>`;
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl bg-white mt-2">ไม่พบรายชื่อพนักงาน</div>';
                 return;
             }
 
-            usersArray.forEach(user => {
-                const imgSrc = user.photoUrl && user.photoUrl.startsWith('data:image') ? user.photoUrl : (user.photoUrl || 'https://via.placeholder.com/60');
-                const card = document.createElement("div");
-                card.className = "user-card";
-                card.style.borderTopColor = isPending ? "#f39c12" : "#27ae60";
-
-                let detailsHtml = '';
-                let actionsHtml = '';
-
-                if (isPending) {
-                    // รออนุมัติ: โชว์แค่ชื่อ เบอร์โทร
-                    detailsHtml = `
-                        <h3>${user.fullname}</h3>
-                        <p>📞 ${user.phone}</p>
-                    `;
-                    actionsHtml = `
-                        <button class="btn btn-approve" onclick="openApproveModal('${user.id}', '${user.fullname}')">✅ อนุมัติ</button>
-                        <button class="btn btn-reject" onclick="updateStatus('${user.id}', 'rejected')">❌ ไม่อนุมัติ</button>
-                    `;
-                } else {
-                    // อนุมัติแล้ว: โชว์ข้อมูลจัดเต็ม
-                    const deptStr = masterData.depts[user.departmentId] || 'ไม่ระบุ';
-                    const posStr = masterData.positions[user.positionId] || 'ไม่ระบุ';
-                    const startStr = user.startDate ? new Date(user.startDate).toLocaleDateString('th-TH') : '-';
-                    const expStr = user.expireDate ? new Date(user.expireDate).toLocaleDateString('th-TH') : '-';
-                    
-                    detailsHtml = `
-                        <h3>${user.fullname}</h3>
-                        <p>📂 แผนก: <b>${deptStr}</b></p>
-                        <p>👔 ตำแหน่ง: <b>${posStr}</b></p>
-                        <p style="font-size:12px; margin-top:5px; color:#555;">เริ่มงาน: ${startStr} | บัตรหมดอายุ: <span style="color:#e74c3c; font-weight:bold;">${expStr}</span></p>
-                    `;
-                    actionsHtml = `
-                        <button class="btn btn-info" onclick="viewHistory('${user.id}')">📝 ดูประวัติการทำงาน</button>
-                        <button class="btn btn-reject" style="flex: 0.3;" onclick="updateStatus('${user.id}', 'pending')">ถอนสิทธิ์</button>
-                    `;
-                }
+            filtered.forEach(emp => {
+                const isPending = emp.status === 'pending';
+                const isReject = emp.status === 'rejected' || emp.status === 'banned';
                 
-                card.innerHTML = `
-                    <div class="user-card-header">
-                        <img src="${imgSrc}" class="user-avatar" alt="Profile">
-                        <div class="user-details">${detailsHtml}</div>
+                let sColor = 'bg-emerald-100 text-emerald-700 border-emerald-200'; let sText = 'ใช้งาน';
+                if(isPending) { sColor = 'bg-amber-100 text-amber-700 border-amber-200'; sText = 'รออนุมัติ'; }
+                if(isReject) { sColor = 'bg-rose-100 text-rose-700 border-rose-200'; sText = 'ระงับ/ไม่อนุมัติ'; }
+
+                const deptStr = masterData.depts[emp.departmentId] || '-';
+                const posStr = masterData.positions[emp.positionId] || '-';
+
+                listEl.innerHTML += `
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${isPending ? 'border-amber-200' : 'border-slate-200'}">
+                        <div class="flex items-start gap-3 border-b border-slate-50 pb-3">
+                            <img src="${emp.photoUrl || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-[13px] text-slate-800 truncate pr-2">${emp.fullname}</h4>
+                                    <span class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded border ${sColor}">${sText}</span>
+                                </div>
+                                ${isPending ? 
+                                    `<p class="text-[10px] text-slate-500 mt-1">📞 ${emp.phone}</p><p class="text-[10px] text-slate-400">ID: ${emp.idCard || '-'}</p>` : 
+                                    `<p class="text-[10px] text-slate-500 mt-0.5 truncate">📂 ${deptStr} | 👔 ${posStr}</p>
+                                     <p class="text-[9px] text-slate-400 mt-1">หมดอายุ: <strong class="${emp.expireDate && new Date(emp.expireDate) < new Date() ? 'text-rose-500' : 'text-slate-600'}">${emp.expireDate || '-'}</strong></p>`
+                                }
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mt-3">
+                            ${isPending ? 
+                                `<button onclick="openManageModal('${emp.id}')" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-xl transition shadow-sm">พิจารณาอนุมัติ</button>` :
+                                `<button onclick="openHistoryModal('${emp.id}')" class="flex-1 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg transition">ประวัติทำงาน</button>
+                                 <button onclick="openManageModal('${emp.id}')" class="flex-1 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded-lg transition">แก้ไขข้อมูล</button>`
+                            }
+                        </div>
                     </div>
-                    <div class="action-buttons">${actionsHtml}</div>
                 `;
-                container.appendChild(card);
             });
+            lucide.createIcons();
         }
 
-        // --- 6. ระบบ อนุมัติผ่าน Modal ---
-        function openApproveModal(uid, name) {
+        document.getElementById('search-emp').addEventListener('input', renderEmployees);
+
+        window.setEmpFilter = function(state) {
+            filterState = state;
+            ['all', 'pending', 'approved'].forEach(btn => {
+                const el = document.getElementById(`filter-${btn}`);
+                if (filterState === btn) {
+                    el.classList.replace('bg-slate-100', 'bg-blue-700');
+                    el.classList.replace('text-slate-500', 'text-white');
+                    el.classList.replace('border-slate-200', 'border-blue-700');
+                } else {
+                    el.classList.replace('bg-blue-700', 'bg-slate-100');
+                    el.classList.replace('text-white', 'text-slate-500');
+                    el.classList.replace('border-blue-700', 'border-slate-200');
+                }
+            });
+            renderEmployees();
+        }
+
+        // ==========================================
+        // Modal Manage Employee
+        // ==========================================
+        window.openManageModal = function(uid) {
+            const emp = companyEmployees.find(e => e.id === uid);
+            if(!emp) return;
             currentTargetUid = uid;
-            document.getElementById("modalEmpName").innerText = `พนักงาน: ${name}`;
+
+            document.getElementById('modal-emp-img').src = emp.photoUrl || 'https://via.placeholder.com/150';
+            document.getElementById('modal-emp-name').innerText = emp.fullname;
+            document.getElementById('modal-emp-phone').innerText = `Tel: ${emp.phone || '-'}`;
             
-            // ตั้งค่า วันเริ่มงาน = วันนี้, วันหมดอายุ = อีก 30 วันข้างหน้า
+            document.getElementById('modal-emp-status').value = emp.status || 'pending';
+            document.getElementById('modal-emp-reason').value = emp.reason || '';
+            document.getElementById('modal-emp-dept').value = emp.departmentId || '';
+            document.getElementById('modal-emp-pos').value = emp.positionId || '';
+
+            // Default dates
             const today = new Date();
-            document.getElementById("modalStart").value = today.toISOString().split('T')[0];
+            const in30Days = new Date(); in30Days.setDate(today.getDate() + 30);
             
-            today.setDate(today.getDate() + 30);
-            document.getElementById("modalExpire").value = today.toISOString().split('T')[0];
-            
-            document.getElementById("approveModal").style.display = "flex";
+            document.getElementById('modal-emp-start').value = emp.startDate || today.toISOString().split('T')[0];
+            document.getElementById('modal-emp-expire').value = emp.expireDate || in30Days.toISOString().split('T')[0];
+
+            toggleRejectReason();
+            document.getElementById('manage-modal').classList.add('active');
         }
 
-        function closeModal() {
-            document.getElementById("approveModal").style.display = "none";
-            currentTargetUid = null;
-        }
-
-        async function confirmApprove() {
-            if (!currentTargetUid) return;
-            const deptId = document.getElementById("modalDept").value;
-            const posId = document.getElementById("modalPos").value;
-            const startDate = document.getElementById("modalStart").value;
-            const expireDate = document.getElementById("modalExpire").value;
-
-            if (!startDate || !expireDate) return alert("กรุณาระบุวันที่ให้ครบถ้วน");
-
-            try {
-                await db.collection("users").doc(currentTargetUid).update({
-                    status: 'approved',
-                    departmentId: deptId,
-                    positionId: posId,
-                    startDate: startDate,
-                    expireDate: expireDate
-                });
-                closeModal();
-            } catch (error) {
-                alert("เกิดข้อผิดพลาด: " + error.message);
+        window.toggleRejectReason = function() {
+            const stat = document.getElementById('modal-emp-status').value;
+            if(stat === 'rejected') {
+                document.getElementById('reject-reason-group').classList.remove('hidden');
+                document.getElementById('approve-group').classList.add('hidden');
+            } else {
+                document.getElementById('reject-reason-group').classList.add('hidden');
+                document.getElementById('approve-group').classList.remove('hidden');
             }
         }
 
-        async function updateStatus(uid, newStatus) {
-            if(newStatus === 'rejected' && !confirm("คุณแน่ใจหรือไม่ที่จะไม่อนุมัติพนักงานคนนี้?")) return;
-            try { await db.collection("users").doc(uid).update({ status: newStatus }); } 
-            catch (error) { alert("ข้อผิดพลาด: " + error.message); }
+        window.saveEmployeeData = async function() {
+            if(!currentTargetUid) return;
+            const stat = document.getElementById('modal-emp-status').value;
+            const reason = document.getElementById('modal-emp-reason').value.trim();
+            const dept = document.getElementById('modal-emp-dept').value;
+            const pos = document.getElementById('modal-emp-pos').value;
+            const start = document.getElementById('modal-emp-start').value;
+            const expire = document.getElementById('modal-emp-expire').value;
+
+            if(stat === 'rejected' && !reason) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุเหตุผลที่ไม่อนุมัติ', 'warning');
+            if(stat === 'approved' && (!dept || !pos || !start || !expire)) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุแผนก ตำแหน่ง และวันที่ ให้ครบถ้วน', 'warning');
+
+            Swal.fire({title:'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            
+            try {
+                let payload = { status: stat };
+                if (stat === 'rejected') {
+                    payload.reason = reason;
+                } else if (stat === 'approved') {
+                    payload.departmentId = dept;
+                    payload.positionId = pos;
+                    payload.startDate = start;
+                    payload.expireDate = expire;
+                }
+
+                await db.collection("users").doc(currentTargetUid).update(payload);
+                closeModal('manage-modal');
+                Swal.fire({icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false});
+            } catch (e) {
+                Swal.fire('Error', e.message, 'error');
+            }
         }
 
-        function viewHistory(uid) {
-            alert("ระบบประวัติการทำงานกำลังอยู่ในช่วงพัฒนาครับ (จะดึงข้อมูลจากหน้า Inspector มาโชว์)");
+        // ==========================================
+        // 4. Quotas
+        // ==========================================
+        function listenToQuotas() {
+            if(!adminData.companyId || adminData.role === 'superuser') return;
+
+            db.collection("quota_requests")
+              .where("status", "==", "allocated")
+              .onSnapshot(snap => {
+                  companyQuotas = [];
+                  totalCompanyQuota = 0;
+
+                  snap.forEach(doc => {
+                      const q = doc.data();
+                      // หาว่าบริษัทเราได้โควต้าในแคมเปญนี้กี่คน
+                      if (q.allocations) {
+                          const myAlloc = q.allocations.find(a => a.companyId === adminData.companyId);
+                          if (myAlloc && myAlloc.amount > 0) {
+                              q.id = doc.id;
+                              q.myAmount = myAlloc.amount;
+                              totalCompanyQuota += myAlloc.amount;
+                              companyQuotas.push(q);
+                          }
+                      }
+                  });
+                  
+                  companyQuotas.sort((a,b) => b.updatedAt?.seconds - a.updatedAt?.seconds);
+                  renderQuotas();
+                  updateQuotaDashboard();
+              });
         }
 
-        // --- 7. Export Excel (CSV) ---
-        function exportToExcel() {
-            if (companyEmployees.length === 0) return alert("ไม่มีข้อมูลพนักงานเพื่อดาวน์โหลด");
+        function renderQuotas() {
+            const listEl = document.getElementById('quota-list');
+            listEl.innerHTML = '';
 
-            let csvContent = "\uFEFF"; // ใส่ BOM เพื่อให้ Excel อ่านภาษาไทยได้
-            csvContent += "รหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ทะเบียนรถ,แผนก,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
+            if(companyQuotas.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl mt-2 bg-white">ยังไม่ได้รับโควต้าจาก HR ส่วนกลาง</div>';
+                return;
+            }
 
-            companyEmployees.forEach(user => {
-                const deptStr = masterData.depts[user.departmentId] || '-';
-                const posStr = masterData.positions[user.positionId] || '-';
-                const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'pending' ? 'รออนุมัติ' : 'ระงับ/ถอนสิทธิ์');
+            companyQuotas.forEach(q => {
+                const deptStr = masterData.depts[q.deptId] || 'ไม่ระบุ';
+                const startStr = q.startDate ? new Date(q.startDate).toLocaleDateString('th-TH', {month:'short', day:'numeric'}) : '-';
                 
-                const row = [
-                    user.id,
-                    `"${user.fullname}"`, // ใส่ "" เผื่อมีลูกน้ำในชื่อ
-                    `'${user.phone}`,     // ใส่ ' ป้องกัน Excel ตัดเลข 0 ข้างหน้า
-                    `'${user.idCard}`,
-                    user.vehicle || '-',
-                    `"${deptStr}"`,
-                    `"${posStr}"`,
-                    statusStr,
-                    user.startDate || '-',
-                    user.expireDate || '-'
-                ];
-                csvContent += row.join(",") + "\n";
+                listEl.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 border-l-4 border-l-blue-500">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h4 class="font-bold text-[13px] text-blue-900">${q.campaignName}</h4>
+                                <p class="text-[10px] text-slate-500 mt-0.5">📂 ${deptStr}</p>
+                            </div>
+                            <div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-100 text-center shadow-sm">
+                                <span class="text-[8px] font-bold uppercase block leading-none mb-0.5">ได้รับ</span>
+                                <span class="text-sm font-black leading-none">${q.myAmount} <small class="text-[9px] font-normal">คน</small></span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-600 bg-slate-50 p-2 rounded-lg">
+                            <p>📅 เริ่ม: <strong class="text-slate-800">${startStr}</strong> &nbsp; | &nbsp; ⏱️ กะ: <strong class="text-slate-800">${q.startTime}-${q.endTime} น.</strong></p>
+                            <p class="mt-1">👔 ตำแหน่ง: <strong class="text-slate-800">${q.position}</strong></p>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function updateQuotaDashboard() {
+            const activeStaff = companyEmployees.filter(e => e.status === 'approved').length;
+            
+            document.getElementById('stat-total-quota').innerText = totalCompanyQuota;
+            document.getElementById('stat-active-staff').innerText = activeStaff;
+            
+            const missing = totalCompanyQuota - activeStaff;
+            document.getElementById('stat-missing').innerText = missing > 0 ? missing : 0;
+
+            const pb = document.getElementById('quota-progress-bar');
+            if (totalCompanyQuota === 0) {
+                pb.style.width = '0%';
+            } else {
+                let pct = (activeStaff / totalCompanyQuota) * 100;
+                pb.style.width = `${Math.min(pct, 100)}%`;
+                pb.className = pct > 100 ? "bg-rose-500 h-full rounded-full transition-all duration-500" : (pct === 100 ? "bg-emerald-500 h-full rounded-full transition-all duration-500" : "bg-amber-400 h-full rounded-full transition-all duration-500");
+                
+                if(pct > 100) document.getElementById('stat-missing').innerText = "เกินโควต้า!";
+            }
+        }
+
+        // ==========================================
+        // 5. History & Export
+        // ==========================================
+        async function openHistoryModal(uid) {
+            const listEl = document.getElementById('hist-list');
+            listEl.innerHTML = '<div class="text-center py-6 text-slate-400 text-[10px]"><i data-lucide="loader-2" class="w-4 h-4 mx-auto animate-spin mb-1"></i> กำลังโหลดประวัติ...</div>';
+            lucide.createIcons();
+            document.getElementById('history-modal').classList.add('active');
+
+            try {
+                const snap = await db.collection("daily_records").where("uid", "==", uid).get();
+                if(snap.empty) { listEl.innerHTML = '<p class="text-[10px] text-center text-slate-400 py-4">ไม่มีประวัติการทำงาน</p>'; return; }
+                
+                let records = []; snap.forEach(doc => records.push(doc.data()));
+                records.sort((a,b) => (b.date || "").localeCompare(a.date || ""));
+                records = records.slice(0, 30);
+                
+                listEl.innerHTML = '';
+                records.forEach(h => {
+                    const stars = h.rating ? "★".repeat(h.rating) : "-";
+                    const dName = masterData.depts[h.deptId] || '-';
+                    listEl.innerHTML += `
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-slate-700">${h.date}</span>
+                                <span class="text-[9px] font-bold text-amber-500">${stars}</span>
+                            </div>
+                            <p class="text-[9px] text-slate-500 mb-1">แผนก: ${dName}</p>
+                            <p class="text-[10px] font-medium text-slate-600 bg-white p-1.5 rounded-lg border border-slate-100 w-full inline-block">
+                                IN: <span class="text-emerald-600">${h.scanInTime||'-'}</span> | OUT: <span class="text-amber-600">${h.scanOutTime||'-'}</span>
+                            </p>
+                        </div>
+                    `;
+                });
+            } catch(e) { listEl.innerHTML = `<p class="text-rose-500 text-[10px] text-center">Error: ${e.message}</p>`; }
+        }
+
+        function exportToExcel() {
+            if(companyEmployees.length === 0) return Swal.fire('ไม่มีข้อมูล', 'ไม่มีพนักงานในสังกัดเพื่อดาวน์โหลด', 'info');
+            Swal.fire({title:'กำลังเตรียมไฟล์...', timer:1000, didOpen: () => Swal.showLoading()});
+            
+            setTimeout(() => {
+                let csvContent = "\uFEFFรหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ทะเบียนรถ,แผนก,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
+                companyEmployees.forEach(user => {
+                    const deptStr = masterData.depts[user.departmentId] || '-';
+                    const posStr = masterData.positions[user.positionId] || '-';
+                    const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'pending' ? 'รออนุมัติ' : 'ระงับ/ไม่อนุมัติ');
+                    
+                    csvContent += `${user.id},"${user.fullname}","'${user.phone}","'${user.idCard||'-'}","${user.vehicle||'-'}","${deptStr}","${posStr}","${statusStr}","${user.startDate||'-'}","${user.expireDate||'-'}"\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Subcontract_Staff_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            }, 800);
+        }
+
+        window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            ['staff', 'quota', 'export'].forEach(t => {
+                const btn = document.getElementById('nav-' + t);
+                if(btn) { btn.classList.remove('text-blue-700'); btn.classList.add('text-slate-400'); }
             });
 
-            // สร้างลิงก์สำหรับดาวน์โหลด
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `รายงานพนักงาน_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // --- 8. สลับหน้าแท็บ ---
-        function switchMainTab(tabId, btnElement) {
-            document.querySelectorAll('#mainContent > .tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('main-tab-' + tabId).classList.add('active');
-            btnElement.classList.add('active');
-        }
-
-        function switchSubTab(tabId, btnElement) {
-            document.getElementById('tab-pending').classList.remove('active');
-            document.getElementById('tab-approved').classList.remove('active');
-            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
-            btnElement.classList.add('active');
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('text-blue-700');
+            }
+        }
+
+        window.logout = function() {
+            localStorage.removeItem("myAppUserId");
+            localStorage.removeItem("myAppRole");
+            window.location.replace("./index.html");
         }
 
         initAdminPanel();
