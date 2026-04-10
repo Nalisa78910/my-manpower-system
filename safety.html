@@ -56,8 +56,8 @@
             <button onclick="window.location.replace('./index.html')" class="w-full bg-[#0f766e] text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
         </div>
 
-        <!-- Header (ปรับให้เล็กที่สุด) -->
-        <header class="bg-gradient-to-r from-teal-700 to-emerald-700 px-4 py-3 text-white rounded-b-2xl shadow-md shrink-0 relative z-10 border-b-2 border-emerald-400">
+        <!-- Header (ย่อให้เล็กที่สุด ไม่มีเมนูแท็บแล้ว) -->
+        <header class="bg-gradient-to-r from-teal-700 to-emerald-700 px-4 py-4 text-white rounded-b-2xl shadow-md shrink-0 relative z-10 border-b-2 border-emerald-400">
             <div class="flex items-center justify-between">
                 <h1 class="text-base font-black tracking-wide flex items-center gap-1.5">
                     <i data-lucide="shield-check" class="w-5 h-5 text-emerald-300"></i> SAFETY <span class="text-emerald-300">CENTER</span>
@@ -66,12 +66,6 @@
                     <i data-lucide="log-out" class="w-3 h-3"></i> ออก
                 </button>
             </div>
-            
-            <!-- Tabs Menu -->
-            <div class="flex overflow-x-auto hide-scroll gap-2 mt-3 pb-1" id="main-tabs-container">
-                <button onclick="switchTab('logs', this)" class="tab-btn active shrink-0 bg-white text-teal-700 font-bold px-3 py-1.5 rounded-full text-xs shadow-sm transition flex items-center gap-1.5"><i data-lucide="list" class="w-3.5 h-3.5"></i> การเข้า-ออก</button>
-                <button onclick="switchTab('export', this)" class="tab-btn shrink-0 bg-teal-800/40 text-white font-medium px-3 py-1.5 rounded-full text-xs transition flex items-center gap-1.5 border border-teal-500/30"><i data-lucide="download" class="w-3.5 h-3.5"></i> ส่งออกรายงาน</button>
-            </div>
         </header>
 
         <!-- Main Content Area -->
@@ -79,14 +73,16 @@
             
             <!-- TAB 1: บันทึกการเข้าออก -->
             <div id="tab-logs" class="tab-content active p-3 flex flex-col h-full">
-                <!-- Date Picker & Refresh -->
-                <div class="flex gap-2 mb-3 shrink-0">
-                    <div class="relative flex-1">
-                        <i data-lucide="calendar" class="w-4 h-4 text-emerald-600 absolute left-3 top-2.5"></i>
-                        <input type="date" id="date-picker" onchange="loadDataForDate()" class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-emerald-800 outline-none focus:border-emerald-500 shadow-sm font-mono">
+                
+                <!-- Date Range Picker & Refresh -->
+                <div class="flex gap-2 mb-3 shrink-0 items-center">
+                    <div class="flex-1 flex items-center gap-1">
+                        <input type="date" id="log-start-date" onchange="loadDataForDate()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-emerald-800 outline-none focus:border-emerald-500 shadow-sm font-mono">
+                        <span class="text-[10px] font-bold text-slate-400">-</span>
+                        <input type="date" id="log-end-date" onchange="loadDataForDate()" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-emerald-800 outline-none focus:border-emerald-500 shadow-sm font-mono">
                     </div>
-                    <button onclick="resetToToday()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl font-bold text-xs shadow-sm transition active:scale-95 flex items-center gap-1 shrink-0">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> วันนี้
+                    <button onclick="resetToToday()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg font-bold text-[10px] shadow-sm transition active:scale-95 flex items-center gap-1 shrink-0">
+                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> วันนี้
                     </button>
                 </div>
 
@@ -118,7 +114,7 @@
 
             <!-- TAB 2: Export Data -->
             <div id="tab-export" class="tab-content p-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mt-2">
                     <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3 mx-auto">
                         <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
                     </div>
@@ -145,6 +141,18 @@
             </div>
 
         </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white border-t border-slate-200 flex justify-around p-2 shrink-0 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-3xl">
+            <button id="nav-logs" onclick="switchTab('logs')" class="flex flex-col items-center justify-center w-full p-2 text-emerald-600 transition-colors">
+                <i data-lucide="list" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-bold">การเข้า-ออก</span>
+            </button>
+            <button id="nav-export" onclick="switchTab('export')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
+                <i data-lucide="download" class="w-6 h-6 mb-1"></i>
+                <span class="text-[10px] font-bold">ส่งออกรายงาน</span>
+            </button>
+        </nav>
     </div>
 
     <!-- ==============================================
@@ -201,9 +209,10 @@
         let currentLogs = [];
         let unsubscribeLogs = null;
 
-        // Set วันที่ปัจจุบัน
+        // Set วันที่ปัจจุบันเริ่มต้น
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date-picker').value = today;
+        document.getElementById('log-start-date').value = today;
+        document.getElementById('log-end-date').value = today;
         document.getElementById('exportStartDate').value = today;
         document.getElementById('exportEndDate').value = today;
 
@@ -269,20 +278,33 @@
         // 3. Core Functions (Load & Render)
         // ==========================================
         window.resetToToday = function() {
-            document.getElementById('date-picker').value = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('log-start-date').value = today;
+            document.getElementById('log-end-date').value = today;
             loadDataForDate();
         }
 
         window.loadDataForDate = function() {
-            const selectedDate = document.getElementById('date-picker').value;
+            const startDate = document.getElementById('log-start-date').value;
+            const endDate = document.getElementById('log-end-date').value;
+            
+            if (!startDate || !endDate) return;
+
             if (unsubscribeLogs) unsubscribeLogs();
 
             unsubscribeLogs = db.collection("daily_records")
-                .where("date", "==", selectedDate)
+                .where("date", ">=", startDate)
+                .where("date", "<=", endDate)
                 .onSnapshot(snap => {
                     currentLogs = [];
                     snap.forEach(doc => currentLogs.push(doc.data()));
-                    currentLogs.sort((a, b) => (b.scanInTime || "").localeCompare(a.scanInTime || "")); 
+                    
+                    // เรียงตามวันที่ (ใหม่สุดขึ้นก่อน) และเวลาเข้า (ใหม่สุดขึ้นก่อน)
+                    currentLogs.sort((a, b) => {
+                        if (a.date !== b.date) return (b.date || "").localeCompare(a.date || "");
+                        return (b.scanInTime || "").localeCompare(a.scanInTime || ""); 
+                    });
+                    
                     renderLogs();
                 });
         }
@@ -293,7 +315,7 @@
             listEl.innerHTML = '';
 
             if (currentLogs.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl mt-2 bg-white">ไม่มีประวัติการเข้าพื้นที่ในวันนี้</div>';
+                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl mt-2 bg-white">ไม่มีประวัติการเข้าพื้นที่ในช่วงวันที่เลือก</div>';
             } else {
                 currentLogs.forEach(log => {
                     countIn++;
@@ -315,6 +337,7 @@
                                 <p class="text-[9px] text-indigo-500 font-medium truncate mt-0.5"><i data-lucide="car" class="w-3 h-3 inline mb-0.5"></i> ทะเบียนรถ: <span class="font-bold">${u.vehicle}</span></p>
                             </div>
                             <div class="text-right text-[10px] shrink-0 space-y-1">
+                                <div class="text-slate-500 font-bold mb-1">${log.date}</div>
                                 <div class="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded inline-block w-full">IN: ${log.scanInTime || '-'}</div>
                                 <div class="inline-block w-full">${outTimeHtml}</div>
                             </div>
@@ -406,16 +429,22 @@
             }
         };
 
-        window.switchTab = function(tabId, btn) {
+        window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-white', 'text-teal-700', 'shadow-sm', 'active');
-                el.classList.add('bg-teal-800/40', 'text-white', 'border', 'border-teal-500/30');
+            ['logs', 'export'].forEach(t => {
+                const btn = document.getElementById('nav-' + t);
+                if(btn) {
+                    btn.classList.remove('text-emerald-600');
+                    btn.classList.add('text-slate-400');
+                }
             });
 
             document.getElementById('tab-' + tabId).classList.add('active');
-            btn.classList.remove('bg-teal-800/40', 'text-white', 'border', 'border-teal-500/30');
-            btn.classList.add('bg-white', 'text-teal-700', 'shadow-sm', 'active');
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('text-emerald-600');
+            }
         }
 
         window.logout = function() {
