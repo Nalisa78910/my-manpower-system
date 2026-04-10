@@ -23,18 +23,19 @@
         .tab-content { display: none; flex-direction: column; height: 100%; }
         .tab-content.active { display: flex; animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-overlay { position: absolute; inset: 0; background: rgba(0, 36, 61, 0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 36, 61, 0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
         
         /* Custom Animations */
         @keyframes pulse-border { 0% { border-color: rgba(245, 158, 11, 0.4); } 50% { border-color: rgba(245, 158, 11, 1); } 100% { border-color: rgba(245, 158, 11, 0.4); } }
         .pending-highlight { border-left-width: 4px !important; border-left-color: #f59e0b !important; animation: pulse-border 2s infinite; }
         
-        #global-loading { position: absolute; inset: 0; background: #f8fafc; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #global-loading { position: absolute; inset: 0; background: #f8fafc; z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
         /* Custom Input */
-        .input-field { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
+        .input-field { width: 100%; padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 12px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
         .input-field:focus { border-color: #4299e1; background: white; box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1); }
+        .input-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; margin-left: 4px; }
     </style>
 </head>
 <body>
@@ -58,98 +59,101 @@
             <button onclick="window.location.replace('index.html')" class="w-full bg-[#00243d] text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
         </div>
 
-        <!-- Header (Maersk Navy Blue) -->
-        <header class="bg-[#00243d] px-5 py-5 text-white rounded-b-[32px] shadow-lg shrink-0 text-center relative z-10 border-b-4 border-sky-500">
-            <div class="absolute top-4 right-4">
-                <button onclick="logout()" class="text-[10px] bg-rose-600 border border-rose-500 px-2.5 py-1.5 rounded-lg opacity-90 hover:bg-rose-700 transition-colors font-bold flex items-center gap-1"><i data-lucide="log-out" class="w-3 h-3"></i> ออก</button>
+        <!-- Header ย่อขนาดให้เล็กที่สุด -->
+        <header class="bg-[#00243d] px-4 py-3 text-white rounded-b-2xl shadow-md shrink-0 relative z-10 border-b-2 border-sky-500 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-sky-900/50 p-1.5 rounded-lg border border-sky-500/50">
+                    <i data-lucide="users" class="w-4 h-4 text-sky-300"></i>
+                </div>
+                <div class="flex flex-col text-left">
+                    <h1 class="text-[13px] font-black tracking-wide leading-tight">HR PORTAL</h1>
+                    <span id="hr-name-display" class="text-[10px] font-medium text-sky-200 leading-tight truncate max-w-[150px]">กำลังโหลด...</span>
+                </div>
             </div>
-            <h1 class="text-xl font-black tracking-wide flex items-center justify-center gap-2 mt-2">
-                <i data-lucide="users" class="w-6 h-6 text-sky-400"></i> HR <span class="text-sky-400">PORTAL</span>
-            </h1>
-            <p id="hr-name-display" class="text-sm font-bold mt-1 text-white uppercase tracking-widest bg-sky-900/50 inline-block px-4 py-1 rounded-full border border-sky-500/50 shadow-sm">กำลังโหลด...</p>
-            <p id="current-date" class="text-[10px] text-sky-200 mt-2 font-mono">ประจำวันที่ ...</p>
+            <button onclick="logout()" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 px-2.5 py-1.5 rounded-lg transition shadow-sm border border-rose-500 flex items-center gap-1 shrink-0">
+                <i data-lucide="log-out" class="w-3 h-3"></i> ออก
+            </button>
         </header>
 
         <!-- Main Content Area -->
         <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll pb-4">
             
             <!-- TAB 1: คำขอกำลังคน (Requests) -->
-            <div id="view-requests" class="tab-content active p-4 space-y-4">
-                
-                <!-- Dashboard สรุปยอด -->
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex justify-between items-center">
+            <div id="view-requests" class="tab-content active p-3 space-y-3">
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
                     <div>
                         <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><i data-lucide="inbox" class="w-4 h-4 text-sky-600"></i> คำขอกำลังคน</h2>
-                        <p class="text-[10px] text-slate-500 leading-tight mt-1">รายการรอจัดสรรโควต้าให้ Subcontract</p>
+                        <p class="text-[9px] text-slate-500 leading-tight mt-1">รายการรอจัดสรรโควต้าให้ Subcontract</p>
                     </div>
-                    <div class="text-right bg-amber-50 px-3 py-2 rounded-2xl border border-amber-200 shadow-sm">
-                        <p class="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> รอจัดสรร</p>
-                        <h3 id="pending-req-count" class="text-2xl font-black text-amber-600 leading-none mt-1">0</h3>
+                    <div class="text-right bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+                        <p class="text-[9px] font-bold text-amber-700 uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> รอจัดสรร</p>
+                        <h3 id="pending-req-count" class="text-xl font-black text-amber-600 leading-none mt-1">0</h3>
                     </div>
                 </div>
                 
-                <div id="requests-list" class="space-y-3 pb-4">
+                <div id="requests-list" class="space-y-2.5 pb-4">
                     <!-- รายการคำขอจะแสดงที่นี่ -->
                 </div>
             </div>
 
             <!-- TAB 2: จัดการพนักงาน (Employee Management) -->
-            <div id="view-employees" class="tab-content p-4 space-y-4">
+            <div id="view-employees" class="tab-content p-3 flex flex-col h-full">
                 
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 mb-2">
-                    <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-                        <i data-lucide="users-cog" class="w-4 h-4 text-[#00243d]"></i> ค้นหาและจัดการพนักงาน
-                    </h2>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-2 shrink-0">
                     <div class="relative">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-                        <input type="text" id="search-emp" placeholder="พิมพ์ชื่อ, บริษัท, แผนก หรือเลขบัตร..." class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-sky-500 text-sm transition-colors">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2"></i>
+                        <input type="text" id="search-emp" placeholder="พิมพ์ชื่อ, บริษัท หรือ แผนก..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-sky-500 text-xs transition-colors">
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center px-1 overflow-x-auto hide-scroll pb-1">
-                    <div class="flex gap-2 min-w-max">
+                <div class="w-full overflow-x-auto hide-scroll mb-2 shrink-0">
+                    <div class="flex gap-2 min-w-max px-1 pb-1">
                         <button onclick="setEmpFilter('all')" id="filter-emp-all" class="text-[10px] font-bold px-3 py-1.5 bg-[#00243d] text-white rounded-lg shadow-sm transition-all border border-[#00243d]">ทั้งหมด</button>
                         <button onclick="setEmpFilter('approved')" id="filter-emp-approved" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200">ใช้งาน</button>
-                        <button onclick="setEmpFilter('pending')" id="filter-emp-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200">รออนุมัติ</button>
+                        <button onclick="setEmpFilter('pending')" id="filter-emp-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 flex items-center gap-1">รออนุมัติ <span id="badge-pending" class="bg-amber-500 text-white px-1.5 rounded-full text-[8px] hidden">0</span></button>
                         <button onclick="setEmpFilter('banned')" id="filter-emp-banned" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200">แบล็คลิสต์</button>
                     </div>
                 </div>
 
-                <div id="employee-list" class="space-y-3 pb-4">
+                <div id="employee-list" class="space-y-2.5 pb-4 flex-grow overflow-y-auto hide-scroll">
                     <!-- รายชื่อพนักงานจะแสดงที่นี่ -->
                 </div>
             </div>
 
             <!-- TAB 3: ส่งออกข้อมูล (Export) -->
-            <div id="view-export" class="tab-content p-4 space-y-4">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
-                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mb-4 mx-auto">
-                        <i data-lucide="file-spreadsheet" class="w-8 h-8"></i>
+            <div id="view-export" class="tab-content p-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mt-2">
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mb-3 mx-auto">
+                        <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800 mb-1">ดาวน์โหลดรายงานพนักงาน</h2>
-                    <p class="text-xs text-slate-500 mb-6">ส่งออกรายชื่อและข้อมูลพนักงานซับคอนแทรคทั้งหมดเป็นไฟล์ Excel (CSV)</p>
+                    <h2 class="text-base font-bold text-center text-slate-800 mb-1">ดาวน์โหลดรายงานการทำงานจริง</h2>
+                    <p class="text-[10px] text-center text-slate-500 mb-5">ดึงข้อมูลเฉพาะพนักงานที่มาปฏิบัติงานจริงตามช่วงเวลา</p>
                     
-                    <div class="space-y-4 mb-6 text-left">
+                    <div class="space-y-3 mb-5 text-left">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">ลงทะเบียนตั้งแต่</label>
-                                <input type="date" id="exportStartDate" class="input-field py-2 text-xs font-mono">
+                                <label class="input-label">ตั้งแต่วันที่</label>
+                                <input type="date" id="exportStartDate" class="input-field font-mono">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">ถึงวันที่</label>
-                                <input type="date" id="exportEndDate" class="input-field py-2 text-xs font-mono">
+                                <label class="input-label">ถึงวันที่</label>
+                                <input type="date" id="exportEndDate" class="input-field font-mono">
                             </div>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1 block mb-1">บริษัท</label>
-                            <select id="exportCompanySelect" class="input-field py-2.5 text-sm font-medium">
-                                <option value="all">-- ทุกบริษัท --</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="input-label">อาคาร/คลังสินค้า</label>
+                                <select id="exportWarehouseSelect" onchange="updateExportDeptDropdown()" class="input-field"><option value="all">-- ทุกอาคาร --</option></select>
+                            </div>
+                            <div>
+                                <label class="input-label">แผนก</label>
+                                <select id="exportDeptSelect" class="input-field"><option value="all">-- ทุกแผนก --</option></select>
+                            </div>
                         </div>
                     </div>
 
-                    <button onclick="exportToExcel()" class="w-full bg-[#00243d] text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex justify-center items-center gap-2">
-                        <i data-lucide="download" class="w-5 h-5 text-sky-400"></i> ดาวน์โหลดไฟล์ Excel
+                    <button onclick="exportToExcel()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
+                        <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> ดาวน์โหลดรายงาน (CSV)
                     </button>
                 </div>
             </div>
@@ -159,15 +163,15 @@
         <!-- Bottom Navigation -->
         <nav class="bg-white border-t border-slate-200 flex justify-around p-2 shrink-0 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-3xl">
             <button id="nav-requests" onclick="switchMainTab('requests')" class="flex flex-col items-center justify-center w-full p-2 text-[#00243d] transition-colors">
-                <i data-lucide="file-text" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="file-text" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">คำขอกำลังคน</span>
             </button>
             <button id="nav-employees" onclick="switchMainTab('employees')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="users" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">รายชื่อพนักงาน</span>
             </button>
             <button id="nav-export" onclick="switchMainTab('export')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="download-cloud" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="download-cloud" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">ส่งออก</span>
             </button>
         </nav>
@@ -180,17 +184,17 @@
     <!-- Modal: จัดสรรโควต้า (Allocation) -->
     <div id="allocate-modal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="network" class="w-5 h-5 text-sky-600"></i> จัดสรรโควต้าให้ Subcontract
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="network" class="w-4 h-4 text-sky-600"></i> จัดสรรโควต้าให้ Subcontract
                 </h3>
-                <button onclick="toggleModal('allocate-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="toggleModal('allocate-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
+            <div class="p-4 flex-grow overflow-y-auto hide-scroll">
                 
                 <!-- สรุปข้อมูลคำขอ -->
-                <div class="bg-[#00243d] p-4 rounded-2xl mb-4 text-white shadow-md relative overflow-hidden">
+                <div class="bg-[#00243d] p-4 rounded-xl mb-4 text-white shadow-md relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-10"><i data-lucide="building" class="w-24 h-24"></i></div>
                     <h4 id="modal-req-dept" class="text-sm font-bold text-sky-300 mb-2 border-b border-sky-800 pb-2 relative z-10">-</h4>
                     <div class="space-y-1 text-xs relative z-10">
@@ -202,11 +206,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">งบประมาณที่แผนกเสนอมา:</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">งบประมาณที่แผนกเสนอมา:</p>
                     <p id="modal-req-wage" class="text-xs text-emerald-600 bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 font-mono font-bold">-</p>
                 </div>
 
-                <!-- ฟอร์มจัดสรรโควต้าให้บริษัทซับ -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-end">
                         <label class="text-[10px] font-bold text-[#00243d] uppercase">แบ่งโควต้าให้บริษัท (Subcontract)</label>
@@ -217,135 +220,124 @@
                         <!-- แถวจัดสรรจะถูกเพิ่มที่นี่ด้วย JS -->
                     </div>
 
-                    <button onclick="addAllocationRow()" class="w-full py-2.5 border-2 border-dashed border-sky-200 text-sky-600 rounded-xl text-xs font-bold hover:bg-sky-50 transition flex items-center justify-center gap-1 mt-2">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มบริษัทรับงาน
+                    <button onclick="addAllocationRow()" class="w-full py-2 border-2 border-dashed border-sky-200 text-sky-600 rounded-xl text-[11px] font-bold hover:bg-sky-50 transition flex items-center justify-center gap-1 mt-2">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> เพิ่มบริษัทรับงาน
                     </button>
                 </div>
 
-                <div class="mt-5">
+                <div class="mt-4">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">หมายเหตุถึง หัวหน้าแผนก / Subcontract</label>
-                    <textarea id="modal-req-reply" rows="2" placeholder="เช่น กระจายโควต้าให้ 2 บริษัทเรียบร้อยแล้ว" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-sky-500 transition-all text-slate-700"></textarea>
+                    <textarea id="modal-req-reply" rows="2" placeholder="เช่น กระจายโควต้าให้ 2 บริษัทเรียบร้อยแล้ว" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500 transition-all text-slate-700"></textarea>
                 </div>
             </div>
 
-            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
-                <button onclick="saveAllocation()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all flex justify-center items-center gap-2">
+            <div class="p-3 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveAllocation()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
                     <i data-lucide="send" class="w-4 h-4 text-sky-400"></i> ยืนยันการจัดสรรโควต้า
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: จัดการพนักงานแบบครบวงจร (Manage Employee) -->
+    <!-- Modal: จัดการพนักงาน (Manage Employee) -->
     <div id="emp-manage-modal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="user-cog" class="w-5 h-5 text-[#00243d]"></i> จัดการข้อมูลพนักงาน
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="user-cog" class="w-4 h-4 text-[#00243d]"></i> จัดการข้อมูลพนักงาน
                 </h3>
-                <button onclick="toggleModal('emp-manage-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="toggleModal('emp-manage-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
+            <div class="p-4 flex-grow overflow-y-auto hide-scroll">
                 
                 <!-- ข้อมูลส่วนตัว -->
-                <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
-                    <img id="modal-emp-img" src="" class="w-14 h-14 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
+                <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <img id="modal-emp-img" src="" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
                     <div class="flex-1 min-w-0 text-left">
-                        <p id="modal-emp-name" class="font-bold text-sm text-slate-800 truncate"></p>
-                        <p id="modal-emp-idcard" class="text-[10px] text-slate-500 font-mono truncate my-0.5"></p>
+                        <p id="modal-emp-name" class="font-bold text-[13px] text-slate-800 truncate"></p>
+                        <p id="modal-emp-phone" class="text-[10px] text-slate-500 font-mono truncate my-0.5"></p>
                         <p id="modal-emp-comp" class="text-[9px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block"></p>
                     </div>
                 </div>
 
                 <!-- ส่วนที่ 1: จัดการสถานะ -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-5 space-y-3">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i data-lucide="shield" class="w-3 h-3"></i> สถานะการเข้าพื้นที่</p>
-                    <div>
-                        <select id="edit-emp-status" onchange="checkStatusChange()" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 font-medium text-slate-700 shadow-sm">
-                            <option value="pending">รออนุมัติ (Pending)</option>
-                            <option value="approved">ใช้งานปกติ (Active)</option>
-                            <option value="expired">บัตรหมดอายุ (Expired)</option>
-                            <option value="banned" class="text-rose-600 font-bold">ระงับสิทธิ์ (Blacklist)</option>
-                        </select>
-                    </div>
-                    
-                    <!-- โผล่มาเฉพาะเมื่อเลือก Active หรือ Expired -->
-                    <div id="edit-expiry-group">
-                        <label class="text-[9px] font-bold text-slate-500 block mb-1">วันเริ่มงาน - หมดอายุบัตร</label>
-                        <div class="flex gap-2">
-                            <input type="date" id="edit-emp-start" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-sky-500 font-mono text-slate-700 shadow-sm">
-                            <input type="date" id="edit-emp-expiry" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-sky-500 font-mono text-slate-700 shadow-sm">
-                        </div>
-                    </div>
-
-                    <!-- โผล่มาเฉพาะเมื่อเลือก Blacklist -->
-                    <div id="edit-blacklist-group" class="hidden">
-                        <label class="text-[9px] font-bold text-rose-500 block mb-1">สาเหตุการแบล็คลิสต์ *</label>
-                        <textarea id="edit-emp-bl-reason" rows="2" placeholder="ระบุสาเหตุที่ระงับสิทธิ์..." class="w-full p-2 bg-white border border-rose-300 rounded-lg text-sm outline-none focus:border-rose-500 text-slate-700 shadow-sm"></textarea>
-                    </div>
-                </div>
-
-                <!-- ส่วนที่ 2: โอนย้าย / เปลี่ยนตำแหน่ง -->
                 <div class="space-y-3">
-                    <p class="text-[10px] font-bold text-[#00243d] uppercase flex items-center gap-1"><i data-lucide="arrow-right-left" class="w-3 h-3"></i> โอนย้ายสังกัด / เปลี่ยนแผนก</p>
-                    
                     <div>
-                        <label class="text-[10px] font-bold text-slate-500 block mb-1">บริษัทต้นสังกัด (Subcontractor)</label>
-                        <select id="edit-emp-company" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                            <!-- จะถูกเติมด้วย JS -->
+                        <label class="input-label">สถานะการเข้าพื้นที่ <span class="text-rose-500">*</span></label>
+                        <select id="edit-emp-status" onchange="checkStatusChange()" class="input-field font-bold">
+                            <option value="pending" class="text-amber-600">รออนุมัติ (Pending)</option>
+                            <option value="approved" class="text-emerald-600">ใช้งานปกติ (Active)</option>
+                            <option value="expired" class="text-slate-600">บัตรหมดอายุ (Expired)</option>
+                            <option value="banned" class="text-rose-600">ระงับสิทธิ์ (Blacklist)</option>
                         </select>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 block mb-1">แผนก</label>
-                            <select id="edit-emp-dept" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                                <!-- จะถูกเติมด้วย JS -->
-                            </select>
+                    <div id="edit-blacklist-group" class="hidden">
+                        <label class="input-label text-rose-600">สาเหตุการแบล็คลิสต์ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="edit-emp-bl-reason" placeholder="ระบุสาเหตุที่ระงับสิทธิ์..." class="input-field border-rose-200 focus:border-rose-500">
+                    </div>
+
+                    <div id="approve-group" class="space-y-3">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <label class="input-label">บริษัทต้นสังกัด (Subcontractor)</label>
+                            <select id="edit-emp-company" class="input-field mb-2"></select>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="input-label">แผนก</label>
+                                    <select id="edit-emp-dept" class="input-field"></select>
+                                </div>
+                                <div>
+                                    <label class="input-label">ตำแหน่ง</label>
+                                    <select id="edit-emp-pos" class="input-field"></select>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 block mb-1">ตำแหน่งงาน</label>
-                            <select id="edit-emp-pos" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                                <!-- จะถูกเติมด้วย JS -->
-                            </select>
+
+                        <div id="edit-expiry-group" class="grid grid-cols-2 gap-2 bg-sky-50 p-2.5 rounded-xl border border-sky-100">
+                            <div>
+                                <label class="input-label text-sky-700">เริ่มงานวันที่</label>
+                                <input type="date" id="edit-emp-start" class="input-field font-mono">
+                            </div>
+                            <div>
+                                <label class="input-label text-rose-600">หมดอายุบัตร</label>
+                                <input type="date" id="edit-emp-expiry" class="input-field font-mono border-rose-200">
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
-                <button onclick="saveEmployee()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4 text-sky-400"></i> บันทึกข้อมูล
+            <div class="p-3 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveEmployee()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-1.5 text-[13px]">
+                    <i data-lucide="save" class="w-3.5 h-3.5 text-sky-400"></i> บันทึกข้อมูล
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: ดูประวัติพนักงานแบบรวม (Integrated History) -->
+    <!-- Modal: ดูประวัติ (History) -->
     <div id="history-modal" class="modal-overlay">
-        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="text-lg font-bold text-slate-800">ประวัติการทำงาน</h3>
-                <button onclick="toggleModal('history-modal', false)" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-5 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5"><i data-lucide="history" class="w-4 h-4 text-sky-600"></i> ประวัติการทำงาน</h3>
+                <button onclick="toggleModal('history-modal', false)" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-100 shrink-0">
-                <img id="hist-img" src="" class="w-16 h-16 rounded-full object-cover bg-slate-200 border-2 border-sky-100 shadow-sm">
+            <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 shrink-0">
+                <img id="hist-img" src="" class="w-10 h-10 rounded-full object-cover bg-slate-200 border border-sky-100 shadow-sm">
                 <div class="flex-1 min-w-0">
-                    <p id="hist-name" class="font-bold text-base text-slate-800 truncate"></p>
-                    <p id="hist-details" class="text-[10px] text-slate-500 font-medium truncate mt-0.5"></p>
-                    <p id="hist-avg" class="text-[10px] text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block font-bold mt-1"></p>
+                    <p id="hist-name" class="font-bold text-[13px] text-slate-800 truncate"></p>
+                    <p id="hist-details" class="text-[9px] text-slate-500 font-medium truncate mt-0.5"></p>
+                    <p id="hist-avg" class="text-[9px] text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block font-bold mt-1"></p>
                 </div>
             </div>
 
-            <div class="flex-grow overflow-y-auto hide-scroll pr-1 space-y-4">
-                <div>
-                    <h4 class="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 mb-2"><i data-lucide="history" class="w-3 h-3"></i> ข้อมูลประวัติการทำงานและผลประเมิน</h4>
-                    <div id="hist-unified-list" class="space-y-3">
-                        <!-- ข้อมูลประวัติการทำงานแบบรวมจะแสดงที่นี่ -->
-                    </div>
+            <div class="flex-grow overflow-y-auto hide-scroll space-y-3">
+                <div id="hist-unified-list" class="space-y-2">
+                    <!-- ประวัติจะแสดงที่นี่ -->
                 </div>
             </div>
         </div>
@@ -370,10 +362,10 @@
         const hrUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
         
         let hrData = null;
-        let masterData = { companies: {}, depts: {}, positions: {} };
+        let masterData = { companies: {}, depts: {}, positions: {}, warehouses: {} };
         let allRequests = [];
         let allEmployees = [];
-        let empFilterState = 'all'; // all | approved | pending | banned
+        let empFilterState = 'all'; 
         let currentReqId = null;
         let currentEmpId = null;
         let totalRequestedAmount = 0;
@@ -415,27 +407,33 @@
         }
 
         async function loadMasterData() {
-            const [compSnap, deptSnap, posSnap] = await Promise.all([
+            const [compSnap, deptSnap, posSnap, whSnap] = await Promise.all([
                 db.collection("companies").orderBy("name").get(),
                 db.collection("departments").orderBy("name").get(),
-                db.collection("positions").orderBy("name").get()
+                db.collection("positions").orderBy("name").get(),
+                db.collection("warehouses").orderBy("name").get()
             ]);
 
             const editComp = document.getElementById("edit-emp-company");
-            const exportComp = document.getElementById("exportCompanySelect");
+            const exportWh = document.getElementById("exportWarehouseSelect");
+            
             editComp.innerHTML = '<option value="">-- เลือกบริษัท --</option>';
-            exportComp.innerHTML = '<option value="all">-- ทุกบริษัท --</option>';
+            exportWh.innerHTML = '<option value="all">-- ทุกอาคาร --</option>';
+
+            whSnap.forEach(doc => {
+                masterData.warehouses[doc.id] = doc.data().name;
+                exportWh.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+
             compSnap.forEach(doc => {
                 masterData.companies[doc.id] = doc.data().name;
-                const opt = `<option value="${doc.id}">${doc.data().name}</option>`;
-                editComp.innerHTML += opt;
-                exportComp.innerHTML += opt;
+                editComp.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
             });
 
             const editDept = document.getElementById("edit-emp-dept");
             editDept.innerHTML = '<option value="">-- เลือกแผนก --</option>';
             deptSnap.forEach(doc => {
-                masterData.depts[doc.id] = doc.data().name;
+                masterData.depts[doc.id] = { name: doc.data().name, warehouseId: doc.data().warehouseId };
                 editDept.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
             });
 
@@ -444,6 +442,19 @@
             posSnap.forEach(doc => {
                 masterData.positions[doc.id] = doc.data().name;
                 editPos.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+            });
+        }
+
+        window.updateExportDeptDropdown = function() {
+            const whId = document.getElementById('exportWarehouseSelect').value;
+            const deptSelect = document.getElementById('exportDeptSelect');
+            deptSelect.innerHTML = '<option value="all">-- ทุกแผนก --</option>';
+            if(!whId || whId === 'all') return;
+
+            Object.entries(masterData.depts).forEach(([id, dept]) => {
+                if(dept.warehouseId === whId) {
+                    deptSelect.innerHTML += `<option value="${id}">${dept.name}</option>`;
+                }
             });
         }
 
@@ -465,7 +476,7 @@
             let pendingCount = 0;
 
             if (allRequests.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm border border-dashed border-slate-200 rounded-3xl">ไม่มีคำขอกำลังคนในระบบ</div>';
+                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm border border-dashed border-slate-200 rounded-3xl bg-white">ไม่มีคำขอกำลังคนในระบบ</div>';
                 document.getElementById('pending-req-count').innerText = 0;
                 return;
             }
@@ -489,7 +500,7 @@
                     cardHighlight = 'pending-highlight bg-amber-50/20'; 
                 }
 
-                const deptName = masterData.depts[r.deptId] || 'ไม่ระบุแผนก';
+                const deptName = masterData.depts[r.deptId]?.name || 'ไม่ระบุแผนก';
                 const startStr = r.startDate ? new Date(r.startDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : '-';
                 const endStr = r.endDate ? new Date(r.endDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : '-';
 
@@ -504,13 +515,13 @@
                 }
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
                         <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
                             <div>
-                                <h4 class="font-bold text-sm text-[#00243d]">${deptName}</h4>
-                                <p class="text-[10px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
+                                <h4 class="font-bold text-[13px] text-[#00243d]">${deptName}</h4>
+                                <p class="text-[9px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
+                            <span class="text-[9px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
                                 <i data-lucide="${statusIcon}" class="w-3 h-3"></i> ${statusText}
                             </span>
                         </div>
@@ -526,8 +537,8 @@
                         ${r.hrReply ? `<div class="bg-sky-50 p-2 rounded-lg border border-sky-100 mt-2 mb-2"><p class="text-[10px] text-sky-800 italic flex items-start gap-1"><i data-lucide="check-square" class="w-3 h-3 mt-0.5 shrink-0"></i> "HR: ${r.hrReply}"</p></div>` : ''}
                         ${r.cancelReason ? `<div class="bg-rose-50 p-2 rounded-lg border border-rose-100 mt-2 mb-2"><p class="text-[10px] text-rose-800 italic flex items-start gap-1"><i data-lucide="info" class="w-3 h-3 mt-0.5 shrink-0"></i> "เหตุผล: ${r.cancelReason}"</p></div>` : ''}
                         
-                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-3 bg-[#00243d] text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
-                            <i data-lucide="network" class="w-3 h-3 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
+                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-2 bg-[#00243d] text-white text-[11px] font-bold py-2 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
+                            <i data-lucide="network" class="w-3.5 h-3.5 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
                         </button>
                     </div>
                 `;
@@ -542,7 +553,7 @@
             currentReqId = id;
             totalRequestedAmount = req.amount;
 
-            document.getElementById('modal-req-dept').innerText = masterData.depts[req.deptId] || 'ไม่ระบุ';
+            document.getElementById('modal-req-dept').innerText = masterData.depts[req.deptId]?.name || 'ไม่ระบุ';
             document.getElementById('modal-req-camp').innerText = req.campaignName;
             
             const startStr = req.startDate ? new Date(req.startDate).toLocaleDateString('th-TH', {month:'short', day:'numeric'}) : '-';
@@ -585,7 +596,7 @@
                     ${compOptions}
                 </select>
                 <div class="flex items-center gap-1 shrink-0">
-                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-16 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
+                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-14 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
                     <span class="text-[10px] text-slate-400 font-bold">คน</span>
                     <button onclick="this.parentElement.parentElement.remove(); calculateRemaining();" class="p-1.5 text-rose-400 hover:bg-rose-50 rounded-lg transition ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
@@ -656,15 +667,27 @@
             }
         }
 
-
         // ==========================================
         // TAB 2: Employee Management
         // ==========================================
         function listenToEmployees() {
             db.collection("users").where("role", "==", "visitor").onSnapshot(snap => {
                 allEmployees = [];
-                snap.forEach(doc => allEmployees.push({ id: doc.id, ...doc.data() }));
+                let pendingCount = 0;
+                snap.forEach(doc => {
+                    const u = doc.data(); u.id = doc.id;
+                    allEmployees.push(u);
+                    if(u.status === 'pending') pendingCount++;
+                });
                 allEmployees.sort((a, b) => (b.registeredAt?.seconds || 0) - (a.registeredAt?.seconds || 0));
+                
+                const pBadge = document.getElementById('badge-pending');
+                if(pBadge) {
+                    pBadge.innerText = pendingCount;
+                    if(pendingCount > 0) pBadge.classList.remove('hidden');
+                    else pBadge.classList.add('hidden');
+                }
+                
                 renderEmployees();
             });
         }
@@ -683,16 +706,15 @@
             if (keyword) {
                 filtered = filtered.filter(emp => {
                     const cName = masterData.companies[emp.companyId]?.toLowerCase() || '';
-                    const dName = masterData.depts[emp.departmentId]?.toLowerCase() || '';
+                    const dName = masterData.depts[emp.departmentId]?.name?.toLowerCase() || '';
                     return (emp.fullname?.toLowerCase().includes(keyword) || 
                             cName.includes(keyword) ||
-                            dName.includes(keyword) ||
-                            emp.idCard?.includes(keyword));
+                            dName.includes(keyword));
                 });
             }
 
             if (filtered.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">ไม่พบรายชื่อพนักงาน</div>';
+                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl bg-white mt-1">ไม่พบรายชื่อพนักงาน</div>';
                 return;
             }
 
@@ -700,36 +722,36 @@
                 const isBL = emp.status === 'banned';
                 
                 let statusBadge = '';
-                if(emp.status === 'approved') statusBadge = '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
-                else if(emp.status === 'pending') statusBadge = '<span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
-                else if(emp.status === 'expired') statusBadge = '<span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
-                else if(emp.status === 'banned') statusBadge = '<span class="text-[9px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
+                if(emp.status === 'approved') statusBadge = '<span class="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
+                else if(emp.status === 'pending') statusBadge = '<span class="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
+                else if(emp.status === 'expired') statusBadge = '<span class="text-[8px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
+                else if(emp.status === 'banned') statusBadge = '<span class="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
 
                 const compStr = masterData.companies[emp.companyId] || 'ไม่ระบุ';
-                const deptStr = masterData.depts[emp.departmentId] || 'ไม่ระบุ';
+                const deptStr = masterData.depts[emp.departmentId]?.name || 'ไม่ระบุ';
                 const posStr = masterData.positions[emp.positionId] || 'ไม่ระบุ';
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border ${isBL ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'} flex flex-col hover:border-sky-300 transition-colors">
-                        <div class="flex items-start gap-3">
-                            <img src="${emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150')}" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0 ${isBL ? 'grayscale opacity-80' : ''}">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border ${isBL ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'} flex flex-col hover:border-sky-300 transition-colors">
+                        <div class="flex items-start gap-2.5 border-b border-slate-50 pb-2">
+                            <img src="${emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150')}" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0 ${isBL ? 'grayscale opacity-80' : ''}">
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-sm ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight">${emp.fullname}</h4>
+                                    <h4 class="font-bold text-[12px] ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight pr-1">${emp.fullname}</h4>
                                     ${statusBadge}
                                 </div>
-                                <p class="text-[10px] text-slate-500 truncate my-0.5">${compStr} | ${deptStr} | ${posStr}</p>
-                                <p class="text-[10px] text-slate-400 mt-1">ID: ${emp.idCard||'-'} | Tel: ${emp.phone||'-'}</p>
+                                <p class="text-[9px] text-slate-500 truncate my-0.5">${compStr} | ${deptStr} | ${posStr}</p>
+                                <p class="text-[9px] text-slate-400">📞 ${emp.phone||'-'} ${emp.vehicle ? '| 🚗 '+emp.vehicle : ''}</p>
                             </div>
                         </div>
-                        ${isBL && emp.reason ? `<div class="mt-2 bg-rose-100 p-2 rounded-lg border border-rose-200"><p class="text-[10px] text-rose-700 font-medium leading-tight"><b class="uppercase">เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
+                        ${isBL && emp.reason ? `<div class="mt-1.5 bg-rose-50 p-1.5 rounded-md border border-rose-100"><p class="text-[9px] text-rose-600 font-medium leading-tight"><b>เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
                         
-                        <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
-                                <i data-lucide="history" class="w-3 h-3"></i> ดูประวัติ
+                        <div class="flex gap-2 mt-2 pt-2 border-t border-slate-100">
+                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
+                                <i data-lucide="history" class="w-3 h-3"></i> ประวัติ
                             </button>
-                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
-                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการข้อมูล
+                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
+                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการ
                             </button>
                         </div>
                     </div>
@@ -762,9 +784,8 @@
             if(!emp) return;
             currentEmpId = uid;
 
-            document.getElementById('modal-emp-img').src = emp.photoUrl || 'https://via.placeholder.com/150';
+            document.getElementById('modal-emp-img').src = emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150');
             document.getElementById('modal-emp-name').innerText = emp.fullname;
-            document.getElementById('modal-emp-idcard').innerText = `ID: ${emp.idCard||'-'}`;
             document.getElementById('modal-emp-phone').innerText = `Tel: ${emp.phone||'-'}`;
             
             document.getElementById('edit-emp-status').value = emp.status;
@@ -775,6 +796,9 @@
             document.getElementById('edit-emp-company').value = emp.companyId || '';
             document.getElementById('edit-emp-dept').value = emp.departmentId || '';
             document.getElementById('edit-emp-pos').value = emp.positionId || '';
+            
+            const compStr = masterData.companies[emp.companyId] || 'ยังไม่สังกัด';
+            document.getElementById('modal-emp-comp').innerText = compStr;
 
             checkStatusChange();
             toggleModal('emp-manage-modal', true);
@@ -784,14 +808,17 @@
             const status = document.getElementById('edit-emp-status').value;
             const expGroup = document.getElementById('edit-expiry-group');
             const blGroup = document.getElementById('edit-blacklist-group');
+            const approveGroup = document.getElementById('approve-group');
 
             expGroup.classList.add('hidden');
             blGroup.classList.add('hidden');
+            approveGroup.classList.remove('hidden');
 
             if(status === 'approved' || status === 'expired') {
                 expGroup.classList.remove('hidden');
             } else if(status === 'banned') {
                 blGroup.classList.remove('hidden');
+                approveGroup.classList.add('hidden');
             }
         }
 
@@ -834,10 +861,10 @@
             const emp = allEmployees.find(e => e.id === uid);
             if(!emp) return;
 
-            document.getElementById('hist-img').src = emp.photoUrl || 'https://via.placeholder.com/150';
+            document.getElementById('hist-img').src = emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150');
             document.getElementById('hist-name').innerText = emp.fullname;
             const comp = masterData.companies[emp.companyId] || 'ไม่ระบุ';
-            const dept = masterData.depts[emp.departmentId] || 'ไม่ระบุ';
+            const dept = masterData.depts[emp.departmentId]?.name || 'ไม่ระบุ';
             document.getElementById('hist-details').innerText = `${comp} | ${dept}`;
             
             const unifiedList = document.getElementById('hist-unified-list');
@@ -890,9 +917,9 @@
                         `;
                     }
 
-                    const dName = masterData.depts[h.deptId] || '-';
+                    const dName = masterData.depts[h.deptId]?.name || '-';
                     unifiedList.innerHTML += `
-                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl shadow-sm">
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl shadow-sm">
                             <div class="flex justify-between items-start mb-1.5">
                                 <span class="text-xs font-bold text-[#00243d]"><i data-lucide="calendar" class="w-3 h-3 inline-block -mt-0.5 text-sky-500"></i> ${h.date}</span>
                                 <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${statusColor}">${sText}</span>
@@ -912,64 +939,74 @@
         // ==========================================
         // TAB 3: Export Excel
         // ==========================================
-        function exportToExcel() {
-            if (allEmployees.length === 0) return Swal.fire('ไม่มีข้อมูล', 'ไม่พบรายชื่อพนักงานในระบบ', 'info');
-
+        window.exportToExcel = async function() {
             const startDateInput = document.getElementById("exportStartDate").value;
             const endDateInput = document.getElementById("exportEndDate").value;
-            const selectedComp = document.getElementById("exportCompanySelect").value;
+            const selectedWh = document.getElementById("exportWarehouseSelect").value;
+            const selectedDept = document.getElementById("exportDeptSelect").value;
 
-            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
-            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
+            if (!startDateInput || !endDateInput) {
+                return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกตั้งแต่วันที่ และ ถึงวันที่', 'warning');
+            }
 
-            let exportUsers = allEmployees.filter(u => {
-                if (selectedComp !== "all" && u.companyId !== selectedComp) return false;
-                if (startDate || endDate) {
-                    if (!u.registeredAt) return false; 
-                    const regDate = u.registeredAt.toDate();
-                    if (startDate && regDate < startDate) return false;
-                    if (endDate && regDate > endDate) return false;
+            Swal.fire({title:'กำลังเตรียมไฟล์...', timer:2000, didOpen: () => Swal.showLoading()});
+
+            try {
+                // ดึงข้อมูลการทำงานจริง
+                const snap = await db.collection("daily_records")
+                    .where("date", ">=", startDateInput)
+                    .where("date", "<=", endDateInput)
+                    .get();
+
+                if (snap.empty) {
+                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีประวัติคนมาทำงานในช่วงวันที่เลือก', 'info');
                 }
-                return true;
-            });
 
-            if (exportUsers.length === 0) return Swal.fire('ไม่พบข้อมูล', 'ไม่มีพนักงานที่ตรงกับเงื่อนไขที่คุณเลือก', 'info');
+                let records = [];
+                snap.forEach(doc => records.push(doc.data()));
 
-            Swal.fire({title:'กำลังเตรียมไฟล์...', timer:1000, didOpen: () => Swal.showLoading()});
+                let exportRecords = records.filter(r => {
+                    const u = allEmployees.find(emp => emp.id === r.uid);
+                    if(!u) return false; 
 
-            setTimeout(() => {
-                let csvContent = "\uFEFF"; 
-                csvContent += "วันที่ลงทะเบียน,บริษัท,แผนก,รหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
+                    if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
+                    if (selectedWh !== "all" && selectedDept === "all") {
+                        const deptData = masterData.depts[u.departmentId];
+                        if (!deptData || deptData.warehouseId !== selectedWh) return false;
+                    }
 
-                exportUsers.forEach(user => {
-                    const regDateStr = user.registeredAt ? user.registeredAt.toDate().toLocaleDateString('th-TH') : '-';
+                    return true;
+                });
+
+                if (exportRecords.length === 0) {
+                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลพนักงานที่ตรงกับเงื่อนไขอาคาร/แผนกที่คุณเลือก', 'info');
+                }
+
+                exportRecords.sort((a,b) => {
+                    if (a.date !== b.date) return a.date.localeCompare(b.date);
+                    return (a.scanInTime || "").localeCompare(b.scanInTime || "");
+                });
+
+                let csvContent = "\uFEFFวันที่ทำงาน,ชื่อ-นามสกุล,เบอร์โทรศัพท์,บริษัท,แผนก,ตำแหน่ง,เวลาเข้า(IN),เวลาออก(OUT),คะแนนประเมิน,คอมเมนต์\n";
+
+                exportRecords.forEach(r => {
+                    const user = allEmployees.find(emp => emp.id === r.uid);
                     const compStr = masterData.companies[user.companyId] || '-';
-                    const deptStr = masterData.depts[user.departmentId] || '-';
+                    const deptStr = masterData.depts[user.departmentId]?.name || '-';
                     const posStr = masterData.positions[user.positionId] || '-';
-                    const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'banned' ? 'Banned' : 'รออนุมัติ');
                     
-                    const row = [
-                        `"${regDateStr}"`,
-                        `"${compStr}"`,
-                        `"${deptStr}"`,
-                        user.id,
-                        `"${user.fullname}"`, 
-                        `'${user.phone}`,     
-                        `'${user.idCard||'-'}`,
-                        `"${posStr}"`,
-                        statusStr,
-                        user.startDate || '-',
-                        user.expireDate || '-'
-                    ];
-                    csvContent += row.join(",") + "\n";
+                    csvContent += `"${r.date}","${user.fullname}","'${user.phone}","${compStr}","${deptStr}","${posStr}","${r.scanInTime||'-'}","${r.scanOutTime||'-'}","${r.rating||'-'}","${r.comment||'-'}"\n`;
                 });
 
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `รายงานพนักงาน_${new Date().toISOString().split('T')[0]}.csv`;
+                link.download = `รายงานการทำงาน_${startDateInput}_ถึง_${endDateInput}.csv`;
                 link.click();
-            }, 800);
+
+            } catch(e) {
+                Swal.fire('Error', e.message, 'error');
+            }
         }
 
         // ==========================================
