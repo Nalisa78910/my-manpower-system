@@ -356,7 +356,8 @@
             projectId: "maersk-mcl-v2",
             storageBucket: "maersk-mcl-v2.firebasestorage.app",
             messagingSenderId: "447590679734",
-            appId: "1:447590679734:web:f6881338981f9ae86bd217"
+            appId: "1:447590679734:web:f6881338981f9ae86bd217",
+            measurementId: "G-9CPJJVL2G6"
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -400,6 +401,7 @@
 
                 document.getElementById("hr-name-display").innerText = hrData.fullname;
                 
+                // แก้ไขไม่ใช้ .orderBy เพื่อลดปัญหาการค้าง (Hang) จากแคชหรือ index
                 await loadMasterData();
                 listenToRequests();
                 listenToEmployees();
@@ -417,10 +419,10 @@
 
         async function loadMasterData() {
             const [compSnap, deptSnap, posSnap, whSnap] = await Promise.all([
-                db.collection("companies").orderBy("name").get(),
-                db.collection("departments").orderBy("name").get(),
-                db.collection("positions").orderBy("name").get(),
-                db.collection("warehouses").orderBy("name").get()
+                db.collection("companies").get(),
+                db.collection("departments").get(),
+                db.collection("positions").get(),
+                db.collection("warehouses").get()
             ]);
 
             const editComp = document.getElementById("edit-emp-company");
@@ -474,7 +476,7 @@
             db.collection("quota_requests").onSnapshot(snap => {
                 allRequests = [];
                 snap.forEach(doc => allRequests.push({ id: doc.id, ...doc.data() }));
-                allRequests.sort((a,b) => b.createdAt?.seconds - a.createdAt?.seconds);
+                allRequests.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                 renderRequests();
             });
         }
@@ -601,11 +603,11 @@
             const div = document.createElement('div');
             div.className = "flex gap-2 items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm alloc-row";
             div.innerHTML = `
-                <select class="alloc-comp w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 font-medium">
+                <select class="alloc-comp w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-50 font-medium">
                     ${compOptions}
                 </select>
                 <div class="flex items-center gap-1 shrink-0">
-                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-14 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
+                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-14 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-50 text-center font-bold">
                     <span class="text-[10px] text-slate-400 font-bold">คน</span>
                     <button onclick="this.parentElement.parentElement.remove(); calculateRemaining();" class="p-1.5 text-rose-400 hover:bg-rose-50 rounded-lg transition ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
