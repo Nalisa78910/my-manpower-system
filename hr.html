@@ -73,25 +73,24 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll pb-4">
+        <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll">
             
             <!-- TAB 1: คำขอกำลังคน (Requests) -->
-            <div id="view-requests" class="tab-content active p-4 space-y-4">
+            <div id="view-requests" class="tab-content active p-3 space-y-3 h-full">
                 
                 <!-- Dashboard สรุปยอด -->
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex justify-between items-center">
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center shrink-0">
                     <div>
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1"><i data-lucide="inbox" class="w-4 h-4 text-sky-600"></i> คำขอกำลังคน</h2>
-                        <p class="text-[10px] text-slate-500 leading-tight mt-1">รายการรอจัดสรรโควต้าให้ Subcontract</p>
+                        <h2 class="text-[13px] font-bold text-slate-800 flex items-center gap-1"><i data-lucide="inbox" class="w-4 h-4 text-sky-600"></i> คำขอกำลังคน</h2>
+                        <p class="text-[9px] text-slate-500 leading-tight mt-1">รายการรอจัดสรรโควต้าให้ Subcontract</p>
                     </div>
-                    <div class="text-right bg-amber-50 px-3 py-2 rounded-2xl border border-amber-200 shadow-sm">
-                        <p class="text-[10px] font-bold text-amber-700 uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> รอจัดสรร</p>
-                        <h3 id="pending-req-count" class="text-2xl font-black text-amber-600 leading-none mt-1">0</h3>
+                    <div class="text-right bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 shadow-sm">
+                        <p class="text-[9px] font-bold text-amber-700 uppercase flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> รอจัดสรร</p>
+                        <h3 id="pending-req-count" class="text-xl font-black text-amber-600 leading-none mt-1">0</h3>
                     </div>
                 </div>
                 
-                <div id="requests-list" class="space-y-3 pb-4">
-                <div id="requests-list" class="space-y-2.5 pb-4">
+                <div id="requests-list" class="space-y-2.5 pb-4 flex-grow overflow-y-auto hide-scroll">
                     <!-- รายการคำขอจะแสดงที่นี่ -->
                 </div>
             </div>
@@ -99,7 +98,7 @@
             <!-- TAB 2: จัดการพนักงาน (Employee Management) -->
             <div id="view-employees" class="tab-content p-3 flex flex-col h-full">
                 
-                <!-- ฟิลเตอร์ (ย้ายมาไว้ด้านบนสุด) -->
+                <!-- ฟิลเตอร์ (อยู่ด้านบนสุด) -->
                 <div class="w-full overflow-x-auto hide-scroll mb-2 shrink-0">
                     <div class="flex gap-2 min-w-max pb-1">
                         <button onclick="setEmpFilter('all')" id="filter-emp-all" class="text-[10px] font-bold px-3 py-1.5 bg-[#00243d] text-white rounded-lg shadow-sm transition-all border border-[#00243d] whitespace-nowrap">ทั้งหมด</button>
@@ -123,15 +122,15 @@
             </div>
 
             <!-- TAB 3: ส่งออกข้อมูล (Export) -->
-            <div id="view-export" class="tab-content p-4 space-y-4">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 text-center">
-                    <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mb-4 mx-auto">
-                        <i data-lucide="file-spreadsheet" class="w-8 h-8"></i>
+            <div id="view-export" class="tab-content p-4 justify-center h-full">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mb-3 mx-auto">
+                        <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
                     </div>
-                    <h2 class="text-lg font-bold text-slate-800 mb-1">ดาวน์โหลดรายงานการทำงาน</h2>
-                    <p class="text-xs text-slate-500 mb-6">ดึงข้อมูลเฉพาะพนักงานที่มาปฏิบัติงานจริงตามช่วงเวลา อาคาร และแผนก</p>
+                    <h2 class="text-[15px] font-bold text-center text-slate-800 mb-1">ดาวน์โหลดรายงานการทำงานจริง</h2>
+                    <p class="text-[10px] text-center text-slate-500 mb-5">ดึงข้อมูลเฉพาะพนักงานที่มาปฏิบัติงานจริงตามช่วงเวลา อาคาร และแผนก</p>
                     
-                    <div class="space-y-4 mb-6 text-left">
+                    <div class="space-y-3 mb-5 text-left">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="input-label">ตั้งแต่วันที่</label>
@@ -154,8 +153,8 @@
                         </div>
                     </div>
 
-                    <button onclick="exportToExcel()" class="w-full bg-[#00243d] text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition flex justify-center items-center gap-2">
-                        <i data-lucide="download" class="w-5 h-5 text-sky-400"></i> ดาวน์โหลดไฟล์ Excel (CSV)
+                    <button onclick="exportToExcel()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
+                        <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> ดาวน์โหลดไฟล์ Excel (CSV)
                     </button>
                 </div>
             </div>
@@ -165,15 +164,15 @@
         <!-- Bottom Navigation -->
         <nav class="bg-white border-t border-slate-200 flex justify-around p-2 shrink-0 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-3xl">
             <button id="nav-requests" onclick="switchMainTab('requests')" class="flex flex-col items-center justify-center w-full p-2 text-[#00243d] transition-colors">
-                <i data-lucide="file-text" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="file-text" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">คำขอกำลังคน</span>
             </button>
             <button id="nav-employees" onclick="switchMainTab('employees')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="users" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">รายชื่อพนักงาน</span>
             </button>
             <button id="nav-export" onclick="switchMainTab('export')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="download-cloud" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="download-cloud" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">ส่งออก</span>
             </button>
         </nav>
@@ -186,17 +185,17 @@
     <!-- Modal: จัดสรรโควต้า (Allocation) -->
     <div id="allocate-modal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="network" class="w-5 h-5 text-sky-600"></i> จัดสรรโควต้าให้ Subcontract
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="network" class="w-4 h-4 text-sky-600"></i> จัดสรรโควต้าให้ Subcontract
                 </h3>
-                <button onclick="toggleModal('allocate-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="toggleModal('allocate-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
+            <div class="p-4 flex-grow overflow-y-auto hide-scroll">
                 
                 <!-- สรุปข้อมูลคำขอ -->
-                <div class="bg-[#00243d] p-4 rounded-2xl mb-4 text-white shadow-md relative overflow-hidden">
+                <div class="bg-[#00243d] p-4 rounded-xl mb-4 text-white shadow-md relative overflow-hidden">
                     <div class="absolute -right-4 -bottom-4 opacity-10"><i data-lucide="building" class="w-24 h-24"></i></div>
                     <h4 id="modal-req-dept" class="text-sm font-bold text-sky-300 mb-2 border-b border-sky-800 pb-2 relative z-10">-</h4>
                     <div class="space-y-1 text-xs relative z-10">
@@ -208,11 +207,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-2">งบประมาณที่แผนกเสนอมา:</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">งบประมาณที่แผนกเสนอมา:</p>
                     <p id="modal-req-wage" class="text-xs text-emerald-600 bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 font-mono font-bold">-</p>
                 </div>
 
-                <!-- ฟอร์มจัดสรรโควต้าให้บริษัทซับ -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-end">
                         <label class="text-[10px] font-bold text-[#00243d] uppercase">แบ่งโควต้าให้บริษัท (Subcontract)</label>
@@ -223,52 +221,52 @@
                         <!-- แถวจัดสรรจะถูกเพิ่มที่นี่ด้วย JS -->
                     </div>
 
-                    <button onclick="addAllocationRow()" class="w-full py-2.5 border-2 border-dashed border-sky-200 text-sky-600 rounded-xl text-xs font-bold hover:bg-sky-50 transition flex items-center justify-center gap-1 mt-2">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> เพิ่มบริษัทรับงาน
+                    <button onclick="addAllocationRow()" class="w-full py-2 border-2 border-dashed border-sky-200 text-sky-600 rounded-xl text-[11px] font-bold hover:bg-sky-50 transition flex items-center justify-center gap-1 mt-2">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> เพิ่มบริษัทรับงาน
                     </button>
                 </div>
 
-                <div class="mt-5">
+                <div class="mt-4">
                     <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">หมายเหตุถึง หัวหน้าแผนก / Subcontract</label>
-                    <textarea id="modal-req-reply" rows="2" placeholder="เช่น กระจายโควต้าให้ 2 บริษัทเรียบร้อยแล้ว" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-sky-500 transition-all text-slate-700"></textarea>
+                    <textarea id="modal-req-reply" rows="2" placeholder="เช่น กระจายโควต้าให้ 2 บริษัทเรียบร้อยแล้ว" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-sky-500 transition-all text-slate-700"></textarea>
                 </div>
             </div>
 
-            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
-                <button onclick="saveAllocation()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all flex justify-center items-center gap-2">
+            <div class="p-3 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveAllocation()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
                     <i data-lucide="send" class="w-4 h-4 text-sky-400"></i> ยืนยันการจัดสรรโควต้า
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: จัดการพนักงานแบบครบวงจร (Manage Employee) -->
+    <!-- Modal: จัดการพนักงาน (Manage Employee) -->
     <div id="emp-manage-modal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="user-cog" class="w-5 h-5 text-[#00243d]"></i> จัดการข้อมูลพนักงาน
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="user-cog" class="w-4 h-4 text-[#00243d]"></i> จัดการข้อมูลพนักงาน
                 </h3>
-                <button onclick="toggleModal('emp-manage-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="toggleModal('emp-manage-modal', false)" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
+            <div class="p-4 flex-grow overflow-y-auto hide-scroll">
                 
                 <!-- ข้อมูลส่วนตัว -->
-                <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
-                    <img id="modal-emp-img" src="" class="w-14 h-14 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
+                <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <img id="modal-emp-img" src="" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
                     <div class="flex-1 min-w-0 text-left">
-                        <p id="modal-emp-name" class="font-bold text-sm text-slate-800 truncate"></p>
+                        <p id="modal-emp-name" class="font-bold text-[13px] text-slate-800 truncate"></p>
                         <p id="modal-emp-phone" class="text-[10px] text-slate-500 font-mono truncate my-0.5"></p>
                         <p id="modal-emp-comp" class="text-[9px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block mt-1"></p>
                     </div>
                 </div>
 
                 <!-- ส่วนที่ 1: จัดการสถานะ -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-5 space-y-3">
-                    <p class="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1"><i data-lucide="shield" class="w-3 h-3"></i> สถานะการเข้าพื้นที่ <span class="text-rose-500">*</span></p>
+                <div class="space-y-3">
                     <div>
-                        <select id="edit-emp-status" onchange="checkStatusChange()" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 font-medium text-slate-700 shadow-sm">
+                        <label class="input-label">สถานะการเข้าพื้นที่ <span class="text-rose-500">*</span></label>
+                        <select id="edit-emp-status" onchange="checkStatusChange()" class="input-field font-bold">
                             <option value="pending" class="text-amber-600">รออนุมัติ (Pending)</option>
                             <option value="approved" class="text-emerald-600">ใช้งานปกติ (Active)</option>
                             <option value="expired" class="text-slate-600">บัตรหมดอายุ (Expired)</option>
@@ -276,82 +274,71 @@
                         </select>
                     </div>
                     
-                    <!-- โผล่มาเฉพาะเมื่อเลือก Active หรือ Expired -->
-                    <div id="edit-expiry-group">
-                        <label class="text-[9px] font-bold text-slate-500 block mb-1">วันเริ่มงาน - หมดอายุบัตร</label>
-                        <div class="flex gap-2">
-                            <input type="date" id="edit-emp-start" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-sky-500 font-mono text-slate-700 shadow-sm">
-                            <input type="date" id="edit-emp-expiry" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-[11px] outline-none focus:border-sky-500 font-mono text-slate-700 shadow-sm">
-                        </div>
-                    </div>
-
-                    <!-- โผล่มาเฉพาะเมื่อเลือก Blacklist -->
                     <div id="edit-blacklist-group" class="hidden">
-                        <label class="text-[9px] font-bold text-rose-500 block mb-1">สาเหตุการแบล็คลิสต์ <span class="text-rose-500">*</span></label>
-                        <textarea id="edit-emp-bl-reason" rows="2" placeholder="ระบุสาเหตุที่ระงับสิทธิ์..." class="w-full p-2 bg-white border border-rose-300 rounded-lg text-sm outline-none focus:border-rose-500 text-slate-700 shadow-sm"></textarea>
+                        <label class="input-label text-rose-600">สาเหตุการแบล็คลิสต์ <span class="text-rose-500">*</span></label>
+                        <input type="text" id="edit-emp-bl-reason" placeholder="ระบุสาเหตุที่ระงับสิทธิ์..." class="input-field border-rose-200 focus:border-rose-500">
                     </div>
-                </div>
 
-                <!-- ส่วนที่ 2: โอนย้าย / เปลี่ยนตำแหน่ง -->
-                <div class="space-y-3" id="approve-group">
-                    <p class="text-[10px] font-bold text-[#00243d] uppercase flex items-center gap-1"><i data-lucide="arrow-right-left" class="w-3 h-3"></i> โอนย้ายสังกัด / เปลี่ยนแผนก</p>
-                    
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 block mb-1">บริษัทต้นสังกัด (Subcontractor)</label>
-                        <select id="edit-emp-company" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                            <!-- จะถูกเติมด้วย JS -->
-                        </select>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 block mb-1">แผนก</label>
-                            <select id="edit-emp-dept" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                                <!-- จะถูกเติมด้วย JS -->
-                            </select>
+                    <div id="approve-group" class="space-y-3">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <label class="input-label">บริษัทต้นสังกัด (Subcontractor)</label>
+                            <select id="edit-emp-company" class="input-field mb-2"></select>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="input-label">แผนก</label>
+                                    <select id="edit-emp-dept" class="input-field"></select>
+                                </div>
+                                <div>
+                                    <label class="input-label">ตำแหน่ง</label>
+                                    <select id="edit-emp-pos" class="input-field"></select>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-slate-500 block mb-1">ตำแหน่งงาน</label>
-                            <select id="edit-emp-pos" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-sky-500 text-slate-700">
-                                <!-- จะถูกเติมด้วย JS -->
-                            </select>
+
+                        <div id="edit-expiry-group" class="grid grid-cols-2 gap-2 bg-sky-50 p-2.5 rounded-xl border border-sky-100">
+                            <div>
+                                <label class="input-label text-sky-700">เริ่มงานวันที่</label>
+                                <input type="date" id="edit-emp-start" class="input-field font-mono">
+                            </div>
+                            <div>
+                                <label class="input-label text-rose-600">หมดอายุบัตร</label>
+                                <input type="date" id="edit-emp-expiry" class="input-field font-mono border-rose-200">
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
-                <button onclick="saveEmployee()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4 text-sky-400"></i> บันทึกข้อมูล
+            <div class="p-3 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveEmployee()" class="w-full bg-[#00243d] hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-1.5 text-[13px]">
+                    <i data-lucide="save" class="w-3.5 h-3.5 text-sky-400"></i> บันทึกข้อมูล
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: ดูประวัติพนักงานแบบรวม (Integrated History) -->
+    <!-- Modal: ดูประวัติ (History) -->
     <div id="history-modal" class="modal-overlay">
-        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="text-lg font-bold text-slate-800">ประวัติการทำงาน</h3>
-                <button onclick="toggleModal('history-modal', false)" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-5 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5"><i data-lucide="history" class="w-4 h-4 text-sky-600"></i> ประวัติการทำงาน</h3>
+                <button onclick="toggleModal('history-modal', false)" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="flex items-center gap-4 mb-4 pb-4 border-b border-slate-100 shrink-0">
-                <img id="hist-img" src="" class="w-16 h-16 rounded-full object-cover bg-slate-200 border-2 border-sky-100 shadow-sm">
+            <div class="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100 shrink-0">
+                <img id="hist-img" src="" class="w-10 h-10 rounded-full object-cover bg-slate-200 border border-sky-100 shadow-sm">
                 <div class="flex-1 min-w-0">
-                    <p id="hist-name" class="font-bold text-base text-slate-800 truncate"></p>
-                    <p id="hist-details" class="text-[10px] text-slate-500 font-medium truncate mt-0.5"></p>
-                    <p id="hist-avg" class="text-[10px] text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block font-bold mt-1"></p>
+                    <p id="hist-name" class="font-bold text-[13px] text-slate-800 truncate"></p>
+                    <p id="hist-details" class="text-[9px] text-slate-500 font-medium truncate mt-0.5"></p>
+                    <p id="hist-avg" class="text-[9px] text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 inline-block font-bold mt-1"></p>
                 </div>
             </div>
 
-            <div class="flex-grow overflow-y-auto hide-scroll pr-1 space-y-4">
-                <div>
-                    <h4 class="text-xs font-bold text-slate-500 uppercase flex items-center gap-1 mb-2"><i data-lucide="history" class="w-3 h-3"></i> ข้อมูลประวัติการทำงานและผลประเมิน</h4>
-                    <div id="hist-unified-list" class="space-y-3">
-                        <!-- ข้อมูลประวัติจริงจาก Firebase -->
-                    </div>
+            <div class="flex-grow overflow-y-auto hide-scroll space-y-3">
+                <div id="hist-unified-list" class="space-y-2">
+                    <!-- ประวัติจะแสดงที่นี่ -->
                 </div>
             </div>
         </div>
@@ -383,8 +370,6 @@
         let currentReqId = null;
         let currentEmpId = null;
         let totalRequestedAmount = 0;
-
-        document.getElementById('current-date').innerText = `ประจำวันที่ ${new Date().toLocaleDateString('th-TH', {year:'numeric', month:'long', day:'numeric'})}`;
 
         // ==========================================
         // 2. Initialization
@@ -535,13 +520,13 @@
                 }
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
                         <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
                             <div>
-                                <h4 class="font-bold text-sm text-[#00243d]">${deptName}</h4>
-                                <p class="text-[10px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
+                                <h4 class="font-bold text-[13px] text-[#00243d]">${deptName}</h4>
+                                <p class="text-[9px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
+                            <span class="text-[9px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
                                 <i data-lucide="${statusIcon}" class="w-3 h-3"></i> ${statusText}
                             </span>
                         </div>
@@ -557,8 +542,8 @@
                         ${r.hrReply ? `<div class="bg-sky-50 p-2 rounded-lg border border-sky-100 mt-2 mb-2"><p class="text-[10px] text-sky-800 italic flex items-start gap-1"><i data-lucide="check-square" class="w-3 h-3 mt-0.5 shrink-0"></i> "HR: ${r.hrReply}"</p></div>` : ''}
                         ${r.cancelReason ? `<div class="bg-rose-50 p-2 rounded-lg border border-rose-100 mt-2 mb-2"><p class="text-[10px] text-rose-800 italic flex items-start gap-1"><i data-lucide="info" class="w-3 h-3 mt-0.5 shrink-0"></i> "เหตุผล: ${r.cancelReason}"</p></div>` : ''}
                         
-                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-3 bg-[#00243d] text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
-                            <i data-lucide="network" class="w-3 h-3 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
+                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-2 bg-[#00243d] text-white text-[11px] font-bold py-2 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
+                            <i data-lucide="network" class="w-3.5 h-3.5 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
                         </button>
                     </div>
                 `;
@@ -616,7 +601,7 @@
                     ${compOptions}
                 </select>
                 <div class="flex items-center gap-1 shrink-0">
-                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-16 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
+                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-14 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
                     <span class="text-[10px] text-slate-400 font-bold">คน</span>
                     <button onclick="this.parentElement.parentElement.remove(); calculateRemaining();" class="p-1.5 text-rose-400 hover:bg-rose-50 rounded-lg transition ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
@@ -740,7 +725,7 @@
             }
 
             if (filtered.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm bg-white border border-dashed border-slate-200 rounded-3xl mt-2">ไม่พบรายชื่อพนักงาน</div>';
+                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl bg-white mt-1">ไม่พบรายชื่อพนักงาน</div>';
                 return;
             }
 
@@ -748,36 +733,36 @@
                 const isBL = emp.status === 'banned';
                 
                 let statusBadge = '';
-                if(emp.status === 'approved') statusBadge = '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
-                else if(emp.status === 'pending') statusBadge = '<span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
-                else if(emp.status === 'expired') statusBadge = '<span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
-                else if(emp.status === 'banned') statusBadge = '<span class="text-[9px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
+                if(emp.status === 'approved') statusBadge = '<span class="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
+                else if(emp.status === 'pending') statusBadge = '<span class="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
+                else if(emp.status === 'expired') statusBadge = '<span class="text-[8px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
+                else if(emp.status === 'banned') statusBadge = '<span class="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
 
                 const compStr = masterData.companies[emp.companyId] || 'ไม่ระบุ';
                 const deptStr = masterData.depts[emp.departmentId]?.name || 'ไม่ระบุ';
                 const posStr = masterData.positions[emp.positionId] || 'ไม่ระบุ';
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border ${isBL ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'} flex flex-col hover:border-sky-300 transition-colors">
-                        <div class="flex items-start gap-3">
-                            <img src="${emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150')}" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0 ${isBL ? 'grayscale opacity-80' : ''}">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border ${isBL ? 'border-rose-300 bg-rose-50/30' : 'border-slate-200'} flex flex-col hover:border-sky-300 transition-colors">
+                        <div class="flex items-start gap-2.5 border-b border-slate-50 pb-2">
+                            <img src="${emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150')}" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0 ${isBL ? 'grayscale opacity-80' : ''}">
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-sm ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight">${emp.fullname}</h4>
+                                    <h4 class="font-bold text-[12px] ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight pr-1">${emp.fullname}</h4>
                                     ${statusBadge}
                                 </div>
-                                <p class="text-[10px] text-slate-500 truncate my-0.5">${compStr} | ${deptStr} | ${posStr}</p>
-                                <p class="text-[10px] text-slate-400 mt-1">📞 ${emp.phone||'-'} ${emp.vehicle ? '| 🚗 '+emp.vehicle : ''}</p>
+                                <p class="text-[9px] text-slate-500 truncate my-0.5">${compStr} | ${deptStr} | ${posStr}</p>
+                                <p class="text-[9px] text-slate-400">📞 ${emp.phone||'-'} ${emp.vehicle ? '| 🚗 '+emp.vehicle : ''}</p>
                             </div>
                         </div>
-                        ${isBL && emp.reason ? `<div class="mt-2 bg-rose-100 p-2 rounded-lg border border-rose-200"><p class="text-[10px] text-rose-700 font-medium leading-tight"><b class="uppercase">เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
+                        ${isBL && emp.reason ? `<div class="mt-1.5 bg-rose-50 p-1.5 rounded-md border border-rose-100"><p class="text-[9px] text-rose-600 font-medium leading-tight"><b>เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
                         
-                        <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
-                                <i data-lucide="history" class="w-3 h-3"></i> ดูประวัติ
+                        <div class="flex gap-2 mt-2 pt-2 border-t border-slate-100">
+                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
+                                <i data-lucide="history" class="w-3 h-3"></i> ประวัติ
                             </button>
-                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
-                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการข้อมูล
+                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
+                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการ
                             </button>
                         </div>
                     </div>
@@ -1006,7 +991,7 @@
                 });
 
                 if (exportRecords.length === 0) {
-                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลพนักงานที่ตรงกับเงื่อนไขอาคาร/แผนก/บริษัท ที่คุณเลือก', 'info');
+                    return Swal.fire('ไม่พบข้อมูล', 'ไม่มีข้อมูลพนักงานที่ตรงกับเงื่อนไขอาคาร/แผนกที่คุณเลือก', 'info');
                 }
 
                 exportRecords.sort((a,b) => {
