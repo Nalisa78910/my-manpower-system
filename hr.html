@@ -436,9 +436,11 @@
 
             const editComp = document.getElementById("edit-emp-company");
             const exportWh = document.getElementById("exportWarehouseSelect");
+            const exportComp = document.getElementById("exportCompanySelect");
             
             editComp.innerHTML = '<option value="">-- เลือกบริษัท --</option>';
             exportWh.innerHTML = '<option value="all">-- ทุกอาคาร --</option>';
+            exportComp.innerHTML = '<option value="all">-- ทุกบริษัท --</option>';
 
             whSnap.forEach(doc => {
                 masterData.warehouses[doc.id] = doc.data().name;
@@ -449,6 +451,7 @@
                 masterData.companies[doc.id] = doc.data().name;
                 const opt = `<option value="${doc.id}">${doc.data().name}</option>`;
                 editComp.innerHTML += opt;
+                exportComp.innerHTML += opt;
             });
 
             const editDept = document.getElementById("edit-emp-dept");
@@ -972,6 +975,7 @@
             const endDateInput = document.getElementById("exportEndDate").value;
             const selectedWh = document.getElementById("exportWarehouseSelect").value;
             const selectedDept = document.getElementById("exportDeptSelect").value;
+            const selectedComp = document.getElementById("exportCompanySelect").value;
 
             if (!startDateInput || !endDateInput) {
                 return Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกตั้งแต่วันที่ และ ถึงวันที่', 'warning');
@@ -997,6 +1001,7 @@
                     const u = allEmployees.find(emp => emp.id === r.uid);
                     if(!u) return false; 
 
+                    if (selectedComp !== "all" && u.companyId !== selectedComp) return false;
                     if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
                     if (selectedWh !== "all" && selectedDept === "all") {
                         const deptData = masterData.depts[u.departmentId];
