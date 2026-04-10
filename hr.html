@@ -58,7 +58,7 @@
             </div>
             <h2 class="text-xl font-bold text-slate-800 mb-2">ปฏิเสธการเข้าถึง</h2>
             <p class="text-sm text-slate-500 mb-6">คุณไม่มีสิทธิ์เข้าใช้งานหน้านี้ (เฉพาะฝ่ายบุคคล HR)</p>
-            <button onclick="window.location.replace('./index.html')" class="w-full bg-[#00243d] text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
+            <button onclick="window.location.href='index.html'" class="w-full bg-[#00243d] text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
         </div>
 
         <!-- Header (Maersk Navy Blue) -->
@@ -392,7 +392,8 @@
         // ==========================================
         async function initHRPanel() {
             if (!hrUid) {
-                window.location.replace("./index.html");
+                document.getElementById('global-loading').style.display = "none";
+                document.getElementById('no-access-screen').classList.replace("hidden", "flex");
                 return;
             }
 
@@ -539,13 +540,13 @@
                 }
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border transition-all ${cardHighlight}">
                         <div class="flex justify-between items-start mb-2 border-b border-slate-50 pb-2">
                             <div>
-                                <h4 class="font-bold text-sm text-[#00243d]">${deptName}</h4>
-                                <p class="text-[10px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
+                                <h4 class="font-bold text-[13px] text-[#00243d]">${deptName}</h4>
+                                <p class="text-[9px] text-slate-500 mt-0.5"><i data-lucide="folder" class="w-3 h-3 inline -mt-0.5"></i> ${r.campaignName}</p>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
+                            <span class="text-[9px] font-bold px-2 py-1 rounded-md border ${statusColor} flex items-center gap-1 shrink-0">
                                 <i data-lucide="${statusIcon}" class="w-3 h-3"></i> ${statusText}
                             </span>
                         </div>
@@ -561,8 +562,8 @@
                         ${r.hrReply ? `<div class="bg-sky-50 p-2 rounded-lg border border-sky-100 mt-2 mb-2"><p class="text-[10px] text-sky-800 italic flex items-start gap-1"><i data-lucide="check-square" class="w-3 h-3 mt-0.5 shrink-0"></i> "HR: ${r.hrReply}"</p></div>` : ''}
                         ${r.cancelReason ? `<div class="bg-rose-50 p-2 rounded-lg border border-rose-100 mt-2 mb-2"><p class="text-[10px] text-rose-800 italic flex items-start gap-1"><i data-lucide="info" class="w-3 h-3 mt-0.5 shrink-0"></i> "เหตุผล: ${r.cancelReason}"</p></div>` : ''}
                         
-                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-3 bg-[#00243d] text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
-                            <i data-lucide="network" class="w-3 h-3 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
+                        <button onclick="openAllocateModal('${r.id}')" class="w-full mt-2 bg-[#00243d] text-white text-[11px] font-bold py-2 rounded-xl active:scale-95 transition shadow-sm flex justify-center items-center gap-1 hover:bg-slate-800">
+                            <i data-lucide="network" class="w-3.5 h-3.5 text-sky-400"></i> ${r.status === 'pending' ? 'พิจารณาและจัดสรรโควต้า' : 'ดูการจัดสรรโควต้า'}
                         </button>
                     </div>
                 `;
@@ -620,7 +621,7 @@
                     ${compOptions}
                 </select>
                 <div class="flex items-center gap-1 shrink-0">
-                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-16 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
+                    <input type="number" min="1" value="${amt}" oninput="calculateRemaining()" placeholder="จน." class="alloc-amt w-14 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-sky-500 text-center font-bold">
                     <span class="text-[10px] text-slate-400 font-bold">คน</span>
                     <button onclick="this.parentElement.parentElement.remove(); calculateRemaining();" class="p-1.5 text-rose-400 hover:bg-rose-50 rounded-lg transition ml-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
@@ -752,10 +753,10 @@
                 const isBL = emp.status === 'banned';
                 
                 let statusBadge = '';
-                if(emp.status === 'approved') statusBadge = '<span class="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
-                else if(emp.status === 'pending') statusBadge = '<span class="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
-                else if(emp.status === 'expired') statusBadge = '<span class="text-[9px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
-                else if(emp.status === 'banned') statusBadge = '<span class="text-[9px] bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
+                if(emp.status === 'approved') statusBadge = '<span class="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold border border-emerald-200">ใช้งาน</span>';
+                else if(emp.status === 'pending') statusBadge = '<span class="text-[8px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-200">รออนุมัติ</span>';
+                else if(emp.status === 'expired') statusBadge = '<span class="text-[8px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold border border-slate-300">หมดอายุ</span>';
+                else if(emp.status === 'banned') statusBadge = '<span class="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold border border-rose-200 flex items-center gap-1"><i data-lucide="shield-alert" class="w-2.5 h-2.5"></i> แบล็คลิสต์</span>';
 
                 const compStr = masterData.companies[emp.companyId] || 'ไม่ระบุ';
                 const deptStr = masterData.depts[emp.departmentId]?.name || 'ไม่ระบุ';
@@ -767,21 +768,21 @@
                             <img src="${emp.photoUrl && emp.photoUrl.startsWith('data') ? emp.photoUrl : (emp.photoUrl || 'https://via.placeholder.com/150')}" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0 ${isBL ? 'grayscale opacity-80' : ''}">
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-sm ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight">${emp.fullname}</h4>
+                                    <h4 class="font-bold text-sm ${isBL ? 'text-rose-700 line-through decoration-rose-500' : 'text-slate-800'} truncate leading-tight pr-1">${emp.fullname}</h4>
                                     ${statusBadge}
                                 </div>
                                 <p class="text-[10px] text-slate-500 truncate my-0.5">${compStr} | ${deptStr} | ${posStr}</p>
                                 <p class="text-[10px] text-slate-400 mt-1">📞 ${emp.phone||'-'} ${emp.vehicle ? '| 🚗 '+emp.vehicle : ''}</p>
                             </div>
                         </div>
-                        ${isBL && emp.reason ? `<div class="mt-2 bg-rose-100 p-2 rounded-lg border border-rose-200"><p class="text-[10px] text-rose-700 font-medium leading-tight"><b class="uppercase">เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
+                        ${isBL && emp.reason ? `<div class="mt-1.5 bg-rose-50 p-1.5 rounded-md border border-rose-100"><p class="text-[9px] text-rose-600 font-medium leading-tight"><b>เหตุผลแบน:</b> ${emp.reason}</p></div>` : ''}
                         
                         <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
-                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
+                            <button onclick="openHistoryModal('${emp.id}')" class="flex-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-100 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
                                 <i data-lucide="history" class="w-3 h-3"></i> ดูประวัติ
                             </button>
-                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-2 rounded-xl active:scale-95 transition flex justify-center items-center gap-1">
-                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการข้อมูล
+                            <button onclick="openEmpModal('${emp.id}')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 text-[10px] font-bold py-1.5 rounded-lg active:scale-95 transition flex justify-center items-center gap-1">
+                                <i data-lucide="user-cog" class="w-3 h-3"></i> จัดการ
                             </button>
                         </div>
                     </div>
@@ -1073,7 +1074,7 @@
         window.logout = function() {
             localStorage.removeItem("myAppUserId");
             localStorage.removeItem("myAppRole");
-            window.location.replace("index.html");
+            window.location.href = "index.html";
         }
 
         initHRPanel();
