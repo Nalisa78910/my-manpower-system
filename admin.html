@@ -28,7 +28,7 @@
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
 
         /* Custom Input */
-        .input-field { width: 100%; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
+        .input-field { width: 100%; padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 12px; outline: none; transition: all 0.2s; background: #f8fafc; color: #334155; font-family: inherit;}
         .input-field:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
         .input-label { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; margin-left: 4px; }
 
@@ -56,37 +56,36 @@
             <button onclick="window.location.replace('./index.html')" class="w-full bg-blue-700 text-white font-bold py-4 rounded-xl active:scale-95 transition">กลับหน้าหลัก</button>
         </div>
 
-        <!-- Header -->
-        <header class="bg-gradient-to-r from-blue-800 to-indigo-700 px-5 py-5 text-white rounded-b-3xl shadow-lg shrink-0 relative z-10 border-b-[3px] border-blue-400">
-            <div class="absolute top-4 right-4 flex gap-2">
-                <button onclick="logout()" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 px-2.5 py-1.5 rounded-lg transition shadow-sm border border-rose-500 flex items-center gap-1">
-                    <i data-lucide="log-out" class="w-3 h-3"></i> ออก
-                </button>
+        <!-- Header ย่อขนาดเล็กที่สุด -->
+        <header class="bg-gradient-to-r from-blue-800 to-indigo-700 px-4 py-3 text-white rounded-b-2xl shadow-sm shrink-0 relative z-10 border-b-[3px] border-blue-400 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-blue-900/50 p-1.5 rounded-lg border border-blue-500/50">
+                    <i data-lucide="briefcase" class="w-5 h-5 text-blue-300"></i>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-[13px] font-black tracking-wide leading-tight">Admin Subcontract</h1>
+                    <span id="admin-company" class="text-[11px] font-medium text-blue-200 leading-tight truncate max-w-[200px]">กำลังโหลด...</span>
+                </div>
             </div>
-            <h1 class="text-xl font-black tracking-wide flex items-center gap-2 mt-1">
-                <i data-lucide="briefcase" class="w-6 h-6 text-blue-300"></i> ADMIN <span class="text-blue-300">SUBCON</span>
-            </h1>
-            <p id="admin-name" class="text-xs text-blue-200 mt-1">ยินดีต้อนรับ, กำลังโหลด...</p>
-            <div class="mt-3 inline-block bg-blue-900/50 px-3 py-1.5 rounded-full border border-blue-500/50 shadow-sm flex items-center gap-1.5 w-max max-w-full">
-                <i data-lucide="building" class="w-3.5 h-3.5 text-blue-300 shrink-0"></i>
-                <span id="admin-company" class="text-[11px] font-bold uppercase tracking-wide truncate">สังกัด: กำลังโหลด...</span>
-            </div>
+            <button onclick="logout()" class="text-[10px] font-bold bg-rose-600 hover:bg-rose-700 px-2.5 py-1.5 rounded-lg transition shadow-sm border border-rose-500 flex items-center gap-1 shrink-0">
+                <i data-lucide="log-out" class="w-3 h-3"></i> ออก
+            </button>
         </header>
 
         <!-- Main Content Area -->
         <main class="flex-grow overflow-y-auto bg-slate-50 relative z-0 hide-scroll">
             
             <!-- TAB 1: จัดการพนักงาน -->
-            <div id="tab-staff" class="tab-content active p-4">
+            <div id="tab-staff" class="tab-content active p-3 flex flex-col h-full">
                 
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-3 sticky top-0 z-10">
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-2 shrink-0">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
                         <input type="text" id="search-emp" placeholder="ค้นหาชื่อ หรือ เลขบัตร ปชช..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-xs transition-colors">
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center px-1 overflow-x-auto hide-scroll mb-3">
+                <div class="flex justify-between items-center overflow-x-auto hide-scroll mb-2 shrink-0">
                     <div class="flex gap-2 min-w-max">
                         <button onclick="setEmpFilter('all')" id="filter-all" class="text-[10px] font-bold px-3 py-1.5 bg-blue-700 text-white rounded-lg shadow-sm transition-all border border-blue-700">ทั้งหมด</button>
                         <button onclick="setEmpFilter('pending')" id="filter-pending" class="text-[10px] font-bold px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg transition-all border border-slate-200 flex items-center gap-1">รออนุมัติ <span id="badge-pending" class="bg-amber-500 text-white px-1.5 rounded-full text-[8px]">0</span></button>
@@ -94,43 +93,43 @@
                     </div>
                 </div>
 
-                <div id="staff-list" class="space-y-3 pb-4">
+                <div id="staff-list" class="space-y-2.5 pb-4 flex-grow overflow-y-auto hide-scroll">
                     <!-- รายชื่อพนักงาน -->
                 </div>
             </div>
 
             <!-- TAB 2: โควต้ากำลังคน -->
-            <div id="tab-quota" class="tab-content p-4 space-y-4">
+            <div id="tab-quota" class="tab-content p-3 space-y-3 flex flex-col h-full">
                 
                 <!-- Dashboard โควต้า -->
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 opacity-5"><i data-lucide="pie-chart" class="w-32 h-32 text-blue-500"></i></div>
-                    <h3 class="text-sm font-bold text-slate-800 mb-1 relative z-10">ภาพรวมโควต้าของบริษัท</h3>
-                    <p class="text-[10px] text-slate-500 mb-4 relative z-10">อัตรากำลังที่ได้รับจัดสรรจาก HR ส่วนกลาง</p>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-center relative overflow-hidden shrink-0">
+                    <div class="absolute -right-4 -top-4 opacity-5"><i data-lucide="pie-chart" class="w-24 h-24 text-blue-500"></i></div>
+                    <h3 class="text-[13px] font-bold text-slate-800 mb-0.5 relative z-10">ภาพรวมโควต้าของบริษัท</h3>
+                    <p class="text-[9px] text-slate-500 mb-3 relative z-10">อัตรากำลังที่ได้รับจัดสรรจาก HR</p>
                     
-                    <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden shadow-inner relative z-10 mb-4">
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden shadow-inner relative z-10 mb-3">
                         <div id="quota-progress-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                     
                     <div class="grid grid-cols-3 gap-2 relative z-10">
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                             <p class="text-[9px] font-bold text-slate-500 uppercase">โควต้ารวม</p>
-                            <h4 id="stat-total-quota" class="text-lg font-black text-blue-600">0</h4>
+                            <h4 id="stat-total-quota" class="text-base font-black text-blue-600">0</h4>
                         </div>
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                             <p class="text-[9px] font-bold text-slate-500 uppercase">คนทำงานจริง</p>
-                            <h4 id="stat-active-staff" class="text-lg font-black text-emerald-600">0</h4>
+                            <h4 id="stat-active-staff" class="text-base font-black text-emerald-600">0</h4>
                         </div>
-                        <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                             <p class="text-[9px] font-bold text-slate-500 uppercase">ขาดอีก</p>
-                            <h4 id="stat-missing" class="text-lg font-black text-rose-500">0</h4>
+                            <h4 id="stat-missing" class="text-base font-black text-rose-500">0</h4>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="text-[11px] font-bold text-slate-600 uppercase flex items-center gap-1 mb-2 ml-1"><i data-lucide="inbox" class="w-3.5 h-3.5"></i> งานที่ได้รับมอบหมาย (Allocated Quotas)</h3>
-                    <div id="quota-list" class="space-y-3 pb-6">
+                <div class="flex-grow overflow-y-auto hide-scroll flex flex-col">
+                    <h3 class="text-[11px] font-bold text-slate-600 uppercase flex items-center gap-1 mb-2 ml-1 shrink-0"><i data-lucide="inbox" class="w-3.5 h-3.5"></i> งานที่ได้รับมอบหมาย (Allocated Quotas)</h3>
+                    <div id="quota-list" class="space-y-2 pb-6 flex-grow">
                         <!-- รายการโควต้า -->
                     </div>
                 </div>
@@ -138,14 +137,37 @@
 
             <!-- TAB 3: ส่งออกข้อมูล -->
             <div id="tab-export" class="tab-content p-4">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 mx-auto">
-                        <i data-lucide="file-spreadsheet" class="w-7 h-7"></i>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 mx-auto">
+                        <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
                     </div>
-                    <h2 class="text-base font-bold text-center text-slate-800 mb-1">ดาวน์โหลดข้อมูลพนักงาน</h2>
-                    <p class="text-[10px] text-center text-slate-500 mb-6">ส่งออกรายชื่อพนักงานทั้งหมดที่สังกัดบริษัทของท่านเป็นไฟล์ Excel (CSV)</p>
+                    <h2 class="text-[15px] font-bold text-center text-slate-800 mb-1">ดาวน์โหลดข้อมูลพนักงาน</h2>
+                    <p class="text-[10px] text-center text-slate-500 mb-5">ส่งออกรายชื่อพนักงานทั้งหมดที่สังกัดบริษัทของท่านเป็นไฟล์ Excel (CSV)</p>
                     
-                    <button onclick="exportToExcel()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
+                    <div class="space-y-3 mb-5 text-left">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="input-label">ตั้งแต่ (วันที่ลงทะเบียน)</label>
+                                <input type="date" id="exportStartDate" class="input-field font-mono">
+                            </div>
+                            <div>
+                                <label class="input-label">ถึงวันที่</label>
+                                <input type="date" id="exportEndDate" class="input-field font-mono">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="input-label">อาคาร/คลังสินค้า</label>
+                                <select id="exportWarehouseSelect" onchange="updateExportDeptDropdown()" class="input-field"><option value="all">-- ทุกอาคาร --</option></select>
+                            </div>
+                            <div>
+                                <label class="input-label">แผนก</label>
+                                <select id="exportDeptSelect" class="input-field"><option value="all">-- ทุกแผนก --</option></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="exportToExcel()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2 text-sm">
                         <i data-lucide="download" class="w-4 h-4 text-blue-300"></i> ดาวน์โหลดรายงาน (CSV)
                     </button>
                 </div>
@@ -156,15 +178,15 @@
         <!-- Bottom Navigation -->
         <nav class="bg-white border-t border-slate-200 flex justify-around p-2 shrink-0 relative z-20 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-3xl">
             <button id="nav-staff" onclick="switchTab('staff')" class="flex flex-col items-center justify-center w-full p-2 text-blue-700 transition-colors">
-                <i data-lucide="users" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="users" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">จัดการพนักงาน</span>
             </button>
             <button id="nav-quota" onclick="switchTab('quota')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="pie-chart" class="w-6 h-6 mb-1"></i>
-                <span class="text-[10px] font-bold">โควต้ากำลังคน</span>
+                <i data-lucide="pie-chart" class="w-5 h-5 mb-1"></i>
+                <span class="text-[10px] font-bold">โควต้า</span>
             </button>
             <button id="nav-export" onclick="switchTab('export')" class="flex flex-col items-center justify-center w-full p-2 text-slate-400 transition-colors">
-                <i data-lucide="download" class="w-6 h-6 mb-1"></i>
+                <i data-lucide="download" class="w-5 h-5 mb-1"></i>
                 <span class="text-[10px] font-bold">ส่งออก</span>
             </button>
         </nav>
@@ -177,26 +199,26 @@
     <!-- Modal: จัดการ/อนุมัติ พนักงาน -->
     <div id="manage-modal" class="modal-overlay">
         <div class="bg-white w-full max-w-sm rounded-[32px] shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i> จัดการและอนุมัติ
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[32px] shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5">
+                    <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i> จัดการและอนุมัติ
                 </h3>
-                <button onclick="closeModal('manage-modal')" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeModal('manage-modal')" class="text-slate-400 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="p-5 flex-grow overflow-y-auto hide-scroll">
-                <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
-                    <img id="modal-emp-img" src="" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
+            <div class="p-4 flex-grow overflow-y-auto hide-scroll">
+                <div class="flex items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <img id="modal-emp-img" src="" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shadow-sm shrink-0">
                     <div class="flex-1 min-w-0 text-left">
-                        <p id="modal-emp-name" class="font-bold text-sm text-slate-800 truncate"></p>
-                        <p id="modal-emp-phone" class="text-[10px] text-slate-500 font-mono truncate my-0.5"></p>
+                        <p id="modal-emp-name" class="font-bold text-[13px] text-slate-800 truncate"></p>
+                        <p id="modal-emp-phone" class="text-[9px] text-slate-500 font-mono truncate my-0.5"></p>
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <div>
                         <label class="input-label">สถานะพนักงาน <span class="text-rose-500">*</span></label>
-                        <select id="modal-emp-status" onchange="toggleRejectReason()" class="input-field py-2.5 font-bold">
+                        <select id="modal-emp-status" onchange="toggleRejectReason()" class="input-field font-bold">
                             <option value="pending" class="text-amber-600">⏳ รออนุมัติ (Pending)</option>
                             <option value="approved" class="text-emerald-600">✅ อนุมัติใช้งาน (Active)</option>
                             <option value="rejected" class="text-rose-600">❌ ไม่อนุมัติ / ระงับ (Rejected)</option>
@@ -205,38 +227,44 @@
 
                     <div id="reject-reason-group" class="hidden">
                         <label class="input-label text-rose-600">เหตุผลที่ไม่อนุมัติ <span class="text-rose-500">*</span></label>
-                        <input type="text" id="modal-emp-reason" placeholder="เช่น เอกสารไม่ครบ..." class="input-field py-2.5 border-rose-200 focus:border-rose-500">
+                        <input type="text" id="modal-emp-reason" placeholder="เช่น เอกสารไม่ครบ..." class="input-field border-rose-200 focus:border-rose-500">
                     </div>
 
-                    <div id="approve-group" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
+                    <div id="approve-group" class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                             <div>
-                                <label class="input-label">จัดสรรเข้าแผนก</label>
-                                <select id="modal-emp-dept" class="input-field py-2.5 text-xs"></select>
+                                <label class="input-label">1. อาคาร/คลัง</label>
+                                <select id="modal-emp-warehouse" onchange="updateModalDeptDropdown()" class="input-field"></select>
                             </div>
                             <div>
-                                <label class="input-label">ตำแหน่ง</label>
-                                <select id="modal-emp-pos" class="input-field py-2.5 text-xs"></select>
+                                <label class="input-label">2. จัดสรรเข้าแผนก</label>
+                                <select id="modal-emp-dept" class="input-field">
+                                    <option value="">-- เลือกอาคารก่อน --</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="input-label">3. ตำแหน่ง</label>
+                                <select id="modal-emp-pos" class="input-field"></select>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <div class="grid grid-cols-2 gap-2 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
                             <div>
                                 <label class="input-label text-blue-700">เริ่มงานวันที่</label>
-                                <input type="date" id="modal-emp-start" class="input-field py-2 text-[10px] font-mono">
+                                <input type="date" id="modal-emp-start" class="input-field font-mono">
                             </div>
                             <div>
-                                <label class="input-label text-rose-600">บัตรหมดอายุ</label>
-                                <input type="date" id="modal-emp-expire" class="input-field py-2 text-[10px] font-mono border-rose-200">
+                                <label class="input-label text-rose-600">วันสิ้นสุด/บัตรหมดอายุ</label>
+                                <input type="date" id="modal-emp-expire" class="input-field font-mono border-rose-200">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-4 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
-                <button onclick="saveEmployeeData()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl shadow-lg active:scale-95 transition-all flex justify-center items-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4 text-blue-300"></i> บันทึกข้อมูลพนักงาน
+            <div class="p-3 bg-white border-t border-slate-100 rounded-b-[32px] shrink-0">
+                <button onclick="saveEmployeeData()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-1.5 text-[13px]">
+                    <i data-lucide="save" class="w-3.5 h-3.5 text-blue-300"></i> บันทึกข้อมูล
                 </button>
             </div>
         </div>
@@ -244,14 +272,14 @@
 
     <!-- Modal ดูประวัติ -->
     <div id="history-modal" class="modal-overlay">
-        <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl flex flex-col max-h-[85vh]">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="text-lg font-bold text-slate-800">ประวัติการทำงาน</h3>
-                <button onclick="closeModal('history-modal')" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-5 shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-3 shrink-0">
+                <h3 class="text-[15px] font-bold text-slate-800 flex items-center gap-1.5"><i data-lucide="history" class="w-4 h-4 text-blue-600"></i> ประวัติการทำงาน</h3>
+                <button onclick="closeModal('history-modal')" class="text-slate-400 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full active:scale-90 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="flex-grow overflow-y-auto hide-scroll space-y-4">
-                <div id="hist-list" class="space-y-3">
+            <div class="flex-grow overflow-y-auto hide-scroll space-y-3">
+                <div id="hist-list" class="space-y-2">
                     <!-- ประวัติ -->
                 </div>
             </div>
@@ -277,7 +305,7 @@
         const adminUid = urlParams.get('uid') || localStorage.getItem('myAppUserId');
         
         let adminData = null;
-        let masterData = { depts: {}, positions: {}, companies: {} };
+        let masterData = { depts: {}, positions: {}, companies: {}, warehouses: {} };
         let companyEmployees = [];
         let companyQuotas = [];
         let filterState = 'all';
@@ -303,15 +331,13 @@
                     document.getElementById('no-access-screen').classList.replace("hidden", "flex");
                     return;
                 }
-
-                document.getElementById("admin-name").innerText = `ยินดีต้อนรับ, ${adminData.fullname}`;
                 
                 await loadMasterData();
 
                 if (adminData.companyId && masterData.companies[adminData.companyId]) {
-                    document.getElementById("admin-company").innerText = `สังกัด: ${masterData.companies[adminData.companyId]}`;
+                    document.getElementById("admin-company").innerText = `${masterData.companies[adminData.companyId]}`;
                 } else {
-                    document.getElementById("admin-company").innerText = "สังกัด: Superuser (ทั้งหมด)";
+                    document.getElementById("admin-company").innerText = "Superuser (ทั้งหมด)";
                 }
 
                 listenToCompanyEmployees();
@@ -326,20 +352,35 @@
         }
 
         async function loadMasterData() {
-            const [deptSnap, posSnap, compSnap] = await Promise.all([
+            const [deptSnap, posSnap, compSnap, whSnap] = await Promise.all([
                 db.collection("departments").get(),
                 db.collection("positions").get(),
-                db.collection("companies").get()
+                db.collection("companies").get(),
+                db.collection("warehouses").get()
             ]);
 
-            const deptSelect = document.getElementById("modal-emp-dept");
+            const whSelect = document.getElementById("modal-emp-warehouse");
+            const exportWhSelect = document.getElementById("exportWarehouseSelect");
             const posSelect = document.getElementById("modal-emp-pos");
             
-            deptSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+            whSelect.innerHTML = '<option value="">-- เลือกอาคาร --</option>';
+            exportWhSelect.innerHTML = '<option value="all">-- ทุกอาคาร --</option>';
             posSelect.innerHTML = '<option value="">-- เลือกตำแหน่ง --</option>';
 
-            deptSnap.forEach(d => { masterData.depts[d.id] = d.data().name; deptSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; });
-            posSnap.forEach(d => { masterData.positions[d.id] = d.data().name; posSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; });
+            whSnap.forEach(d => { 
+                masterData.warehouses[d.id] = d.data().name; 
+                whSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+                exportWhSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+            });
+
+            deptSnap.forEach(d => { 
+                masterData.depts[d.id] = { name: d.data().name, warehouseId: d.data().warehouseId }; 
+            });
+
+            posSnap.forEach(d => { 
+                masterData.positions[d.id] = d.data().name; 
+                posSelect.innerHTML += `<option value="${d.id}">${d.data().name}</option>`; 
+            });
             compSnap.forEach(d => { masterData.companies[d.id] = d.data().name; });
         }
 
@@ -353,7 +394,6 @@
                 
                 snap.forEach(doc => {
                     const u = doc.data(); u.id = doc.id;
-                    // แอดมินเห็นเฉพาะบริษัทตัวเอง (ถ้า superuser เห็นหมด)
                     if (adminData.role === 'superuser' || u.companyId === adminData.companyId) {
                         companyEmployees.push(u);
                         if(u.status === 'pending') pendingCount++;
@@ -391,7 +431,7 @@
             }
 
             if (filtered.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-10 text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl bg-white mt-2">ไม่พบรายชื่อพนักงาน</div>';
+                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-[11px] border border-dashed border-slate-200 rounded-xl bg-white mt-1">ไม่พบรายชื่อพนักงาน</div>';
                 return;
             }
 
@@ -403,28 +443,28 @@
                 if(isPending) { sColor = 'bg-amber-100 text-amber-700 border-amber-200'; sText = 'รออนุมัติ'; }
                 if(isReject) { sColor = 'bg-rose-100 text-rose-700 border-rose-200'; sText = 'ระงับ/ไม่อนุมัติ'; }
 
-                const deptStr = masterData.depts[emp.departmentId] || '-';
+                const deptStr = masterData.depts[emp.departmentId]?.name || '-';
                 const posStr = masterData.positions[emp.positionId] || '-';
 
                 listEl.innerHTML += `
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border ${isPending ? 'border-amber-200' : 'border-slate-200'}">
-                        <div class="flex items-start gap-3 border-b border-slate-50 pb-3">
-                            <img src="${emp.photoUrl || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border ${isPending ? 'border-amber-200' : 'border-slate-200'}">
+                        <div class="flex items-start gap-2.5 border-b border-slate-50 pb-2.5">
+                            <img src="${emp.photoUrl || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-full object-cover bg-slate-100 border border-slate-200 shrink-0">
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start">
-                                    <h4 class="font-bold text-[13px] text-slate-800 truncate pr-2">${emp.fullname}</h4>
-                                    <span class="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded border ${sColor}">${sText}</span>
+                                    <h4 class="font-bold text-[12px] text-slate-800 truncate pr-2">${emp.fullname}</h4>
+                                    <span class="shrink-0 text-[8px] font-bold px-1.5 py-0.5 rounded border ${sColor}">${sText}</span>
                                 </div>
                                 ${isPending ? 
-                                    `<p class="text-[10px] text-slate-500 mt-1">📞 ${emp.phone}</p><p class="text-[10px] text-slate-400">ID: ${emp.idCard || '-'}</p>` : 
-                                    `<p class="text-[10px] text-slate-500 mt-0.5 truncate">📂 ${deptStr} | 👔 ${posStr}</p>
-                                     <p class="text-[9px] text-slate-400 mt-1">หมดอายุ: <strong class="${emp.expireDate && new Date(emp.expireDate) < new Date() ? 'text-rose-500' : 'text-slate-600'}">${emp.expireDate || '-'}</strong></p>`
+                                    `<p class="text-[9px] text-slate-500 mt-1">📞 ${emp.phone}</p><p class="text-[9px] text-slate-400">ID: ${emp.idCard || '-'}</p>` : 
+                                    `<p class="text-[9px] text-slate-500 mt-0.5 truncate">📂 ${deptStr} | 👔 ${posStr}</p>
+                                     <p class="text-[8px] text-slate-400 mt-1">สิ้นสุด/หมดอายุ: <strong class="${emp.expireDate && new Date(emp.expireDate) < new Date() ? 'text-rose-500' : 'text-slate-600'}">${emp.expireDate || '-'}</strong></p>`
                                 }
                             </div>
                         </div>
-                        <div class="flex gap-2 mt-3">
+                        <div class="flex gap-2 mt-2.5">
                             ${isPending ? 
-                                `<button onclick="openManageModal('${emp.id}')" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-xl transition shadow-sm">พิจารณาอนุมัติ</button>` :
+                                `<button onclick="openManageModal('${emp.id}')" class="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition shadow-sm">พิจารณาอนุมัติ</button>` :
                                 `<button onclick="openHistoryModal('${emp.id}')" class="flex-1 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg transition">ประวัติทำงาน</button>
                                  <button onclick="openManageModal('${emp.id}')" class="flex-1 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded-lg transition">แก้ไขข้อมูล</button>`
                             }
@@ -457,6 +497,32 @@
         // ==========================================
         // Modal Manage Employee
         // ==========================================
+        function updateModalDeptDropdown() {
+            const whId = document.getElementById('modal-emp-warehouse').value;
+            const deptSelect = document.getElementById('modal-emp-dept');
+            deptSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>';
+            if(!whId) return;
+
+            Object.entries(masterData.depts).forEach(([id, dept]) => {
+                if(dept.warehouseId === whId) {
+                    deptSelect.innerHTML += `<option value="${id}">${dept.name}</option>`;
+                }
+            });
+        }
+
+        function updateExportDeptDropdown() {
+            const whId = document.getElementById('exportWarehouseSelect').value;
+            const deptSelect = document.getElementById('exportDeptSelect');
+            deptSelect.innerHTML = '<option value="all">-- ทุกแผนก --</option>';
+            if(!whId || whId === 'all') return;
+
+            Object.entries(masterData.depts).forEach(([id, dept]) => {
+                if(dept.warehouseId === whId) {
+                    deptSelect.innerHTML += `<option value="${id}">${dept.name}</option>`;
+                }
+            });
+        }
+
         window.openManageModal = function(uid) {
             const emp = companyEmployees.find(e => e.id === uid);
             if(!emp) return;
@@ -468,8 +534,18 @@
             
             document.getElementById('modal-emp-status').value = emp.status || 'pending';
             document.getElementById('modal-emp-reason').value = emp.reason || '';
-            document.getElementById('modal-emp-dept').value = emp.departmentId || '';
             document.getElementById('modal-emp-pos').value = emp.positionId || '';
+
+            // Handle Warehouse and Dept
+            if (emp.departmentId && masterData.depts[emp.departmentId]) {
+                const whId = masterData.depts[emp.departmentId].warehouseId;
+                document.getElementById('modal-emp-warehouse').value = whId || '';
+                updateModalDeptDropdown();
+                document.getElementById('modal-emp-dept').value = emp.departmentId;
+            } else {
+                document.getElementById('modal-emp-warehouse').value = '';
+                updateModalDeptDropdown();
+            }
 
             // Default dates
             const today = new Date();
@@ -540,7 +616,6 @@
 
                   snap.forEach(doc => {
                       const q = doc.data();
-                      // หาว่าบริษัทเราได้โควต้าในแคมเปญนี้กี่คน
                       if (q.allocations) {
                           const myAlloc = q.allocations.find(a => a.companyId === adminData.companyId);
                           if (myAlloc && myAlloc.amount > 0) {
@@ -563,27 +638,27 @@
             listEl.innerHTML = '';
 
             if(companyQuotas.length === 0) {
-                listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-200 rounded-xl mt-2 bg-white">ยังไม่ได้รับโควต้าจาก HR ส่วนกลาง</div>';
+                listEl.innerHTML = '<div class="text-center py-6 text-slate-400 text-[11px] border border-dashed border-slate-200 rounded-xl mt-1 bg-white">ยังไม่ได้รับโควต้าจาก HR</div>';
                 return;
             }
 
             companyQuotas.forEach(q => {
-                const deptStr = masterData.depts[q.deptId] || 'ไม่ระบุ';
+                const deptStr = masterData.depts[q.deptId]?.name || 'ไม่ระบุ';
                 const startStr = q.startDate ? new Date(q.startDate).toLocaleDateString('th-TH', {month:'short', day:'numeric'}) : '-';
                 
                 listEl.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-100 border-l-4 border-l-blue-500">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-blue-100 border-l-4 border-l-blue-500">
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <h4 class="font-bold text-[13px] text-blue-900">${q.campaignName}</h4>
-                                <p class="text-[10px] text-slate-500 mt-0.5">📂 ${deptStr}</p>
+                                <h4 class="font-bold text-[12px] text-blue-900">${q.campaignName}</h4>
+                                <p class="text-[9px] text-slate-500 mt-0.5">📂 ${deptStr}</p>
                             </div>
                             <div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg border border-blue-100 text-center shadow-sm">
-                                <span class="text-[8px] font-bold uppercase block leading-none mb-0.5">ได้รับ</span>
-                                <span class="text-sm font-black leading-none">${q.myAmount} <small class="text-[9px] font-normal">คน</small></span>
+                                <span class="text-[7px] font-bold uppercase block leading-none mb-0.5">ได้รับ</span>
+                                <span class="text-[13px] font-black leading-none">${q.myAmount} <small class="text-[8px] font-normal">คน</small></span>
                             </div>
                         </div>
-                        <div class="text-[10px] text-slate-600 bg-slate-50 p-2 rounded-lg">
+                        <div class="text-[9px] text-slate-600 bg-slate-50 p-2 rounded-lg">
                             <p>📅 เริ่ม: <strong class="text-slate-800">${startStr}</strong> &nbsp; | &nbsp; ⏱️ กะ: <strong class="text-slate-800">${q.startTime}-${q.endTime} น.</strong></p>
                             <p class="mt-1">👔 ตำแหน่ง: <strong class="text-slate-800">${q.position}</strong></p>
                         </div>
@@ -633,18 +708,19 @@
                 
                 listEl.innerHTML = '';
                 records.forEach(h => {
-                    const stars = h.rating ? "★".repeat(h.rating) : "-";
-                    const dName = masterData.depts[h.deptId] || '-';
+                    const stars = h.rating ? "★".repeat(h.rating) + "☆".repeat(5-h.rating) : "รอประเมิน";
+                    const dName = masterData.depts[h.deptId]?.name || '-';
                     listEl.innerHTML += `
-                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-bold text-slate-700">${h.date}</span>
+                                <span class="text-[11px] font-bold text-slate-700">${h.date}</span>
                                 <span class="text-[9px] font-bold text-amber-500">${stars}</span>
                             </div>
                             <p class="text-[9px] text-slate-500 mb-1">แผนก: ${dName}</p>
-                            <p class="text-[10px] font-medium text-slate-600 bg-white p-1.5 rounded-lg border border-slate-100 w-full inline-block">
+                            <p class="text-[9px] font-medium text-slate-600 bg-white p-1.5 rounded-lg border border-slate-100 w-full inline-block mb-1">
                                 IN: <span class="text-emerald-600">${h.scanInTime||'-'}</span> | OUT: <span class="text-amber-600">${h.scanOutTime||'-'}</span>
                             </p>
+                            ${h.comment ? `<p class="text-[9px] text-slate-600 italic bg-white p-1.5 rounded-lg border border-slate-100 mt-1">💬 " ${h.comment} "</p>` : ''}
                         </div>
                     `;
                 });
@@ -653,12 +729,41 @@
 
         function exportToExcel() {
             if(companyEmployees.length === 0) return Swal.fire('ไม่มีข้อมูล', 'ไม่มีพนักงานในสังกัดเพื่อดาวน์โหลด', 'info');
+
+            const startDateInput = document.getElementById("exportStartDate").value;
+            const endDateInput = document.getElementById("exportEndDate").value;
+            const selectedWh = document.getElementById("exportWarehouseSelect").value;
+            const selectedDept = document.getElementById("exportDeptSelect").value;
+
+            let startDate = startDateInput ? new Date(startDateInput + 'T00:00:00') : null;
+            let endDate = endDateInput ? new Date(endDateInput + 'T23:59:59') : null;
+
+            let exportUsers = companyEmployees.filter(u => {
+                // Filter Date
+                if (startDate || endDate) {
+                    if (!u.registeredAt) return false; 
+                    const regDate = u.registeredAt.toDate();
+                    if (startDate && regDate < startDate) return false;
+                    if (endDate && regDate > endDate) return false;
+                }
+                // Filter Department
+                if (selectedDept !== "all" && u.departmentId !== selectedDept) return false;
+                // Filter Warehouse (if dept is 'all' but warehouse is selected)
+                if (selectedWh !== "all" && selectedDept === "all") {
+                    const deptData = masterData.depts[u.departmentId];
+                    if (!deptData || deptData.warehouseId !== selectedWh) return false;
+                }
+                return true;
+            });
+
+            if (exportUsers.length === 0) return Swal.fire('ไม่พบข้อมูล', 'ไม่มีพนักงานที่ตรงกับเงื่อนไขที่คุณเลือก', 'info');
+
             Swal.fire({title:'กำลังเตรียมไฟล์...', timer:1000, didOpen: () => Swal.showLoading()});
             
             setTimeout(() => {
                 let csvContent = "\uFEFFรหัสพนักงาน(UID),ชื่อ-นามสกุล,เบอร์โทรศัพท์,บัตรประชาชน,ทะเบียนรถ,แผนก,ตำแหน่ง,สถานะ,วันเริ่มงาน,วันหมดอายุบัตร\n";
-                companyEmployees.forEach(user => {
-                    const deptStr = masterData.depts[user.departmentId] || '-';
+                exportUsers.forEach(user => {
+                    const deptStr = masterData.depts[user.departmentId]?.name || '-';
                     const posStr = masterData.positions[user.positionId] || '-';
                     const statusStr = user.status === 'approved' ? 'Active' : (user.status === 'pending' ? 'รออนุมัติ' : 'ระงับ/ไม่อนุมัติ');
                     
