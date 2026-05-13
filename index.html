@@ -50,9 +50,8 @@
         // ฟังก์ชันโยนผู้ใช้ไปหน้าต่างๆ
         function redirectUser(role, userId) {
             if (role === "visitor") {
-                window.location.replace("badge.html?uid=" + userId);
+                window.location.replace("employee.html?uid=" + userId);
             } else if (role === "asst_dept") {
-                // แก้ไข: ให้ผู้ช่วยหัวหน้าแผนกใช้หน้าเดียวกับหัวหน้าแผนก
                 window.location.replace("dept.html?uid=" + userId);
             } else {
                 window.location.replace(role + ".html?uid=" + userId);
@@ -71,10 +70,24 @@
                         document.getElementById("status-text").innerHTML = "❌ บัญชีของคุณถูกระงับการใช้งาน<br><small>กรุณาติดต่อผู้ดูแลระบบ</small>";
                         document.getElementById("status-text").style.color = "#c0392b";
                         document.querySelector('.loader').style.display = 'none';
-                        return; // หยุดการทำงานตรงนี้เลย
+                        return;
+                    }
+
+                    // ตรวจสอบ Delegate: ถ้าเป็น visitor ให้เช็คว่าได้รับมอบสิทธิ์หรือเปล่า
+                    if (userData.role === 'visitor' && userData.status === 'approved' && userData.departmentId) {
+                        try {
+                            const delegateDoc = await db.collection("dept_delegates").doc(userData.departmentId).get();
+                            if (delegateDoc.exists) {
+                                const delegateUids = delegateDoc.data().delegateUids || [];
+                                if (delegateUids.includes(userId)) {
+                                    // มอบสิทธิ์แล้ว ส่งไป dept.html (แสดงเฉพาะแท็บเช็คชื่อ/ประเมิน)
+                                    window.location.replace("dept.html?uid=" + userId + "&mode=delegate");
+                                    return;
+                                }
+                            }
+                        } catch(e) { /* ถ้า collection ไม่มี ก็ผ่านไปได้ */ }
                     }
                     
-                    // เด้งไปหน้าล่าสุดที่ถูกต้อง 100%
                     redirectUser(userData.role, userId);
                 } else {
                     window.location.replace("visitor.html?uid=" + userId);
